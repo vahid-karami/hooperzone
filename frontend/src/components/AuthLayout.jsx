@@ -25,7 +25,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
       </section>
 
       <aside className="auth-visual" aria-hidden="true">
-        <img src="/images/auth/login.jpg" alt="" loading="eager" decoding="async" />
+        <img src={`${import.meta.env.BASE_URL}images/auth/login.jpg`} alt="" loading="eager" decoding="async" />
         <div className="auth-visual-copy">
           <p className="auth-visual-title">{t('auth.visualTitle', 'حمایت از هر حرکت')}</p>
           <ul>

@@ -45,7 +45,7 @@ def product(category):
         price=49.99,
         stock=100,
         injury_type=Product.INJURY_TYPE_KNEE,
-        brand="SportMed",
+        brand="HooperZone",
         size="L",
     )
 

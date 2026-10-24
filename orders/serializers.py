@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from drfecommerce.fields import DigitsCharField
+from hooperzone.fields import DigitsCharField
 
 from .models import Order, OrderItem
 

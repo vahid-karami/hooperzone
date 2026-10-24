@@ -142,7 +142,7 @@ export default function Home() {
           </div>
 
           <div className="home2-hero-visual">
-            <img src="/images/home/hero.jpg" alt="" fetchPriority="high" decoding="async" />
+            <img src={`${import.meta.env.BASE_URL}images/home/hero.jpg`} alt="" fetchPriority="high" decoding="async" />
             {spotlight && (
               <Link to={`/products/${spotlight.slug}`} className="home2-spotlight">
                 {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" />}
@@ -238,7 +238,7 @@ export default function Home() {
         <section className="band band-sky">
           <div className="container">
             <header className="home2-head" data-reveal>
-              <h2 className="section-title">{t('home.howWeHelp', 'اسپورت‌مد چگونه کمک می‌کند')}</h2>
+              <h2 className="section-title">{t('home.howWeHelp', 'هوپرزون چگونه کمک می‌کند')}</h2>
               <p>{t('home.howWeHelpText', 'از درد مزمن مفاصل تا آسیب‌های ورزشی؛ راه‌هایی را ببینید که به شما کمک می‌کنند فعال بمانید.')}</p>
             </header>
             <div className="home2-guides">
@@ -291,9 +291,9 @@ export default function Home() {
 
       <section className="band seo-block">
         <div className="container narrow">
-          <h2 className="section-title">{t('home.aboutTitle', 'اسپورت‌مد')}</h2>
+          <h2 className="section-title">{t('home.aboutTitle', 'هوپرزون')}</h2>
           <p>
-            {t('home.aboutText', 'ساپورت‌ها و پوشاک فشاری اسپورت‌مد با پارچه‌های تنفس‌پذیر و فشار هدفمند، گردش خون را بهبود می‌دهند و به ثبات مفصل کمک می‌کنند؛ نتیجه، درد کمتر، ریکاوری سریع‌تر و اعتماد به نفس بیشتر در حرکت است. برای شروع، عضو بدن یا نوع محصول مورد نظرتان را انتخاب کنید.')}
+            {t('home.aboutText', 'ساپورت‌ها و پوشاک فشاری هوپرزون با پارچه‌های تنفس‌پذیر و فشار هدفمند، گردش خون را بهبود می‌دهند و به ثبات مفصل کمک می‌کنند؛ نتیجه، درد کمتر، ریکاوری سریع‌تر و اعتماد به نفس بیشتر در حرکت است. برای شروع، عضو بدن یا نوع محصول مورد نظرتان را انتخاب کنید.')}
           </p>
         </div>
       </section>

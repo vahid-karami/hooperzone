@@ -44,7 +44,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "drfecommerce.urls"
+ROOT_URLCONF = "hooperzone.urls"
 
 TEMPLATES = [
     {
@@ -61,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "drfecommerce.wsgi.application"
+WSGI_APPLICATION = "hooperzone.wsgi.application"
 
 DATABASES = {
     "default": {
@@ -99,7 +99,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Built React app (npm run build:django). Its assets are collected as static files
-# and its index.html is served for all non-API URLs (see drfecommerce/urls.py).
+# and its index.html is served for all non-API URLs (see hooperzone/urls.py).
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
 STATICFILES_DIRS = [FRONTEND_DIST] if FRONTEND_DIST.exists() else []
 MEDIA_URL = "media/"

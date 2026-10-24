@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from drfecommerce.fields import DigitsCharField, normalize_digits
+from hooperzone.fields import DigitsCharField, normalize_digits
 
 User = get_user_model()
 

@@ -1,4 +1,4 @@
-# SportMed (اسپورت‌مد) — Persian sports-support e-commerce
+# HooperZone (هوپرزون) — Persian sports-support e-commerce
 
 Django REST backend + React SPA. Persian-first (RTL), English secondary. Visual style inspired by bauerfeind.us, but with its own branding: never copy Bauerfeind assets or text.
 
@@ -8,7 +8,7 @@ Django REST backend + React SPA. Persian-first (RTL), English secondary. Visual 
 
 ## Stack
 - Backend: Django 6, DRF, simplejwt. Apps: `accounts` (phone-number users), `products` (products, categories, sports, images), `cart`, `orders` (orders, payments, staff admin API), `favorites`, `reviews`.
-- Settings: `drfecommerce/settings/{base,local,production}.py`. The default is `local` (SQLite `drfecommerce/db.sqlite3`).
+- Settings: `hooperzone/settings/{base,local,production}.py`. The default is `local` (SQLite `hooperzone/db.sqlite3`).
 - Frontend: `frontend/` with React 19, Vite 8, react-i18next, vitest, oxlint.
 
 ## Commands (run from repo root on Windows)
@@ -29,12 +29,12 @@ cd frontend && npm run build:django               # production build served by D
 - Design tokens are in `styles/design-tokens.css`: navy `#12348f` primary, sky `#e8eef7` surfaces, Vazirmatn font, pill buttons.
 - Stylesheets by area: `storefront.css` (header/home), `catalog.css`, `pages.css`, `product.css`, `checkout.css`, `account.css` (profile/orders/admin), `rtl.css`. `main.css` is legacy; don't add to it, and prune dead rules when you replace markup.
 - Every UI string uses `t('key', 'Persian default')`, and the key must exist in both `i18n/locales/fa.json` and `en.json`.
-- Persian digits: normalize input with `utils/digits.js` `toEnglishDigits`; display numbers with `toPersianNumber` (`hooks/useLanguage.js`). The backend also accepts Persian digits (`drfecommerce/fields.py` `DigitsCharField`).
+- Persian digits: normalize input with `utils/digits.js` `toEnglishDigits`; display numbers with `toPersianNumber` (`hooks/useLanguage.js`). The backend also accepts Persian digits (`hooperzone/fields.py` `DigitsCharField`).
 - API paths live in `api/endpoints.js`. For paginated lists that need every page, use `utils/fetchAll.js` `fetchAllPages`.
 - Account pages (profile, orders) are wrapped in `components/AccountLayout.jsx`. The admin portal (`/admin-portal`, `layouts/AdminLayout.jsx`) is staff-only (`user.is_staff`) and has its backend in `orders/admin_views.py`. Images for products and categories are uploaded in Django admin (`/admin/`).
 
 ## Payments
 `utils/payment.js` `startPayment()` → `POST /api/orders/<number>/pay/` with a callback URL of `/payment/result`. The backend validates the callback host. In sandbox mode it redirects straight back, and `PaymentResult` verifies the payment.
 
-## Deployment (Liara)
-See `DEPLOY_LIARA.md`. `liara.json` (Django platform, disks `database` and `media`) runs `liara_pre_start.sh`: migrate, collectstatic and seed commands. Run `npm run build:django` before deploying; `.liaraignore` uploads `frontend/dist`. Django serves the SPA's `index.html` for all non-API paths (`drfecommerce/urls.py`).
+## Deployment (Wispbyte + hooperzone.ir)
+See `DEPLOY_WISPBYTE.md`. `python scripts/package_wispbyte.py` builds React and writes `build/hooperzone-wispbyte.zip`, which is uploaded to a Wispbyte Python server. Its entry file `wispbyte_start.py` creates `.env` on first boot, then runs migrate, collectstatic and the seed commands and serves with Waitress on `SERVER_PORT`. In production WhiteNoise serves `/static` and Django serves `/media`. Cloudflare proxies `hooperzone.ir` to the server port. Django serves the SPA's `index.html` for all non-API paths (`hooperzone/urls.py`). Public images in JSX need `import.meta.env.BASE_URL` (it is `/static/` in the Django build).

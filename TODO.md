@@ -1,4 +1,4 @@
-# SportMed Shop - Development TODO
+# HooperZone - Development TODO
 
 ## Phase 1: Internationalization (i18n) Setup
 - [x] Install and configure react-i18next for React

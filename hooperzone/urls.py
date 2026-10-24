@@ -3,12 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse, JsonResponse
 from django.urls import include, path, re_path
+from django.views.static import serve
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
 def api_root(request):
     return JsonResponse({
-        "message": "SportMed Shop API",
+        "message": "HooperZone API",
         "version": "1.0",
         "endpoints": {
             "admin": "/admin/",
@@ -49,6 +50,11 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif getattr(settings, "SERVE_MEDIA", False):
+    # Production without a separate web server (Wispbyte): Django serves uploaded images.
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]
 
 urlpatterns += [
     re_path(r"^(?!api/|admin/|media/|static/).*$", frontend_app, name="frontend"),

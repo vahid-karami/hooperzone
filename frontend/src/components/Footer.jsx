@@ -19,7 +19,7 @@ export default function Footer() {
       <div className="container footer-grid">
         <div className="footer-brand">
           <Logo />
-          <p>{t('footer.about', 'اسپورت‌مد فروشگاه تخصصی ساپورت‌ها و بریس‌های ورزشی و طبی است؛ برای پیشگیری از آسیب، همراهی در دوران درمان و بازگشت مطمئن به فعالیت.')}</p>
+          <p>{t('footer.about', 'هوپرزون فروشگاه تخصصی ساپورت‌ها و بریس‌های ورزشی و طبی است؛ برای پیشگیری از آسیب، همراهی در دوران درمان و بازگشت مطمئن به فعالیت.')}</p>
           <a className="footer-phone" href="tel:+982112345678">
             <Icon name="phone" size={20} />
             <span dir="ltr">۰۲۱-۱۲۳۴۵۶۷۸</span>
@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-col">
-          <h4>{t('footer.whyUs', 'چرا اسپورت‌مد')}</h4>
+          <h4>{t('footer.whyUs', 'چرا هوپرزون')}</h4>
           <ul className="footer-checks">
             <li><Icon name="check" size={16} /> {t('footer.genuine', 'ضمانت اصالت کالا')}</li>
             <li><Icon name="check" size={16} /> {t('footer.returns', '۷ روز ضمانت بازگشت')}</li>
@@ -70,7 +70,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <p>© {year} {t('footer.copyright', 'اسپورت‌مد. تمامی حقوق محفوظ است.')}</p>
+          <p>© {year} {t('footer.copyright', 'هوپرزون. تمامی حقوق محفوظ است.')}</p>
           <div className="payment-badges" aria-label={t('footer.paymentMethods', 'روش‌های پرداخت')}>
             <span>شتاب</span>
             <span>زرین‌پال</span>

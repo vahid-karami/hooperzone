@@ -18,6 +18,7 @@ database/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+build/
 frontend/.vite/
 
 # Production

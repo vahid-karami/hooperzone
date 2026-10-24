@@ -1,2 +1,2 @@
-# Shell scripts run on Linux (Liara); keep LF line endings on every OS.
+# Shell scripts run on Linux; keep LF line endings on every OS.
 *.sh text eol=lf

@@ -67,8 +67,8 @@
     "featuredProducts": "Featured Products",
     "findRightSupport": "Find the Right Support",
     "findRightSupportDesc": "Guides to help you make informed choices",
-    "aboutText": "SportMed supports and compression wear use breathable fabrics and targeted compression to improve circulation and joint stability — meaning less pain, faster recovery and more confidence in every movement. Start by choosing a body part or product type.",
-    "aboutTitle": "SportMed",
+    "aboutText": "HooperZone supports and compression wear use breathable fabrics and targeted compression to improve circulation and joint stability — meaning less pain, faster recovery and more confidence in every movement. Start by choosing a body part or product type.",
+    "aboutTitle": "HooperZone",
     "adviceCta": "Talk to an expert",
     "adviceEyebrow": "Free advice",
     "adviceText": "Our specialists help you pick the support that fits your needs exactly.",
@@ -82,7 +82,7 @@
     "guideBackTitle": "Relief from back pain",
     "guideKneeText": "Causes, symptoms and the right support for each stage.",
     "guideKneeTitle": "Guide to knee pain",
-    "howWeHelp": "How SportMed can help",
+    "howWeHelp": "How HooperZone can help",
     "howWeHelpText": "From chronic joint pain to sports injuries — explore the ways we help you stay active.",
     "metaDescription": "Knee braces, ankle supports, back supports and compression wear for prevention, recovery and performance.",
     "metaTitle": "Sports & medical supports and braces",
@@ -404,15 +404,15 @@
     "fa": "فارسی"
   },
   "categories": {
-    "description": "Browse every SportMed product category.",
+    "description": "Browse every HooperZone product category.",
     "title": "Product categories",
     "intro": "Find the right support by product type, body part or sport.",
     "viewProducts": "View products"
   },
   "footer": {
-    "about": "SportMed is a specialist store for sports and medical supports and braces — for injury prevention, recovery and a confident return to activity.",
+    "about": "HooperZone is a specialist store for sports and medical supports and braces — for injury prevention, recovery and a confident return to activity.",
     "advice": "Sizing advice",
-    "copyright": "SportMed. All rights reserved.",
+    "copyright": "HooperZone. All rights reserved.",
     "customerService": "Customer service",
     "emailPlaceholder": "Your email",
     "genuine": "Genuine products guaranteed",
@@ -424,7 +424,7 @@
     "securePay": "Secure ZarinPal & IDPay checkout",
     "subscribe": "Subscribe",
     "trackOrder": "Track your order",
-    "whyUs": "Why SportMed"
+    "whyUs": "Why HooperZone"
   },
   "profile": {
     "accountDetails": "Account details",
@@ -512,7 +512,7 @@
     "changePercent": "Change (%)",
     "applyPrices": "Apply to {{count}} products",
     "pctHint": "Positive raises prices, negative lowers them. Prices round to the nearest 1,000 Toman. “New price” is a preview until you apply.",
-    "printTitle": "SportMed price list",
+    "printTitle": "HooperZone price list",
     "product": "Product",
     "currentPrice": "Current price",
     "newPrice": "New price",

@@ -24,7 +24,7 @@ FALLBACK_BY_INJURY_TYPE = {
 
 
 class Command(BaseCommand):
-    help = "Attach the product photos in drfecommerce/frontend/public/images/products to products"
+    help = "Attach the product photos in hooperzone/frontend/public/images/products to products"
 
     def handle(self, *args, **kwargs):
         ProductImage.objects.all().delete()

@@ -110,7 +110,7 @@ export default function AdminPriceDeclaration() {
       </section>
 
       <div className="print-only print-title">
-        <h2>{t('admin.printTitle', 'فهرست قیمت محصولات اسپورت‌مد')}</h2>
+        <h2>{t('admin.printTitle', 'فهرست قیمت محصولات هوپرزون')}</h2>
         <p>{today}{category ? ` — ${category.name_fa || category.name}` : ''}</p>
       </div>
 

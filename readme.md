@@ -1,4 +1,4 @@
-# SportMed Shop - Sports Injury Recovery E-commerce
+# HooperZone - Sports Injury Recovery E-commerce
 
 A full-stack e-commerce application for selling sport injury recovery equipment, built with Django REST Framework backend and React frontend.
 
@@ -24,7 +24,7 @@ A full-stack e-commerce application for selling sport injury recovery equipment,
 ### Initial Setup
 ```bash
 # Clone and navigate to project
-cd drfecommerce
+cd hooperzone
 
 # Create virtual environment
 python -m venv venv
@@ -46,12 +46,12 @@ python manage.py seed_demo_data
 ### Running the Application
 ```bash
 # Terminal 1 - Backend (from project root)
-cd drfecommerce
+cd hooperzone
 source venv/bin/activate
 python manage.py runserver
 
 # Terminal 2 - Frontend (from project root)
-cd drfecommerce/frontend
+cd hooperzone/frontend
 npm install
 npm run dev
 ```
@@ -59,14 +59,14 @@ npm run dev
 ### Running Tests
 ```bash
 # Run all backend tests
-cd drfecommerce
+cd hooperzone
 pytest
 
 # Run tests with verbose output
 pytest -v
 
 # Run specific test file
-pytest drfecommerce/tests/test_api.py
+pytest hooperzone/tests/test_api.py
 ```
 
 ### Build for Production
@@ -76,7 +76,7 @@ cd frontend
 npm run build
 
 # Collect static files (Django)
-cd ../drfecommerce
+cd ../hooperzone
 python manage.py collectstatic
 ```
 
@@ -137,8 +137,8 @@ python manage.py collectstatic
 ## Repository Layout
 
 ```
-drfecommerce/
-├── drfecommerce/          # Django project settings
+hooperzone/
+├── hooperzone/          # Django project settings
 │   ├── settings/
 │   │   ├── base.py        # Shared settings
 │   │   ├── local.py       # Development settings
@@ -336,7 +336,7 @@ const bodyParts = [
 ## Running Tests
 
 ```bash
-cd drfecommerce
+cd hooperzone
 pytest
 ```
 

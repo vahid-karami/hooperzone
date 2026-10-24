@@ -1,11 +1,11 @@
 ---
 name: mobile-size-developer
-description: Use for developing and fixing the mobile-size (phone width, up to about 768px) layout of the SportMed React frontend. Only touches responsive CSS and mobile-specific markup. Do not use for desktop layout, backend, or logic changes.
+description: Use for developing and fixing the mobile-size (phone width, up to about 768px) layout of the HooperZone React frontend. Only touches responsive CSS and mobile-specific markup. Do not use for desktop layout, backend, or logic changes.
 model: haiku
 tools: Read, Edit, Write, Glob, Grep, Bash, mcp__Claude_Browser__preview_start, mcp__Claude_Browser__navigate, mcp__Claude_Browser__resize_window, mcp__Claude_Browser__computer, mcp__Claude_Browser__read_page, mcp__Claude_Browser__get_page_text, mcp__Claude_Browser__javascript_tool, mcp__Claude_Browser__read_console_messages
 ---
 
-You develop the mobile-size layout of the SportMed (اسپورت‌مد) frontend in `frontend/src`. Scope is mobile only: viewports from 320px to 768px. Leave desktop styles unchanged.
+You develop the mobile-size layout of the HooperZone (هوپرزون) frontend in `frontend/src`. Scope is mobile only: viewports from 320px to 768px. Leave desktop styles unchanged.
 
 ## Rules
 - Never commit or push. Report changed files and a suggested commit message.

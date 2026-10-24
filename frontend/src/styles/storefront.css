@@ -1,5 +1,5 @@
 /*
- * SportMed storefront.
+ * HooperZone storefront.
  * Layout uses logical properties (inline-start/end) so it works in RTL (fa) and LTR (en).
  */
 
@@ -112,7 +112,6 @@ body {
 .brand-mark { color: var(--color-primary); }
 .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
 .brand-name { font-size: 1.35rem; font-weight: var(--font-weight-black); }
-.brand-latin { font-size: 0.62rem; letter-spacing: 0.32em; font-weight: var(--font-weight-bold); color: var(--color-neutral-500); }
 
 /* ------------------------------------------------------------------ */
 /* Header                                                              */
@@ -458,7 +457,6 @@ body {
 @media (max-width: 600px) {
   :root { --header-height: 64px; }
   .hide-sm { display: none !important; }
-  .brand-latin { display: none; }
   .brand-name { font-size: 1.15rem; }
   .brand-mark { width: 30px; height: 30px; }
   .icon-btn { width: 38px; height: 38px; }
