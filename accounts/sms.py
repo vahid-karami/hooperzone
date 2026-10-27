@@ -22,9 +22,13 @@ def sms_configured():
 def send_otp_sms(phone, code):
     """Send `code` to `phone` with the SMS.ir verify template. Raises SMSError on failure.
 
-    Without SMS.ir settings (development) the code is only written to the log.
+    Without SMS.ir settings the code is only written to the log in development; in
+    production (SMS_REQUIRED) that is an error, so customers aren't told a code is on its way.
     """
     if not sms_configured():
+        if getattr(settings, "SMS_REQUIRED", False):
+            logger.error("SMS.ir is not configured (SMSIR_API_KEY / SMSIR_TEMPLATE_ID); OTP to %s not sent", phone)
+            raise SMSError("SMS is not configured")
         logger.warning("SMS.ir is not configured; OTP for %s is %s", phone, code)
         return False
 

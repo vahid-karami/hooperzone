@@ -24,6 +24,7 @@ frontend/.vite/
 # Production
 staticfiles/
 media/
+logs/
 *.log
 *.pid
 *.seed

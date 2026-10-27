@@ -31,7 +31,8 @@ cd frontend && npm run build:django               # production build served by D
 - Every UI string uses `t('key', 'Persian default')`, and the key must exist in both `i18n/locales/fa.json` and `en.json`.
 - Persian digits: normalize input with `utils/digits.js` `toEnglishDigits`; display numbers with `toPersianNumber` (`hooks/useLanguage.js`). The backend also accepts Persian digits (`hooperzone/fields.py` `DigitsCharField`).
 - API paths live in `api/endpoints.js`. For paginated lists that need every page, use `utils/fetchAll.js` `fetchAllPages`.
-- Account pages (profile, orders) are wrapped in `components/AccountLayout.jsx`. The admin portal (`/admin-portal`, `layouts/AdminLayout.jsx`) is staff-only (`user.is_staff`) and has its backend in `orders/admin_views.py`. Images for products and categories are uploaded in Django admin (`/admin/`).
+- Account pages (profile, orders) are wrapped in `components/AccountLayout.jsx`. The admin portal (`/admin-portal`, `layouts/AdminLayout.jsx`) is staff-only (`user.is_staff`). Its backend is `orders/admin_views.py` (orders, stats, shop settings), `products/views.py` (`ProductAdminViewSet` incl. images, `CategoryAdminViewSet`) and `accounts/admin_views.py` (customers). Product and category images are uploaded in the portal; thumbnails are generated on save.
+- SEO: `hooperzone/seo.py` renders per-page meta/JSON-LD into index.html and serves robots.txt and sitemap.xml; `utils/seo.js` `usePageMeta` keeps the head in sync client-side (pass `noindex` for private pages).
 
 ## Payments
 `utils/payment.js` `startPayment()` → `POST /api/orders/<number>/pay/` with a callback URL of `/payment/result`. The backend validates the callback host. In sandbox mode it redirects straight back, and `PaymentResult` verifies the payment.

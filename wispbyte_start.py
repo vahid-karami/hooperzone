@@ -34,7 +34,7 @@ ZARINPAL_MERCHANT_ID=
 # SMS.ir: API key from app.sms.ir > Developers, and the ID of a verify template with a CODE parameter.
 SMSIR_API_KEY=
 SMSIR_TEMPLATE_ID=
-# Set after Cloudflare SSL/TLS mode is "Full" and https works everywhere, e.g. 31536000.
+# Once https://hooperzone.ir works everywhere, set e.g. 31536000 (browsers then insist on https).
 SECURE_HSTS_SECONDS=0
 # Fill both and restart once to create the Django admin user, then delete ADMIN_PASSWORD.
 ADMIN_PHONE=

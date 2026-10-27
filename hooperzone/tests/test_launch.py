@@ -230,3 +230,11 @@ def test_backup_db_copies_sqlite(tmp_path):
         conn.execute("create table t (x int)")
     call_command("backup_db", source=str(db))
     assert len(list((tmp_path / "backups").glob("db-*.sqlite3"))) == 1
+
+
+@pytest.mark.django_db
+def test_otp_fails_clearly_when_sms_is_required_but_not_configured(settings):
+    settings.SMS_REQUIRED = True
+    settings.SMSIR_API_KEY = ""
+    res = APIClient().post(reverse("accounts:otp-send"), {"phone": "09121111113", "otp_type": "register"})
+    assert res.status_code == 503

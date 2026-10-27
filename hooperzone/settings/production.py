@@ -42,8 +42,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = PROJECT_ROOT / "media"
 SERVE_MEDIA = True
 
-# Security headers. Turn on HSTS (e.g. SECURE_HSTS_SECONDS=31536000) only after Cloudflare
-# SSL is set to Full and the site works over https everywhere.
+# Security headers. Turn on HSTS (e.g. SECURE_HSTS_SECONDS=31536000) only once
+# https://hooperzone.ir works everywhere (Cloudflare "Always Use HTTPS" on): browsers
+# then refuse plain http for that long.
 SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "0"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -54,6 +55,8 @@ X_FRAME_OPTIONS = "DENY"
 # whatever an old .env says.
 OTP_RETURN_IN_RESPONSE = False
 PAYMENT_MOCK_FALLBACK = False
+# Codes can only reach customers by SMS here, so a missing SMS.ir config is an error.
+SMS_REQUIRED = True
 
 LOG_DIR = PROJECT_ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
