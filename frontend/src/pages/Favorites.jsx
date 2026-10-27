@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageMeta } from '../utils/seo';
 import { useFavorites } from '../context/FavoritesContext';
 import ProductCard from '../components/ProductCard';
 
 export default function Favorites() {
   const { t } = useTranslation();
+  usePageMeta({ title: t('header.myFavorites'), noindex: true });
   const { favorites, removeFromFavorites, clearFavorites } = useFavorites();
 
   if (!favorites.items || favorites.items.length === 0) {

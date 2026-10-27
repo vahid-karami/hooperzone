@@ -667,7 +667,12 @@
     "whatsapp": "واتس‌اپ",
     "withOrdersOnly": "فقط خریداران",
     "workingHours": "ساعات پاسخگویی",
-    "printInvoiceNow": "چاپ فاکتور"
+    "printInvoiceNow": "چاپ فاکتور",
+    "charsLeft": "{{count}} نویسه باقی‌مانده",
+    "metaDescription": "توضیح در نتایج جستجو",
+    "metaTitle": "عنوان در نتایج جستجو",
+    "seo": "سئو (نمایش در گوگل)",
+    "seoHint": "خالی بگذارید تا از نام و توضیحات محصول استفاده شود."
   },
   "info": {
     "nav": {

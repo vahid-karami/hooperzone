@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../context/ToastContext';
 import { ProductDetailSkeleton } from '../components/Skeletons';
-import { usePageMeta, ProductSchema } from '../utils/seo';
+import { usePageMeta, ProductSchema, BreadcrumbSchema } from '../utils/seo';
 import Price from '../components/Price';
 import Icon from '../components/Icon';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -71,7 +71,12 @@ export default function ProductDetail() {
     ? (lang === 'fa' && product.description_fa) || product.description_localized || product.description
     : '';
 
-  usePageMeta({ title: name, description, image: product?.images?.[0]?.image });
+  usePageMeta({
+    title: (lang === 'fa' && product?.meta_title) || name,
+    description: ((lang === 'fa' && product?.meta_description) || description).slice(0, 170),
+    image: product?.images?.[0]?.image,
+    type: 'product',
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -203,6 +208,7 @@ export default function ProductDetail() {
   return (
     <div className="pdp">
       <ProductSchema product={product} />
+      <BreadcrumbSchema items={crumbs} />
       <div className="container">
         <Breadcrumbs items={crumbs} />
 

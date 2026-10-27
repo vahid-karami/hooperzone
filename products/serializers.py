@@ -86,7 +86,7 @@ class CategoryAdminSerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             "id", "name", "name_fa", "slug", "description", "description_fa", "image",
-            "is_active", "product_count", "created_at",
+            "meta_title", "meta_description", "is_active", "product_count", "created_at",
         ]
         read_only_fields = ["id", "created_at"]
         extra_kwargs = {"slug": {"required": False}}
@@ -147,6 +147,8 @@ class SportBriefSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
+    rating_average = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
     sports = SportBriefSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -181,7 +183,25 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "name_localized",
             "description_localized",
+            "meta_title",
+            "meta_description",
+            "rating_average",
+            "rating_count",
         ]
+
+    def _ratings(self, obj):
+        if not hasattr(obj, "_rating_stats"):
+            from django.db.models import Avg, Count
+
+            obj._rating_stats = obj.reviews.aggregate(avg=Avg("rating"), count=Count("id"))
+        return obj._rating_stats
+
+    def get_rating_average(self, obj):
+        avg = self._ratings(obj)["avg"]
+        return round(avg, 1) if avg else None
+
+    def get_rating_count(self, obj):
+        return self._ratings(obj)["count"]
 
     def get_name_localized(self, obj):
         lang = self.context.get('lang', 'en')
@@ -225,6 +245,8 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "color",
             "weight",
             "material",
+            "meta_title",
+            "meta_description",
             "is_active",
             "is_featured",
             "in_stock",
@@ -289,6 +311,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "color",
             "weight",
             "material",
+            "meta_title",
+            "meta_description",
             "is_active",
             "is_featured",
         ]

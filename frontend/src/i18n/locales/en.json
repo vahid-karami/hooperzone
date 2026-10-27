@@ -667,7 +667,12 @@
     "whatsapp": "WhatsApp",
     "withOrdersOnly": "Buyers only",
     "workingHours": "Support hours",
-    "printInvoiceNow": "Print invoice"
+    "printInvoiceNow": "Print invoice",
+    "charsLeft": "{{count}} characters left",
+    "metaDescription": "Search result description",
+    "metaTitle": "Search result title",
+    "seo": "SEO (how it appears on Google)",
+    "seoHint": "Leave empty to use the name and description."
   },
   "info": {
     "nav": {

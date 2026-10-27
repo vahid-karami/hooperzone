@@ -18,7 +18,7 @@ export default function PaymentResult() {
   const gateway = params.get('gateway') || 'zarinpal';
   const authority = params.get('Authority') || params.get('authority') || params.get('id');
 
-  usePageMeta({ title: t('payment.resultTitle', 'نتیجه پرداخت') });
+  usePageMeta({ title: t('payment.resultTitle', 'نتیجه پرداخت'), noindex: true });
 
   useEffect(() => {
     // Verify exactly once (StrictMode mounts effects twice in development).

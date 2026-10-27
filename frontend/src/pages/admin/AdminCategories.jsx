@@ -8,7 +8,7 @@ import Icon from '../../components/Icon';
 import { toPersianNumber } from '../../hooks/useLanguage';
 import { usePageMeta } from '../../utils/seo';
 
-const EMPTY = { name: '', name_fa: '', slug: '', description: '', description_fa: '', is_active: true };
+const EMPTY = { name: '', name_fa: '', slug: '', description: '', description_fa: '', meta_title: '', meta_description: '', is_active: true };
 
 export default function AdminCategories() {
   const { t, i18n } = useTranslation();
@@ -187,6 +187,15 @@ export default function AdminCategories() {
               <div className="form-group">
                 <label className="form-label" htmlFor="c-desc">{t('admin.descEn', 'توضیحات انگلیسی')}</label>
                 <textarea id="c-desc" className="form-textarea" rows={2} dir="ltr" value={form.description} onChange={(e) => setField('description', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="c-meta-title">{t('admin.metaTitle', 'عنوان در نتایج جستجو')}</label>
+                <input id="c-meta-title" className="form-input" maxLength={70} value={form.meta_title} onChange={(e) => setField('meta_title', e.target.value)} placeholder={form.name_fa} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="c-meta-desc">{t('admin.metaDescription', 'توضیح در نتایج جستجو')}</label>
+                <textarea id="c-meta-desc" className="form-textarea" rows={2} maxLength={170} value={form.meta_description} onChange={(e) => setField('meta_description', e.target.value)} />
+                <p className="field-hint">{t('admin.seoHint', 'خالی بگذارید تا از نام و توضیحات محصول استفاده شود.')}</p>
               </div>
               <label className="check-inline">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setField('is_active', e.target.checked)} />

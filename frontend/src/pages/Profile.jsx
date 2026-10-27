@@ -21,7 +21,7 @@ export default function Profile() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  usePageMeta({ title: t('header.myAccount') });
+  usePageMeta({ title: t('header.myAccount'), noindex: true });
 
   useEffect(() => {
     if (!user) return;

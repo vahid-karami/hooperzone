@@ -20,7 +20,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const { info, error: showError } = useToast();
 
-  usePageMeta({ title: t('cart.shoppingCart') });
+  usePageMeta({ title: t('cart.shoppingCart'), noindex: true });
 
   const itemName = (product) => (lang === 'fa' && product.name_fa) || product.name_localized || product.name;
 

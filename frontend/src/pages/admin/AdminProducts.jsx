@@ -131,6 +131,7 @@ const EMPTY_FORM = {
   name: '', name_fa: '', description: '', description_fa: '', category: '',
   price: '', cost: '', discount_price: '', stock: '', injury_type: 'general',
   brand: '', size: '', color: '', weight: '', material: '', is_active: true, is_featured: false, sports: [],
+  meta_title: '', meta_description: '',
 };
 
 const toNumberOrNull = (v, parse = parseFloat) => (v === '' || v === null || v === undefined ? null : parse(v));
@@ -564,6 +565,20 @@ export default function AdminProducts() {
                     <input type="checkbox" checked={form.is_featured} onChange={(e) => setField('is_featured', e.target.checked)} />
                     {t('admin.featuredHint', 'نمایش در پرفروش‌ها')}
                   </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>{t('admin.seo', 'سئو (نمایش در گوگل)')}</legend>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="p-meta-title">{t('admin.metaTitle', 'عنوان در نتایج جستجو')}</label>
+                  <input id="p-meta-title" className="form-input" maxLength={70} value={form.meta_title} onChange={(e) => setField('meta_title', e.target.value)} placeholder={form.name_fa} />
+                  <p className="field-hint">{t('admin.charsLeft', '{{count}} نویسه باقی‌مانده', { count: num(70 - form.meta_title.length) })}</p>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="p-meta-desc">{t('admin.metaDescription', 'توضیح در نتایج جستجو')}</label>
+                  <textarea id="p-meta-desc" className="form-textarea" rows={2} maxLength={170} value={form.meta_description} onChange={(e) => setField('meta_description', e.target.value)} placeholder={form.description_fa.slice(0, 160)} />
+                  <p className="field-hint">{t('admin.seoHint', 'خالی بگذارید تا از نام و توضیحات محصول استفاده شود.')}</p>
                 </div>
               </fieldset>
 

@@ -41,7 +41,7 @@ export default function Checkout() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { error: showError } = useToast();
 
-  usePageMeta({ title: t('checkout.title') });
+  usePageMeta({ title: t('checkout.title'), noindex: true });
 
   // Prefilled from the profile; the user can edit everything.
   const [form, setForm] = useState(() => ({

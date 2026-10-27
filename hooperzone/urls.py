@@ -1,10 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import HttpResponse, JsonResponse
+from django.contrib.sitemaps.views import sitemap
+from django.http import JsonResponse
 from django.urls import include, path, re_path
+from django.views.decorators.cache import cache_page
 from django.views.static import serve
 from rest_framework_simplejwt.views import TokenRefreshView
+
+from . import seo
 
 
 def api_root(request):
@@ -31,12 +35,18 @@ def frontend_app(request):
     index = settings.FRONTEND_DIST / "index.html"
     if not index.exists():
         return api_root(request)
-    response = HttpResponse(index.read_text(encoding="utf-8"))
-    response["Cache-Control"] = "no-cache"
-    return response
+    # Each URL gets its own title, description and structured data for search engines.
+    return seo.render_page(request, index.read_text(encoding="utf-8"))
 
 
 urlpatterns = [
+    path("robots.txt", seo.robots_txt, name="robots"),
+    path(
+        "sitemap.xml",
+        cache_page(3600)(sitemap),
+        {"sitemaps": seo.SITEMAPS, "template_name": "sitemap.xml"},
+        name="sitemap",
+    ),
     path("api/", api_root, name="api-root"),
     path("admin/", admin.site.urls),
     path("api/auth/", include("accounts.urls")),
@@ -57,5 +67,5 @@ elif getattr(settings, "SERVE_MEDIA", False):
     ]
 
 urlpatterns += [
-    re_path(r"^(?!api/|admin/|media/|static/).*$", frontend_app, name="frontend"),
+    re_path(r"^(?!api/|admin/|media/|static/|robots\.txt$|sitemap\.xml$).*$", frontend_app, name="frontend"),
 ]

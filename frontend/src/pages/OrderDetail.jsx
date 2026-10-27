@@ -26,7 +26,7 @@ export default function OrderDetail() {
   const [gateway, setGateway] = useState('zarinpal');
   const [busy, setBusy] = useState(false);
 
-  usePageMeta({ title: t('orders.orderDetail') });
+  usePageMeta({ title: t('orders.orderDetail'), noindex: true });
 
   useEffect(() => {
     apiClient

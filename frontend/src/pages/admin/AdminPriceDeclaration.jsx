@@ -29,7 +29,7 @@ export default function AdminPriceDeclaration() {
   const [percentage, setPercentage] = useState('');
   const [applying, setApplying] = useState(false);
 
-  usePageMeta({ title: t('admin.priceList', 'اعلامیه قیمت') });
+  usePageMeta({ title: t('admin.priceList', 'اعلامیه قیمت'), noindex: true });
 
   const load = useCallback(() => {
     fetchAllPages(ENDPOINTS.adminProducts)

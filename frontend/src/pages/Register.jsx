@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageMeta } from '../utils/seo';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
 
 export default function Register() {
   const { t } = useTranslation();
+  usePageMeta({ title: t('common.register', 'ثبت‌نام'), noindex: true });
   const navigate = useNavigate();
   const { sendOTP, verifyOTP, register } = useAuth();
   const { success, error: showError } = useToast();

@@ -39,6 +39,8 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     description_fa = models.TextField(blank=True, verbose_name="Description (Persian)")
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    meta_title = models.CharField(max_length=70, blank=True, help_text="Search result title (optional)")
+    meta_description = models.CharField(max_length=170, blank=True, help_text="Search result snippet (optional)")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -127,6 +129,8 @@ class Product(models.Model):
     color = models.CharField(max_length=50, blank=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Weight in grams")
     material = models.CharField(max_length=100, blank=True)
+    meta_title = models.CharField(max_length=70, blank=True, help_text="Search result title (optional)")
+    meta_description = models.CharField(max_length=170, blank=True, help_text="Search result snippet (optional)")
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -203,7 +207,6 @@ class ProductImage(models.Model):
             self.thumbnail.delete(save=False)
         self.thumbnail.save(thumb.name, thumb, save=False)
         ProductImage.objects.filter(pk=self.pk).update(thumbnail=self.thumbnail.name)
-
 
     class Meta:
         db_table = "product_images"
