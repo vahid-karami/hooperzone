@@ -26,9 +26,16 @@ ALLOWED_HOSTS=hooperzone.ir,www.hooperzone.ir,localhost,127.0.0.1
 CSRF_TRUSTED_ORIGINS=https://hooperzone.ir,https://www.hooperzone.ir
 # False only while testing the Django admin over plain http://<ip>:<port>.
 SECURE_COOKIES=True
-# Demo only: fake payment gateway, and OTP codes shown on screen (no SMS provider yet).
-PAYMENT_SANDBOX=True
-OTP_RETURN_IN_RESPONSE=True
+SITE_URL=https://hooperzone.ir
+# ZarinPal: paste the merchant ID from your ZarinPal panel. While PAYMENT_SANDBOX=True,
+# payments go to sandbox.zarinpal.com and no real money is taken.
+PAYMENT_SANDBOX=False
+ZARINPAL_MERCHANT_ID=
+# SMS.ir: API key from app.sms.ir > Developers, and the ID of a verify template with a CODE parameter.
+SMSIR_API_KEY=
+SMSIR_TEMPLATE_ID=
+# Set after Cloudflare SSL/TLS mode is "Full" and https works everywhere, e.g. 31536000.
+SECURE_HSTS_SECONDS=0
 # Fill both and restart once to create the Django admin user, then delete ADMIN_PASSWORD.
 ADMIN_PHONE=
 ADMIN_PASSWORD=
@@ -59,6 +66,8 @@ def prepare():
     call_command("seed_demo_store")  # first boot only: skips when products exist
     call_command("seed_category_images")  # fills missing category photos only
     call_command("seed_sports")  # never replaces photos uploaded in the admin
+    call_command("cancel_unpaid_orders")  # release stock held by abandoned checkouts
+    call_command("backup_db")  # daily copy of the SQLite database, keeps the last 7
     create_admin()
 
 
