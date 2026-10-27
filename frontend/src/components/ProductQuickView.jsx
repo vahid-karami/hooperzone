@@ -88,7 +88,7 @@ export default function ProductQuickView({ slug, onClose }) {
               </span>
               <div className="quick-view-actions">
                 {product.in_stock && (
-                  <button onClick={handleAddToCart} disabled={adding} className="btn btn-primary btn-lg">
+                  <button onClick={handleAddToCart} disabled={adding} className="btn btn-energy btn-lg">
                     <Icon name="bag" size={20} /> {adding ? t('common.loading') : t('common.addToCart')}
                   </button>
                 )}

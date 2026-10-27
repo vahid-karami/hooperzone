@@ -324,7 +324,7 @@ export default function ProductDetail() {
                       <Icon name="minus" size={18} />
                     </button>
                   </div>
-                  <button onClick={handleAddToCart} disabled={addingToCart} className="btn btn-primary btn-lg pdp-add">
+                  <button onClick={handleAddToCart} disabled={addingToCart} className="btn btn-energy btn-lg pdp-add">
                     <Icon name="bag" size={20} />
                     {addingToCart ? t('common.loading') : t('common.addToCart')}
                   </button>
@@ -496,7 +496,7 @@ export default function ProductDetail() {
           <div className="pdp-sticky-price">
             <Price amount={effective} />
           </div>
-          <button onClick={handleAddToCart} disabled={addingToCart} className="btn btn-primary">
+          <button onClick={handleAddToCart} disabled={addingToCart} className="btn btn-energy">
             {addingToCart ? t('common.loading') : t('common.addToCart')}
           </button>
         </div>

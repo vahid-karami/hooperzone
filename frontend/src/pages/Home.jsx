@@ -10,6 +10,7 @@ import Icon from '../components/Icon';
 import { BODY_PARTS, localized } from '../utils/bodyParts';
 import { usePageMeta } from '../utils/seo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
+import { telHref, useShopInfo } from '../utils/shopInfo';
 
 const imageOf = (product) => product?.primary_image?.thumbnail || product?.primary_image?.image;
 
@@ -22,6 +23,9 @@ export default function Home() {
   const categories = useCategories();
   const sports = useSports();
   const rootRef = useRef(null);
+  const shop = useShopInfo();
+  // Advice buttons call the store when a phone number is set, otherwise open the contact page.
+  const adviceLink = shop.store_phone ? { href: telHref(shop.store_phone) } : { href: '/contact' };
 
   usePageMeta({
     title: t('home.metaTitle', 'ساپورت‌ها و بریس‌های ورزشی و طبی'),
@@ -97,27 +101,29 @@ export default function Home() {
       image: s.cover_image,
     }));
 
+  // Guides use the sports' action photos (people moving), falling back to a product photo.
+  const sportPhoto = (slug) => sports.find((s) => s.slug === slug)?.cover_image;
   const guides = [
     {
       key: 'knee',
       title: t('home.guideKneeTitle', 'راهنمای زانودرد'),
       text: t('home.guideKneeText', 'علت‌ها، علائم و ساپورت مناسب برای هر مرحله.'),
       to: '/products?injury_type=knee',
-      image: imageOf(byInjury.knee),
+      image: sportPhoto('football') || imageOf(byInjury.knee),
     },
     {
       key: 'back',
       title: t('home.guideBackTitle', 'رهایی از کمردرد'),
       text: t('home.guideBackText', 'پشتیبانی از ستون فقرات در کار، رانندگی و ورزش.'),
       to: '/products?injury_type=back',
-      image: imageOf(byInjury.back),
+      image: sportPhoto('fitness') || imageOf(byInjury.back),
     },
     {
       key: 'ankle',
       title: t('home.guideAnkleTitle', 'پیچ‌خوردگی مچ پا'),
       text: t('home.guideAnkleText', 'از ثابت‌سازی اولیه تا بازگشت کامل به تمرین.'),
       to: '/products?injury_type=ankle',
-      image: imageOf(byInjury.ankle),
+      image: sportPhoto('basketball') || imageOf(byInjury.ankle),
     },
   ].filter((g) => g.image);
 
@@ -128,54 +134,79 @@ export default function Home() {
 
   return (
     <div className="home" ref={rootRef}>
-      <section className="home2-hero">
-        <div className="container home2-hero-grid">
-          <div className="home2-hero-copy">
-            <h1>{t('home.heroTitle', 'با خیال راحت به میدان برگرد')}</h1>
+      <section className="hero3">
+        <img className="hero3-bg" src={`${import.meta.env.BASE_URL}images/home/hero.jpg`} alt="" fetchPriority="high" decoding="async" />
+        <div className="container hero3-inner">
+          <div className="hero3-copy">
+            <span className="kicker kicker-light">{t('home.heroKicker', 'ساپورت تخصصی ورزشی')}</span>
+            <h1>
+              <span className="hero3-line">{t('home.heroTitleA', 'بهتر حرکت کن.')}</span>{' '}
+              <span className="hero3-line hero3-hl">{t('home.heroTitleB', 'قوی‌تر برگرد.')}</span>
+            </h1>
             <p>{t('home.heroText', 'ساپورت و بریس مناسب هر عضو و هر ورزش، همراه با مشاوره تخصصی انتخاب سایز.')}</p>
-            <div className="home2-hero-actions">
-              <a href="#sports" className="btn btn-primary btn-lg">{t('home.heroCta', 'خرید بر اساس ورزش')}</a>
-              <a href="tel:+982112345678" className="btn btn-outline btn-lg">
+            <div className="hero3-actions">
+              <a href="#sports" className="btn btn-energy btn-lg">
+                {t('home.heroCta', 'خرید بر اساس ورزش')} <Icon name="arrowLeft" size={18} className="flip-ltr" />
+              </a>
+              <a {...adviceLink} className="btn btn-light-outline btn-lg">
                 <Icon name="phone" size={18} /> {t('home.heroCta2', 'مشاوره رایگان')}
               </a>
             </div>
+            <ul className="hero3-proof">
+              <li><Icon name="truck" size={18} /> {t('home.proofShip', 'ارسال ۱ تا ۳ روزه با تیپاکس')}</li>
+              <li><Icon name="shield" size={18} /> {t('home.proofGenuine', 'ضمانت اصالت کالا')}</li>
+              <li><Icon name="returns" size={18} /> {t('home.proofReturns', '۷ روز ضمانت بازگشت')}</li>
+            </ul>
           </div>
 
-          <div className="home2-hero-visual">
-            <img src={`${import.meta.env.BASE_URL}images/home/hero.jpg`} alt="" fetchPriority="high" decoding="async" />
-            {spotlight && (
-              <Link to={`/products/${spotlight.slug}`} className="home2-spotlight">
-                {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" decoding="async" />}
-                <span className="home2-spotlight-text">
-                  <small>{t('home.topSellers', 'پرفروش‌ترین‌ها')}</small>
-                  <strong>{spotlightName}</strong>
-                  <Price amount={spotlight.effective_price ?? spotlight.price} />
-                </span>
-              </Link>
-            )}
+          {spotlight && (
+            <Link to={`/products/${spotlight.slug}`} className="home2-spotlight hero3-spotlight">
+              {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" decoding="async" />}
+              <span className="home2-spotlight-text">
+                <small>{t('home.topSellers', 'پرفروش‌ترین‌ها')}</small>
+                <strong>{spotlightName}</strong>
+                <Price amount={spotlight.effective_price ?? spotlight.price} />
+              </span>
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {sportTiles.length > 0 && (
+        // Decorative ticker of sport names; the real links are in the sports grid below.
+        <div className="sport-ticker" aria-hidden="true">
+          <div className="sport-ticker-track">
+            {[0, 1].map((copy) => (
+              <span key={copy} className="sport-ticker-group">
+                {sportTiles.map((s) => (
+                  <span key={s.key} className="sport-ticker-item">{s.title}</span>
+                ))}
+              </span>
+            ))}
           </div>
         </div>
+      )}
 
-        {bodyParts.length > 0 && (
-          <div className="container">
-            <nav className="home2-parts" aria-label={t('home.shopByBodyPart')}>
-              <span className="home2-parts-label">{t('home.partsLabel', 'کدام عضو آسیب دیده؟')}</span>
-              <div className="home2-parts-list">
-                {bodyParts.map((p) => (
-                  <Link key={p.key} to={`/products?injury_type=${p.key}`} className="home2-pill">
-                    {lang === 'fa' ? p.fa : p.en}
-                  </Link>
-                ))}
-              </div>
-            </nav>
-          </div>
-        )}
-      </section>
+      {bodyParts.length > 0 && (
+        <div className="container">
+          <nav className="home2-parts" aria-label={t('home.shopByBodyPart')}>
+            <span className="home2-parts-label">{t('home.partsLabel', 'کدام عضو آسیب دیده؟')}</span>
+            <div className="home2-parts-list">
+              {bodyParts.map((p) => (
+                <Link key={p.key} to={`/products?injury_type=${p.key}`} className="home2-pill">
+                  {lang === 'fa' ? p.fa : p.en}
+                </Link>
+              ))}
+            </div>
+          </nav>
+        </div>
+      )}
 
       {sportTiles.length > 0 && (
         <section className="band" id="sports">
           <div className="container">
             <header className="home2-head" data-reveal>
+              <span className="kicker">{t('home.sportsKicker', 'رشته‌ات را انتخاب کن')}</span>
               <h2 className="section-title">{t('home.shopBySport', 'خرید بر اساس ورزش')}</h2>
               <p>{t('home.sportsText', 'ورزش خود را انتخاب کنید تا فقط محصولات مناسب آن را ببینید.')}</p>
             </header>
@@ -187,6 +218,7 @@ export default function Home() {
                     <strong>{s.title}</strong>
                     <small>{s.subtitle}</small>
                   </span>
+                  <span className="home2-sport-go"><Icon name="arrowLeft" size={18} className="flip-ltr" /></span>
                 </Link>
               ))}
             </div>
@@ -197,7 +229,10 @@ export default function Home() {
       <section className="band band-sky">
         <div className="container">
           <header className="home2-head home2-head-row" data-reveal>
-            <h2 className="section-title">{t('home.topSellers', 'پرفروش‌ترین‌ها')}</h2>
+            <div>
+              <span className="kicker">{t('home.topKicker', 'انتخاب ورزشکاران')}</span>
+              <h2 className="section-title">{t('home.topSellers', 'پرفروش‌ترین‌ها')}</h2>
+            </div>
             <Link to="/products" className="link-arrow">
               {t('home.viewAllProducts', 'همه محصولات')} <Icon name="arrowLeft" size={16} />
             </Link>
@@ -235,9 +270,10 @@ export default function Home() {
       )}
 
       {guides.length > 0 && (
-        <section className="band band-sky">
+        <section className="band band-night">
           <div className="container">
             <header className="home2-head" data-reveal>
+              <span className="kicker kicker-light">{t('home.guidesKicker', 'راهنمای آسیب‌ها')}</span>
               <h2 className="section-title">{t('home.howWeHelp', 'هوپرزون چگونه کمک می‌کند')}</h2>
               <p>{t('home.howWeHelpText', 'از درد مزمن مفاصل تا آسیب‌های ورزشی؛ راه‌هایی را ببینید که به شما کمک می‌کنند فعال بمانید.')}</p>
             </header>
@@ -246,6 +282,7 @@ export default function Home() {
                 <Link key={g.key} to={g.to} className={`home2-guide ${i === 0 ? 'is-lead' : ''}`} data-reveal>
                   <img src={g.image} alt="" loading="lazy" />
                   <span>
+                    <em className="guide-tag">{t('home.guideTag', 'راهنما')}</em>
                     <strong>{g.title}</strong>
                     <small>{g.text}</small>
                   </span>
@@ -263,7 +300,7 @@ export default function Home() {
               <h2>{t('home.adviceTitle', 'در انتخاب سایز یا مدل مردد هستید؟')}</h2>
               <p>{t('home.adviceText', 'کارشناسان ما کمک می‌کنند ساپورتی را انتخاب کنید که دقیقاً به نیاز شما پاسخ می‌دهد.')}</p>
             </div>
-            <a href="tel:+982112345678" className="btn btn-secondary btn-lg">
+            <a {...adviceLink} className="btn btn-secondary btn-lg">
               <Icon name="phone" size={18} /> {t('home.adviceCta', 'تماس با کارشناس')}
             </a>
           </div>
@@ -274,7 +311,7 @@ export default function Home() {
         <div className="container trust-grid">
           {[
             { icon: 'truck', title: t('home.trustShipTitle', 'ارسال سریع'), text: t('home.trustShipText', 'ارسال به سراسر کشور با پست و تیپاکس') },
-            { icon: 'card', title: t('home.trustPayTitle', 'پرداخت امن'), text: t('home.trustPayText', 'درگاه زرین‌پال و آیدی‌پی') },
+            { icon: 'card', title: t('home.trustPayTitle', 'پرداخت امن'), text: t('home.trustPayText', 'درگاه امن زرین‌پال') },
             { icon: 'returns', title: t('home.trustReturnTitle', 'بازگشت آسان'), text: t('home.trustReturnText', '۷ روز ضمانت بازگشت کالا') },
             { icon: 'headset', title: t('home.trustSupportTitle', 'پشتیبانی تخصصی'), text: t('home.trustSupportText', 'مشاوره پیش و پس از خرید') },
           ].map((item) => (

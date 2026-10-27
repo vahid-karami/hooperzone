@@ -275,7 +275,7 @@ export default function Checkout() {
               </div>
               <div className="summary-total"><dt>{t('checkout.total')}</dt><dd><Price amount={total} /></dd></div>
             </dl>
-            <button type="submit" disabled={submitting || !selectedMethod} className="btn btn-primary btn-lg btn-full">
+            <button type="submit" disabled={submitting || !selectedMethod} className="btn btn-energy btn-lg btn-full">
               {submitting ? t('checkout.placingOrder') : t('checkout.payAndPlace', 'ثبت سفارش و پرداخت')}
             </button>
             <p className="summary-fineprint">

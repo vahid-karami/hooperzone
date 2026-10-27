@@ -15,13 +15,16 @@ i18n
   .use(initReactI18next)
   .init({
   resources,
-  lng: 'fa',
+  // Persian by default; a visitor's choice from the language switcher is remembered.
+  // (A fixed `lng` here would override that choice on every page load.)
   fallbackLng: 'fa',
+  supportedLngs: ['fa', 'en'],
+  load: 'languageOnly',
   interpolation: {
     escapeValue: false,
   },
   detection: {
-    order: ['localStorage', 'navigator'],
+    order: ['localStorage'],
     caches: ['localStorage'],
   },
   react: {

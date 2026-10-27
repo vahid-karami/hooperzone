@@ -1,6 +1,8 @@
 /*
  * HooperZone design tokens.
- * Clinical, light palette: deep navy for brand + text, pale sky for surfaces.
+ * Deep navy for brand and text, pale sky for surfaces, and a warm "energy"
+ * orange for the actions and highlights that make it feel like sport.
+ * Text on energy orange is dark navy (white on orange fails contrast).
  */
 :root {
   /* Brand */
@@ -12,6 +14,12 @@
   --color-primary-200: #cfdbef;
   --color-accent: #1aa3b5;
   --color-accent-dark: #128796;
+  --color-energy: #ff6b1a;
+  --color-energy-dark: #f05400;
+  --color-energy-50: #fff3eb;
+  --color-energy-100: #ffe1cc;
+  --color-energy-ink: #0d1a3a;
+  --color-night: #0a1838;
 
   /* Surfaces */
   --color-surface: #ffffff;
@@ -257,6 +265,34 @@ button {
   border-color: var(--color-primary-dark);
   color: white;
 }
+
+/* Main call to action: buy, pay, shop now. */
+.btn-energy {
+  background-color: var(--color-energy);
+  color: var(--color-energy-ink);
+  border-color: var(--color-energy);
+  box-shadow: 0 10px 24px -12px rgb(255 107 26 / 0.8);
+}
+
+.btn-energy:hover:not(:disabled) {
+  background-color: var(--color-energy-dark);
+  border-color: var(--color-energy-dark);
+  color: var(--color-energy-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -12px rgb(240 84 0 / 0.85);
+}
+
+.btn-energy:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+
+/* Outline button for dark/photo backgrounds. */
+.btn-light-outline {
+  background-color: rgb(255 255 255 / 0.08);
+  color: white;
+  border-color: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.btn-light-outline:hover:not(:disabled) { background-color: rgb(255 255 255 / 0.18); border-color: white; color: white; }
 
 .btn-secondary {
   background-color: white;

@@ -189,7 +189,7 @@ export default function Cart() {
               </div>
             </dl>
 
-            <button onClick={() => navigate('/checkout')} className="btn btn-primary btn-lg btn-full">
+            <button onClick={() => navigate('/checkout')} className="btn btn-energy btn-lg btn-full">
               {t('cart.proceedToCheckout')}
             </button>
 
