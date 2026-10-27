@@ -89,7 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Tehran"
 
 USE_I18N = True
 
@@ -125,14 +125,27 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.environ.get("OTP_THROTTLE_RATE", "10/min"),
+        "auth": os.environ.get("AUTH_THROTTLE_RATE", "10/min"),
     },
 }
 
-# Only expose OTP codes in API responses while developing (no SMS provider yet).
-# Sandbox mode enables the offline mock gateway fallback. Disable in production.
+# Sandbox mode talks to sandbox.zarinpal.com. When the sandbox is unreachable in
+# development, an offline mock gateway (auto-approved fake payments) stands in.
+# production.py turns the mock off: it would let anyone mark an order paid.
 PAYMENT_SANDBOX = os.environ.get("PAYMENT_SANDBOX", str(DEBUG)) == "True"
+PAYMENT_MOCK_FALLBACK = DEBUG
+ZARINPAL_MERCHANT_ID = os.environ.get("ZARINPAL_MERCHANT_ID", "").strip()
+IDPAY_API_KEY = os.environ.get("IDPAY_API_KEY", "").strip()
 
+# SMS.ir verify template for OTP codes. The template needs one parameter named CODE.
+SMSIR_API_KEY = os.environ.get("SMSIR_API_KEY", "").strip()
+SMSIR_TEMPLATE_ID = os.environ.get("SMSIR_TEMPLATE_ID", "").strip()
+SMSIR_CODE_PARAMETER = os.environ.get("SMSIR_CODE_PARAMETER", "CODE").strip()
+
+# Only expose OTP codes in API responses while developing. Production forces this off.
 OTP_RETURN_IN_RESPONSE = os.environ.get("OTP_RETURN_IN_RESPONSE", str(DEBUG)) == "True"
+
+SITE_URL = os.environ.get("SITE_URL", "https://hooperzone.ir").rstrip("/")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
