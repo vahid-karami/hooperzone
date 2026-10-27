@@ -230,7 +230,7 @@ export default function Checkout() {
                     <input type="radio" name="shipping_method" value={m.code} checked={shippingMethod === m.code} onChange={() => setShippingMethod(m.code)} />
                     <span className="gateway-name">{lang === 'fa' ? m.label_fa : m.label_en}</span>
                     <span className="gateway-note">
-                      {t('checkout.deliveryDays', '{{days}} روز کاری', { days: num(m.days) })}
+                      {t('checkout.deliveryDays', '{{days}} روز کاری', { days: num(String(m.days).replace('-', lang === 'fa' ? ' تا ' : '–')) })}
                     </span>
                     <span className="shipping-fee"><Price amount={m.fee} /></span>
                   </label>

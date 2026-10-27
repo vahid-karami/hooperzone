@@ -11,17 +11,18 @@ import { orderStatus, paymentStatus } from '../../utils/orderStatus';
 import { toPersianNumber } from '../../hooks/useLanguage';
 import { usePageMeta } from '../../utils/seo';
 
-function RevenueChart({ days, lang }) {
+function RevenueChart({ days, lang, title }) {
   const { t } = useTranslation();
   const max = Math.max(...days.map((d) => Number(d.revenue)), 1);
+  const short = days.length <= 7;
   const dayLabel = (iso) =>
-    new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-US', { weekday: 'short' }).format(new Date(`${iso}T12:00:00`));
+    new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-US', short ? { weekday: 'short' } : { day: 'numeric' }).format(new Date(`${iso}T12:00:00`));
   const money = (v) => `${Number(v).toLocaleString(lang === 'fa' ? 'fa-IR' : 'en-US')} ${t('common.toman', 'تومان')}`;
 
   return (
     <figure className="chart">
-      <figcaption className="chart-title">{t('admin.revenue7d', 'فروش پرداخت‌شده در ۷ روز اخیر')}</figcaption>
-      <div className="chart-bars" role="img" aria-label={t('admin.revenue7d', 'فروش پرداخت‌شده در ۷ روز اخیر')}>
+      <figcaption className="chart-title">{title}</figcaption>
+      <div className={`chart-bars ${short ? '' : 'dense'}`} role="img" aria-label={title}>
         {days.map((d) => {
           const h = (Number(d.revenue) / max) * 100;
           return (
@@ -37,7 +38,7 @@ function RevenueChart({ days, lang }) {
         })}
       </div>
       <table className="sr-only">
-        <caption>{t('admin.revenue7d', 'فروش پرداخت‌شده در ۷ روز اخیر')}</caption>
+        <caption>{title}</caption>
         <tbody>
           {days.map((d) => (
             <tr key={d.date}><th scope="row">{dayLabel(d.date)}</th><td>{money(d.revenue)}</td></tr>
@@ -54,15 +55,22 @@ export default function AdminDashboard() {
   const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   const [stats, setStats] = useState(null);
   const [failed, setFailed] = useState(false);
+  const [range, setRange] = useState(7);
 
-  usePageMeta({ title: t('admin.dashboard', 'داشبورد') });
+  usePageMeta({ title: t('admin.dashboard', 'داشبورد'), noindex: true });
 
   useEffect(() => {
     apiClient
-      .get(ENDPOINTS.adminStats)
+      .get(ENDPOINTS.adminStats, { params: { days: range } })
       .then((res) => setStats(res.data))
       .catch(() => setFailed(true));
-  }, []);
+  }, [range]);
+
+  const ranges = [
+    { days: 7, label: t('admin.range7', '۷ روز') },
+    { days: 30, label: t('admin.range30', '۳۰ روز') },
+    { days: 90, label: t('admin.range90', '۹۰ روز') },
+  ];
 
   if (failed) {
     return <div className="empty-panel"><h2>{t('admin.loadFailed', 'بارگذاری اطلاعات انجام نشد')}</h2></div>;
@@ -81,6 +89,13 @@ export default function AdminDashboard() {
         <div>
           <h1>{t('admin.dashboard', 'داشبورد')}</h1>
           <p className="muted">{t('admin.dashboardHint', 'نمای کلی فروشگاه در یک نگاه')}</p>
+        </div>
+        <div className="segmented" role="group" aria-label={t('admin.range', 'بازه زمانی')}>
+          {ranges.map((r) => (
+            <button key={r.days} className={range === r.days ? 'active' : ''} aria-pressed={range === r.days} onClick={() => setRange(r.days)}>
+              {r.label}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -106,11 +121,38 @@ export default function AdminDashboard() {
 
       <div className="admin-grid">
         <section className="admin-card">
-          {stats ? <RevenueChart days={stats.last_7_days} lang={lang} /> : <Skeleton style={{ height: 240 }} />}
+          {stats ? (
+            <>
+              <RevenueChart
+                days={stats.last_7_days}
+                lang={lang}
+                title={t('admin.revenueRange', 'فروش پرداخت‌شده در {{days}} روز اخیر', { days: num(stats.range_days) })}
+              />
+              <dl className="range-summary">
+                <div><dt>{t('admin.revenue', 'فروش')}</dt><dd><Price amount={stats.revenue_range} /></dd></div>
+                <div><dt>{t('admin.paidOrders', 'سفارش پرداخت‌شده')}</dt><dd>{num(stats.orders_range)}</dd></div>
+                <div><dt>{t('admin.aov', 'میانگین هر سفارش')}</dt><dd><Price amount={stats.average_order_value} /></dd></div>
+              </dl>
+            </>
+          ) : <Skeleton style={{ height: 240 }} />}
         </section>
 
         <section className="admin-card">
           <div className="admin-card-head">
+            <h2>{t('admin.bestSellers', 'پرفروش‌ترین‌ها')}</h2>
+          </div>
+          {stats && stats.best_sellers.length === 0 && <p className="muted">{t('admin.noSales', 'در این بازه فروشی ثبت نشده است.')}</p>}
+          <ol className="best-sellers">
+            {stats?.best_sellers.map((p) => (
+              <li key={p.slug || p.name}>
+                {p.slug ? <Link to={`/products/${p.slug}`}>{p.name}</Link> : <span>{p.name}</span>}
+                <span className="muted">{t('admin.soldCount', '{{count}} فروش', { count: num(p.quantity) })}</span>
+                <Price amount={p.revenue} />
+              </li>
+            ))}
+          </ol>
+
+          <div className="admin-card-head spaced">
             <h2>{t('admin.lowStock', 'موجودی رو به اتمام')}</h2>
             <Link to="/admin-portal/products" className="link-arrow">{t('common.viewAll')} <Icon name="arrowLeft" size={16} /></Link>
           </div>

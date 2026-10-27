@@ -27,6 +27,9 @@ const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
 const AdminPriceDeclaration = lazy(() => import('./pages/admin/AdminPriceDeclaration'));
 const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminInvoice = lazy(() => import('./pages/admin/AdminInvoice'));
+const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 
 function App() {
   const { i18n } = useTranslation();
@@ -65,6 +68,9 @@ function App() {
                       <Route path="/admin-portal" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="orders" element={<AdminOrders />} />
+                        <Route path="orders/:orderNumber/invoice" element={<AdminInvoice />} />
+                        <Route path="customers" element={<AdminCustomers />} />
+                        <Route path="settings" element={<AdminSettings />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="categories" element={<AdminCategories />} />
                         <Route path="price-declaration" element={<AdminPriceDeclaration />} />

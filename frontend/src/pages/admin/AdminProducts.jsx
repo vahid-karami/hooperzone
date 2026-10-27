@@ -1,20 +1,136 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/client';
-import { DJANGO_ADMIN_URL, ENDPOINTS } from '../../api/endpoints';
+import { ENDPOINTS } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import Price from '../../components/Price';
 import Icon from '../../components/Icon';
+import AdminPager from '../../components/admin/AdminPager';
 import { BODY_PARTS } from '../../utils/bodyParts';
-import { useCategories } from '../../utils/catalog';
-import { fetchAllPages } from '../../utils/fetchAll';
+import { downloadFile } from '../../utils/download';
 import { toPersianNumber } from '../../hooks/useLanguage';
 import { usePageMeta } from '../../utils/seo';
+
+const PAGE_SIZE = 25;
+
+// Filter tabs map to the admin API's query parameters.
+const TAB_PARAMS = {
+  all: {},
+  active: { is_active: 'true' },
+  inactive: { is_active: 'false' },
+  out: { in_stock: 'false' },
+  low: { low_stock: 'true' },
+  featured: { is_featured: 'true' },
+};
+
+function ImageManager({ product, onChange }) {
+  const { t } = useTranslation();
+  const { error: showError } = useToast();
+  const [images, setImages] = useState(product.images || []);
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  const apply = (list) => {
+    setImages(list);
+    onChange(list);
+  };
+
+  const upload = async (files) => {
+    const list = [...files].filter((f) => f.type.startsWith('image/'));
+    if (!list.length) return;
+    setBusy(true);
+    try {
+      let latest = images;
+      for (const file of list) {
+        const body = new FormData();
+        body.append('image', file);
+        const res = await apiClient.post(ENDPOINTS.adminProductImages(product.slug), body);
+        latest = res.data;
+      }
+      apply(latest);
+    } catch (err) {
+      showError(err.response?.data?.error || err.response?.data?.image?.[0] || t('admin.uploadFailed', 'آپلود تصویر انجام نشد'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const update = async (img, payload) => {
+    try {
+      const res = await apiClient.patch(ENDPOINTS.adminProductImage(product.slug, img.id), payload);
+      apply(res.data);
+    } catch {
+      showError(t('admin.updateFailed', 'به‌روزرسانی انجام نشد'));
+    }
+  };
+
+  const remove = async (img) => {
+    if (!window.confirm(t('admin.deleteImageConfirm', 'این تصویر حذف شود؟'))) return;
+    try {
+      const res = await apiClient.delete(ENDPOINTS.adminProductImage(product.slug, img.id));
+      apply(res.data);
+    } catch {
+      showError(t('admin.deleteFailed', 'حذف انجام نشد'));
+    }
+  };
+
+  return (
+    <fieldset>
+      <legend>{t('admin.images', 'تصاویر')}</legend>
+      <div className="image-manager">
+        {images.map((img) => (
+          <figure key={img.id} className={`image-item ${img.is_primary ? 'is-primary' : ''}`}>
+            <img src={img.image} alt={img.alt_text} loading="lazy" />
+            {img.is_primary && <span className="status-pill tone-ok image-badge">{t('admin.primaryImage', 'تصویر اصلی')}</span>}
+            <figcaption>
+              <input
+                className="form-input"
+                defaultValue={img.alt_text}
+                aria-label={t('admin.altText', 'متن جایگزین (سئو)')}
+                placeholder={t('admin.altText', 'متن جایگزین (سئو)')}
+                onBlur={(e) => e.target.value !== img.alt_text && update(img, { alt_text: e.target.value })}
+              />
+              <div className="image-actions">
+                {!img.is_primary && (
+                  <button type="button" className="text-btn" onClick={() => update(img, { is_primary: 'true' })}>
+                    {t('admin.makePrimary', 'تصویر اصلی شود')}
+                  </button>
+                )}
+                <button type="button" className="icon-btn danger-btn" onClick={() => remove(img)} aria-label={t('admin.delete', 'حذف')}>
+                  <Icon name="trash" size={16} />
+                </button>
+              </div>
+            </figcaption>
+          </figure>
+        ))}
+        <label
+          className={`image-drop small ${dragging ? 'is-dragging' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            upload(e.dataTransfer.files);
+          }}
+        >
+          <span>
+            <Icon name="upload" size={26} />
+            {busy ? t('admin.uploading', 'در حال آپلود…') : t('admin.addImages', 'افزودن تصویر (کشیدن و رها کردن)')}
+          </span>
+          <input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => upload(e.target.files)} />
+        </label>
+      </div>
+    </fieldset>
+  );
+}
 
 const EMPTY_FORM = {
   name: '', name_fa: '', description: '', description_fa: '', category: '',
   price: '', cost: '', discount_price: '', stock: '', injury_type: 'general',
-  brand: '', size: '', color: '', weight: '', material: '', is_active: true, is_featured: false,
+  brand: '', size: '', color: '', weight: '', material: '', is_active: true, is_featured: false, sports: [],
 };
 
 const toNumberOrNull = (v, parse = parseFloat) => (v === '' || v === null || v === undefined ? null : parse(v));
@@ -24,46 +140,104 @@ export default function AdminProducts() {
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
   const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   const { success, error: showError } = useToast();
-  const categories = useCategories();
-  const [products, setProducts] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [sports, setSports] = useState([]);
+  const [data, setData] = useState(null);
   const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(() => new Set());
   const [editing, setEditing] = useState(null); // null = closed, {} = new, product = edit
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  const debounce = useRef();
 
-  usePageMeta({ title: t('admin.products', 'محصولات') });
-
-  const load = useCallback(() => {
-    fetchAllPages(ENDPOINTS.adminProducts)
-      .then(setProducts)
-      .catch(() => {
-        setProducts([]);
-        showError(t('admin.loadFailed', 'بارگذاری اطلاعات انجام نشد'));
-      });
-  }, [showError, t]);
+  usePageMeta({ title: t('admin.products', 'محصولات'), noindex: true });
 
   useEffect(() => {
+    apiClient.get(ENDPOINTS.adminCategories).then((r) => setCategories(r.data.results || r.data)).catch(() => {});
+    apiClient.get(ENDPOINTS.sports).then((r) => setSports(r.data.results || r.data)).catch(() => {});
+  }, []);
+
+  // Search as the user types, without a request per keystroke.
+  useEffect(() => {
+    clearTimeout(debounce.current);
+    debounce.current = setTimeout(() => {
+      setSearch(query.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(debounce.current);
+  }, [query]);
+
+  const listParams = useCallback(
+    () => ({ ...TAB_PARAMS[tab], search: search || undefined }),
+    [tab, search],
+  );
+
+  const load = useCallback(() => {
+    apiClient
+      .get(ENDPOINTS.adminProducts, { params: { ...listParams(), page, page_size: PAGE_SIZE } })
+      .then((res) => setData(res.data))
+      .catch(() => {
+        setData({ count: 0, results: [] });
+        showError(t('admin.loadFailed', 'بارگذاری اطلاعات انجام نشد'));
+      });
+  }, [listParams, page, showError, t]);
+
+  useEffect(() => {
+    setSelected(new Set());
     load();
   }, [load]);
 
+  const products = data?.results;
+
   const tabs = [
-    { key: 'all', label: t('orders.all', 'همه'), test: () => true },
-    { key: 'active', label: t('admin.active', 'فعال'), test: (p) => p.is_active },
-    { key: 'inactive', label: t('admin.inactive', 'غیرفعال'), test: (p) => !p.is_active },
-    { key: 'out', label: t('common.outOfStock'), test: (p) => p.stock === 0 },
-    { key: 'featured', label: t('product.bestseller', 'پرفروش'), test: (p) => p.is_featured },
+    { key: 'all', label: t('orders.all', 'همه') },
+    { key: 'active', label: t('admin.active', 'فعال') },
+    { key: 'inactive', label: t('admin.inactive', 'غیرفعال') },
+    { key: 'out', label: t('common.outOfStock') },
+    { key: 'low', label: t('admin.lowStockTab', 'کم‌موجود') },
+    { key: 'featured', label: t('product.bestseller', 'پرفروش') },
   ];
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const test = tabs.find((x) => x.key === tab).test;
-    return (products || []).filter(
-      (p) => test(p) && (!q || [p.name, p.name_fa, p.brand, p.slug].some((v) => (v || '').toLowerCase().includes(q))),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, query, tab]);
+  const replaceProduct = (updated) =>
+    setData((d) => (d ? { ...d, results: d.results.map((p) => (p.id === updated.id ? updated : p)) } : d));
+
+  const quickStock = async (p, value) => {
+    const stock = parseInt(value, 10);
+    if (Number.isNaN(stock) || stock < 0 || stock === p.stock) return;
+    try {
+      const res = await apiClient.patch(ENDPOINTS.adminProductDetail(p.slug), { stock });
+      replaceProduct(res.data);
+      success(t('admin.stockSaved', 'موجودی به‌روز شد'));
+    } catch {
+      showError(t('admin.updateFailed', 'به‌روزرسانی انجام نشد'));
+    }
+  };
+
+  const bulk = async (action) => {
+    const slugs = [...selected];
+    if (action === 'delete' && !window.confirm(t('admin.bulkDeleteConfirm', '{{count}} محصول حذف شود؟ محصولاتی که سفارش داشته‌اند فقط غیرفعال می‌شوند.', { count: num(slugs.length) }))) return;
+    try {
+      await apiClient.post(ENDPOINTS.adminProductBulkAction, { slugs, action });
+      success(t('admin.bulkDone', 'انجام شد'));
+      load();
+    } catch (err) {
+      showError(err.response?.data?.error || t('admin.updateFailed', 'به‌روزرسانی انجام نشد'));
+    }
+  };
+
+  const allSelected = products?.length > 0 && products.every((p) => selected.has(p.slug));
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(products.map((p) => p.slug)));
+  const toggleOne = (slug) =>
+    setSelected((s0) => {
+      const next = new Set(s0);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
 
   const openNew = () => {
     setForm(EMPTY_FORM);
@@ -81,6 +255,7 @@ export default function AdminProducts() {
       discount_price: p.discount_price != null ? String(Number(p.discount_price)) : '',
       weight: p.weight != null ? String(Number(p.weight)) : '',
       stock: String(p.stock ?? ''),
+      sports: p.sports || [],
     });
     setFormError('');
     setEditing(p);
@@ -105,11 +280,13 @@ export default function AdminProducts() {
       if (editing?.slug) {
         await apiClient.patch(ENDPOINTS.adminProductDetail(editing.slug), payload);
         success(t('admin.productUpdated', 'محصول به‌روز شد'));
+        setEditing(null);
       } else {
-        await apiClient.post(ENDPOINTS.adminProducts, payload);
-        success(t('admin.productCreated', 'محصول ایجاد شد'));
+        // Keep the dialog open on the new product so its photos can be added right away.
+        const res = await apiClient.post(ENDPOINTS.adminProducts, payload);
+        success(t('admin.productCreatedAddImages', 'محصول ایجاد شد؛ حالا تصاویر را اضافه کنید'));
+        setEditing(res.data);
       }
-      setEditing(null);
       load();
     } catch (err) {
       const data = err.response?.data;
@@ -127,7 +304,7 @@ export default function AdminProducts() {
     try {
       await apiClient.delete(ENDPOINTS.adminProductDetail(p.slug));
       success(t('admin.productDeleted', 'محصول حذف شد'));
-      setProducts((list) => list.filter((x) => x.id !== p.id));
+      load();
     } catch (err) {
       showError(err.response?.data?.detail || t('admin.deleteFailed', 'حذف انجام نشد (ممکن است در سفارشی استفاده شده باشد).'));
     }
@@ -146,7 +323,7 @@ export default function AdminProducts() {
         <div>
           <h1>{t('admin.products', 'محصولات')}</h1>
           <p className="muted">
-            {products ? t('admin.productsCount', '{{count}} محصول در فروشگاه', { count: num(products.length) }) : t('common.loading')}
+            {data ? t('admin.productsCount', '{{count}} محصول در فروشگاه', { count: num(data.count) }) : t('common.loading')}
           </p>
         </div>
         <div className="admin-head-actions">
@@ -154,6 +331,13 @@ export default function AdminProducts() {
             <Icon name="search" size={18} />
             <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('admin.searchProducts', 'جستجوی نام، برند یا کد')} aria-label={t('common.search')} />
           </div>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => downloadFile(ENDPOINTS.adminProductExport, listParams(), 'products.csv').catch(() => showError(t('admin.exportFailed', 'دریافت فایل انجام نشد')))}
+          >
+            <Icon name="download" size={18} /> {t('admin.exportCsv', 'خروجی اکسل')}
+          </button>
           <button onClick={openNew} className="btn btn-primary">
             <Icon name="plus" size={18} /> {t('admin.addProduct', 'محصول جدید')}
           </button>
@@ -162,23 +346,46 @@ export default function AdminProducts() {
 
       <div className="tab-row" role="tablist">
         {tabs.map((x) => (
-          <button key={x.key} role="tab" aria-selected={tab === x.key} className={`tab ${tab === x.key ? 'active' : ''}`} onClick={() => setTab(x.key)}>
+          <button
+            key={x.key}
+            role="tab"
+            aria-selected={tab === x.key}
+            className={`tab ${tab === x.key ? 'active' : ''}`}
+            onClick={() => {
+              setTab(x.key);
+              setPage(1);
+            }}
+          >
             {x.label}
-            <span className="tab-count">{num((products || []).filter(x.test).length)}</span>
           </button>
         ))}
       </div>
 
+      {selected.size > 0 && (
+        <div className="bulk-bar" role="region" aria-label={t('admin.bulkActions', 'عملیات گروهی')}>
+          <strong>{t('admin.selectedCount', '{{count}} مورد انتخاب شده', { count: num(selected.size) })}</strong>
+          <button className="btn btn-outline btn-sm" onClick={() => bulk('activate')}>{t('admin.activate', 'فعال کردن')}</button>
+          <button className="btn btn-outline btn-sm" onClick={() => bulk('deactivate')}>{t('admin.deactivate', 'غیرفعال کردن')}</button>
+          <button className="btn btn-outline btn-sm" onClick={() => bulk('feature')}>{t('admin.feature', 'افزودن به پرفروش‌ها')}</button>
+          <button className="btn btn-outline btn-sm" onClick={() => bulk('unfeature')}>{t('admin.unfeature', 'حذف از پرفروش‌ها')}</button>
+          <button className="btn btn-outline btn-sm danger-btn" onClick={() => bulk('delete')}>{t('admin.delete', 'حذف')}</button>
+          <button className="text-btn" onClick={() => setSelected(new Set())}>{t('admin.cancel', 'انصراف')}</button>
+        </div>
+      )}
+
       <section className="admin-card flush">
-        {products === null ? (
+        {data === null ? (
           <div className="loading"><div className="spinner" /></div>
-        ) : visible.length === 0 ? (
+        ) : products.length === 0 ? (
           <p className="muted empty-inline">{t('products.noProductsFound')}</p>
         ) : (
           <div className="table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
+                  <th className="check-col">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label={t('admin.selectAll', 'انتخاب همه')} />
+                  </th>
                   <th>{t('admin.product', 'محصول')}</th>
                   <th>{t('product.category')}</th>
                   <th>{t('common.price')}</th>
@@ -189,14 +396,17 @@ export default function AdminProducts() {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((p) => {
+                {products.map((p) => {
                   const discounted = p.discount_price && Number(p.discount_price) < Number(p.price);
                   return (
-                    <tr key={p.id} className={p.is_active ? '' : 'is-muted'}>
+                    <tr key={p.id} className={`${p.is_active ? '' : 'is-muted'} ${selected.has(p.slug) ? 'is-selected' : ''}`}>
+                      <td className="check-col">
+                        <input type="checkbox" checked={selected.has(p.slug)} onChange={() => toggleOne(p.slug)} aria-label={p.name_fa || p.name} />
+                      </td>
                       <td>
                         <div className="product-cell">
                           <span className="product-thumb">
-                            {p.primary_image ? <img src={p.primary_image} alt="" /> : <Icon name="box" size={20} />}
+                            {p.primary_image ? <img src={p.primary_image} alt="" loading="lazy" /> : <Icon name="image" size={20} />}
                           </span>
                           <div className="cell-stack">
                             <strong>{p.name_fa || p.name}</strong>
@@ -217,7 +427,17 @@ export default function AdminProducts() {
                         ) : '—'}
                       </td>
                       <td>
-                        <span className={`status-pill ${p.stock === 0 ? 'tone-bad' : p.stock <= 5 ? 'tone-warn' : 'tone-ok'}`}>{num(p.stock)}</span>
+                        <input
+                          key={`${p.id}-${p.stock}`}
+                          className={`stock-input ${p.stock === 0 ? 'tone-bad' : p.stock <= 5 ? 'tone-warn' : 'tone-ok'}`}
+                          type="number"
+                          min={0}
+                          dir="ltr"
+                          defaultValue={p.stock}
+                          aria-label={t('admin.stock', 'موجودی')}
+                          onBlur={(e) => quickStock(p, e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                        />
                       </td>
                       <td>
                         <div className="order-badges">
@@ -228,20 +448,20 @@ export default function AdminProducts() {
                       <td>
                         <div className="row-actions">
                           <button className="icon-btn" onClick={() => openEdit(p)} aria-label={t('admin.edit', 'ویرایش')} title={t('admin.edit', 'ویرایش')}>
-                            <Icon name="ruler" size={18} />
+                            <Icon name="edit" size={18} />
                           </button>
                           <a
                             className="icon-btn"
-                            href={`${DJANGO_ADMIN_URL}products/product/${p.id}/change/`}
+                            href={`/products/${p.slug}`}
                             target="_blank"
                             rel="noreferrer"
-                            aria-label={t('admin.manageImages', 'مدیریت تصاویر')}
-                            title={t('admin.manageImages', 'مدیریت تصاویر')}
+                            aria-label={t('admin.viewInShop', 'نمایش در فروشگاه')}
+                            title={t('admin.viewInShop', 'نمایش در فروشگاه')}
                           >
-                            <Icon name="box" size={18} />
+                            <Icon name="search" size={18} />
                           </a>
                           <button className="icon-btn danger-btn" onClick={() => handleDelete(p)} aria-label={t('admin.delete', 'حذف')} title={t('admin.delete', 'حذف')}>
-                            <Icon name="close" size={18} />
+                            <Icon name="trash" size={18} />
                           </button>
                         </div>
                       </td>
@@ -253,6 +473,8 @@ export default function AdminProducts() {
           </div>
         )}
       </section>
+
+      {data && <AdminPager page={page} pageSize={PAGE_SIZE} count={data.count} onChange={setPage} />}
 
       {editing && (
         <div className="modal-overlay" onClick={() => setEditing(null)}>
@@ -312,6 +534,27 @@ export default function AdminProducts() {
                   {input('material', t('product.material'))}
                   {input('weight', t('admin.weight', 'وزن (گرم)'), { type: 'number', min: 0, dir: 'ltr' })}
                 </div>
+                {sports.length > 0 && (
+                  <div className="form-group">
+                    <span className="form-label">{t('admin.sports', 'رشته‌های ورزشی')}</span>
+                    <div className="chip-picker">
+                      {sports.map((sp) => {
+                        const on = form.sports.includes(sp.id);
+                        return (
+                          <button
+                            type="button"
+                            key={sp.id}
+                            className={`chip ${on ? 'active' : ''}`}
+                            aria-pressed={on}
+                            onClick={() => setField('sports', on ? form.sports.filter((id) => id !== sp.id) : [...form.sports, sp.id])}
+                          >
+                            {lang === 'fa' ? sp.name_fa || sp.name : sp.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="switch-row">
                   <label className="check-inline">
                     <input type="checkbox" checked={form.is_active} onChange={(e) => setField('is_active', e.target.checked)} />
@@ -324,12 +567,17 @@ export default function AdminProducts() {
                 </div>
               </fieldset>
 
+              {editing.slug ? (
+                <ImageManager
+                  key={editing.slug}
+                  product={editing}
+                  onChange={(images) => replaceProduct({ ...editing, images, primary_image: images[0]?.image || null })}
+                />
+              ) : (
+                <p className="field-hint">{t('admin.imagesAfterSave', 'پس از ذخیره محصول می‌توانید تصاویر را اضافه کنید.')}</p>
+              )}
+
               <div className="modal-actions">
-                {editing.slug && (
-                  <a className="text-btn" href={`${DJANGO_ADMIN_URL}products/product/${editing.id}/change/`} target="_blank" rel="noreferrer">
-                    {t('admin.manageImages', 'مدیریت تصاویر')}
-                  </a>
-                )}
                 <button type="button" onClick={() => setEditing(null)} className="btn btn-outline">{t('admin.cancel', 'انصراف')}</button>
                 <button type="submit" disabled={saving} className="btn btn-primary">
                   {saving ? t('common.loading') : t('admin.save', 'ذخیره')}
