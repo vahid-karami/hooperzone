@@ -194,7 +194,7 @@
 .admin-shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
-  min-height: calc(100vh - var(--header-height) - 34px);
+  min-height: calc(100dvh - var(--header-height) - 34px);
   background: var(--color-surface-muted);
 }
 
@@ -203,7 +203,7 @@
   top: calc(var(--header-height) + 34px);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--header-height) - 34px);
+  height: calc(100dvh - var(--header-height) - 34px);
   padding: var(--spacing-5) var(--spacing-4);
   background: var(--color-primary-dark);
   color: white;

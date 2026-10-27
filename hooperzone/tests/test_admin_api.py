@@ -216,3 +216,16 @@ def test_new_admin_endpoints_require_staff(shop):
     for name in ["orders:admin-settings", "orders:admin-order-export", "accounts:admin-customers",
                  "products:admin-category-list", "products:admin-product-export"]:
         assert client.get(reverse(name)).status_code == status.HTTP_403_FORBIDDEN, name
+
+
+def test_uploaded_image_gets_webp_thumbnail(shop, media):
+    res = shop["client"].post(reverse("products:admin-product-images", kwargs={"slug": "brace"}), {"image": _png()}, format="multipart")
+    assert res.data[0]["thumbnail"].endswith("-thumb.webp")
+    from products.models import ProductImage
+
+    image = ProductImage.objects.get()
+    paths = [image.image.path, image.thumbnail.path]
+    image.delete()
+    import os
+
+    assert not any(os.path.exists(p) for p in paths)  # files are cleaned up with the row

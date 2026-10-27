@@ -218,14 +218,19 @@ export default function ProductDetail() {
                     onClick={() => setActiveImage(idx)}
                     className={idx === activeImage ? 'active' : ''}
                   >
-                    <img src={img.image} alt="" />
+                    <img src={img.thumbnail || img.image} alt="" loading="lazy" decoding="async" width="96" height="96" />
                   </button>
                 ))}
               </div>
             )}
             <div className="pdp-stage">
               {images.length ? (
-                <img src={images[activeImage]?.image || images[0].image} alt={images[activeImage]?.alt_text || name} />
+                <img
+                  src={images[activeImage]?.image || images[0].image}
+                  alt={images[activeImage]?.alt_text || name}
+                  fetchPriority={activeImage === 0 ? 'high' : 'auto'}
+                  decoding="async"
+                />
               ) : (
                 <Icon name="box" size={64} strokeWidth={1.2} />
               )}

@@ -258,7 +258,6 @@ class ProductAdminViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             if request.method == "DELETE":
                 was_primary = image.is_primary
-                image.image.delete(save=False)
                 image.delete()
                 if was_primary:
                     first = ProductImage.objects.filter(product=product).order_by("-created_at").first()
@@ -297,9 +296,7 @@ class ProductAdminViewSet(viewsets.ModelViewSet):
             ordered = set(OrderItem.objects.filter(product__in=products).values_list("product_id", flat=True))
             count = products.filter(pk__in=ordered).update(is_active=False)
             for product in products.exclude(pk__in=ordered):
-                for image in product.images.all():
-                    image.image.delete(save=False)
-                product.delete()
+                product.delete()  # image files are removed by a post_delete signal
                 count += 1
         else:
             return Response({"error": "Unknown action."}, status=status.HTTP_400_BAD_REQUEST)

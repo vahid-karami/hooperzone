@@ -11,7 +11,7 @@ import { BODY_PARTS, localized } from '../utils/bodyParts';
 import { usePageMeta } from '../utils/seo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
 
-const imageOf = (product) => product?.primary_image?.image;
+const imageOf = (product) => product?.primary_image?.thumbnail || product?.primary_image?.image;
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -145,7 +145,7 @@ export default function Home() {
             <img src={`${import.meta.env.BASE_URL}images/home/hero.jpg`} alt="" fetchPriority="high" decoding="async" />
             {spotlight && (
               <Link to={`/products/${spotlight.slug}`} className="home2-spotlight">
-                {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" />}
+                {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" decoding="async" />}
                 <span className="home2-spotlight-text">
                   <small>{t('home.topSellers', 'پرفروش‌ترین‌ها')}</small>
                   <strong>{spotlightName}</strong>

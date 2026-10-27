@@ -259,7 +259,7 @@ export default function Checkout() {
               {cart.items.map((item) => (
                 <li key={item.id}>
                   <span className="summary-thumb">
-                    {item.product.primary_image && <img src={item.product.primary_image.image} alt="" />}
+                    {item.product.primary_image && <img src={item.product.primary_image.thumbnail || item.product.primary_image.image} alt="" />}
                     <span className="summary-qty">{num(item.quantity)}</span>
                   </span>
                   <span className="summary-name">{itemName(item.product)}</span>

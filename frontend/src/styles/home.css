@@ -324,7 +324,7 @@
   .home2-hero-actions .btn { flex: 1 1 160px; justify-content: center; }
 
   .home2-parts { flex-direction: column; align-items: stretch; gap: var(--spacing-2); }
-  .home2-parts-list { margin-inline: calc(var(--spacing-6) * -1); padding-inline: var(--spacing-6); }
+  .home2-parts-list { margin-inline: calc(var(--page-gutter) * -1); padding-inline: var(--page-gutter); }
 
   /* Sports become a swipeable row so every sport stays visible without a long stack. */
   .home2-sports {
@@ -332,8 +332,8 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    margin-inline: calc(var(--spacing-6) * -1);
-    padding-inline: var(--spacing-6);
+    margin-inline: calc(var(--page-gutter) * -1);
+    padding-inline: var(--page-gutter);
     padding-bottom: 4px;
   }
   .home2-sports::-webkit-scrollbar { display: none; }

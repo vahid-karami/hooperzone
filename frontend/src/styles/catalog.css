@@ -114,7 +114,6 @@
   animation: shimmer 1.6s infinite linear;
 }
 
-@keyframes shimmer { to { background-position: -200% 0; } }
 
 .hero-carousel { position: relative; }
 
@@ -385,9 +384,9 @@
 
   .rail-track {
     grid-auto-columns: 62%;
-    margin-inline: calc(-1 * clamp(16px, 3vw, 32px));
-    padding-inline: clamp(16px, 3vw, 32px);
-    scroll-padding-inline: clamp(16px, 3vw, 32px);
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding-inline: var(--page-gutter);
+    scroll-padding-inline: var(--page-gutter);
   }
 
   .rail-track.rail-lg { grid-auto-columns: 82%; }

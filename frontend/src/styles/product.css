@@ -127,7 +127,7 @@
 
 .pdp-highlights .icon { color: var(--color-primary); }
 
-.pdp-buybox { display: grid; gap: var(--spacing-4); margin-top: var(--spacing-6); }
+.pdp-buybox { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--spacing-4); margin-top: var(--spacing-6); }
 
 .pdp-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .pdp-price .price-now { font-size: var(--font-size-2xl); }
@@ -388,14 +388,15 @@
 
 /* Responsive --------------------------------------------------------- */
 @media (max-width: 960px) {
-  .pdp-main { grid-template-columns: 1fr; }
-  .pdp-gallery { position: static; grid-template-columns: 1fr; }
+  .pdp-main { grid-template-columns: minmax(0, 1fr); }
+  .pdp-gallery { position: static; grid-template-columns: minmax(0, 1fr); }
   .pdp-thumbs { flex-direction: row; order: 2; overflow-x: auto; }
   .pdp-thumbs button { width: 64px; flex-shrink: 0; }
   .spec-table div { grid-template-columns: 120px 1fr; }
 }
 
 @media (max-width: 600px) {
+  .pdp-actions .pdp-add { flex: 1 1 0; min-width: 0; padding-inline: var(--spacing-4); }
   .pdp-perks { grid-template-columns: 1fr; }
   .pdp-perks div { flex-direction: row; justify-content: flex-start; text-align: start; }
   .quick-view { grid-template-columns: 1fr; }

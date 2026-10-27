@@ -197,11 +197,11 @@
 
 @media (max-width: 860px) {
   .listing-toolbar { flex-direction: column; align-items: stretch; }
-  .filter-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-inline: calc(-1 * clamp(16px, 3vw, 32px)); padding-inline: clamp(16px, 3vw, 32px); }
+  .filter-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-inline: calc(-1 * var(--page-gutter)); padding-inline: var(--page-gutter); }
   .filter-row::-webkit-scrollbar { display: none; }
   .filter-pill { position: static; }
   .filter-pill-btn { white-space: nowrap; }
-  .filter-popover { inset-inline: clamp(16px, 3vw, 32px); max-width: none; top: auto; margin-top: 8px; }
+  .filter-popover { inset-inline: var(--page-gutter); max-width: none; top: auto; margin-top: 8px; }
   .listing-toolbar { position: relative; }
   .sort-box { justify-content: space-between; }
   .listing-banner-img { display: none; }

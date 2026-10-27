@@ -38,7 +38,14 @@ export default function ProductCard({ product }) {
         <div className="product-card-media">
           <Link to={url} className="product-card-img" tabIndex={-1} aria-hidden="true">
             {product.primary_image ? (
-              <img src={product.primary_image.image} alt="" loading="lazy" />
+              <img
+                src={product.primary_image.thumbnail || product.primary_image.image}
+                alt={product.primary_image.alt_text || name}
+                loading="lazy"
+                decoding="async"
+                width="600"
+                height="600"
+              />
             ) : (
               <span className="img-fallback"><Icon name="box" size={40} strokeWidth={1.2} /></span>
             )}

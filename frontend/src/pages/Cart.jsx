@@ -113,7 +113,7 @@ export default function Cart() {
                   <li key={item.id} className="cart-row">
                     <Link to={`/products/${product.slug}`} className="cart-row-img" tabIndex={-1} aria-hidden="true">
                       {product.primary_image ? (
-                        <img src={product.primary_image.image} alt="" />
+                        <img src={product.primary_image.thumbnail || product.primary_image.image} alt="" loading="lazy" decoding="async" />
                       ) : (
                         <Icon name="box" size={32} strokeWidth={1.2} />
                       )}

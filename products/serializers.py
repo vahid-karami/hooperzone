@@ -65,9 +65,15 @@ class SportSerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
-        fields = ["id", "image", "alt_text", "is_primary"]
+        fields = ["id", "image", "thumbnail", "alt_text", "is_primary"]
+
+    def get_thumbnail(self, obj):
+        # Falls back to the full image until a thumbnail exists.
+        return (obj.thumbnail or obj.image).url if (obj.thumbnail or obj.image) else None
 
 
 class CategoryAdminSerializer(serializers.ModelSerializer):
@@ -124,13 +130,9 @@ class ProductListSerializer(serializers.ModelSerializer):
         ]
 
     def get_primary_image(self, obj):
-        primary = obj.images.filter(is_primary=True).first()
-        if primary:
-            return ProductImageSerializer(primary, context=self.context).data
-        first_image = obj.images.first()
-        if first_image:
-            return ProductImageSerializer(first_image, context=self.context).data
-        return None
+        # Sorted in Python so the viewset's prefetch_related("images") is used (no query per product).
+        images = sorted(obj.images.all(), key=lambda i: (not i.is_primary, -i.created_at.timestamp()))
+        return ProductImageSerializer(images[0], context=self.context).data if images else None
 
     def get_name_localized(self, obj):
         lang = self.context.get('lang', 'en')
@@ -242,7 +244,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
 
     def get_primary_image(self, obj):
         image = self._sorted_images(obj)
-        return image[0].image.url if image else None
+        return (image[0].thumbnail or image[0].image).url if image else None
 
     def get_images(self, obj):
         return ProductImageSerializer(self._sorted_images(obj), many=True).data
