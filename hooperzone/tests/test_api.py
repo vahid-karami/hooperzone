@@ -293,7 +293,9 @@ class TestOrders:
             },
         )
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["total"] == "109.97"
+        # Two items at 49.99 plus the default Post fee from shop settings.
+        assert response.data["shipping_method"] == "post"
+        assert response.data["total"] == "60099.98"
 
     def test_list_orders(self, authenticated_client, product):
         cart_url = reverse("cart:cart-add")

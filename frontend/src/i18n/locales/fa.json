@@ -275,7 +275,8 @@
     "cleared": "سبد خرید خالی شد",
     "itemsCount": "{{count}} کالا",
     "yourSavings": "سود شما از خرید",
-    "remove": "حذف"
+    "remove": "حذف",
+    "shippingAtCheckout": "در مرحله بعد"
   },
   "checkout": {
     "title": "تکمیل خرید",
@@ -310,7 +311,9 @@
     "paymentMethod": "روش پرداخت",
     "gatewayNote": "پرداخت آنلاین با کلیه کارت‌های شتاب",
     "payAndPlace": "ثبت سفارش و پرداخت",
-    "secureNote": "پس از ثبت سفارش به درگاه امن بانکی منتقل می‌شوید."
+    "secureNote": "پس از ثبت سفارش به درگاه امن بانکی منتقل می‌شوید.",
+    "shippingMethod": "روش ارسال",
+    "deliveryDays": "{{days}} روز کاری"
   },
   "auth": {
     "welcomeBack": "خوش آمدید",

@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from hooperzone.fields import DigitsCharField
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, ShopSettings
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -18,13 +18,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
     def get_product_image(self, obj):
         if not obj.product_id:
             return None
-        image = obj.product.images.order_by("-is_primary", "-created_at").first()
-        return image.image.url if image else None
+        # Sorted in Python so a prefetch of items__product__images is used.
+        images = sorted(obj.product.images.all(), key=lambda i: (not i.is_primary, -i.created_at.timestamp()))
+        return images[0].image.url if images else None
 
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    shipping_method_display = serializers.CharField(source="get_shipping_method_display", read_only=True)
 
     class Meta:
         model = Order
@@ -41,6 +43,11 @@ class OrderSerializer(serializers.ModelSerializer):
             "shipping_zip",
             "shipping_country",
             "shipping_phone",
+            "shipping_method",
+            "shipping_method_display",
+            "tracking_code",
+            "payment_ref_id",
+            "paid_at",
             "subtotal",
             "shipping_cost",
             "discount",
@@ -50,6 +57,27 @@ class OrderSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "order_number", "created_at", "updated_at"]
+
+
+class ShopInfoSerializer(serializers.ModelSerializer):
+    shipping_methods = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShopSettings
+        fields = [
+            "store_phone", "store_email", "store_address", "instagram", "telegram", "whatsapp",
+            "working_hours", "enamad_html", "samandehi_html", "shipping_methods",
+        ]
+
+    def get_shipping_methods(self, obj):
+        return obj.shipping_methods()
+
+
+class ShopSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopSettings
+        exclude = ["id"]
+        read_only_fields = ["updated_at"]
 
 
 class AdminOrderSerializer(OrderSerializer):
@@ -75,6 +103,7 @@ class OrderCreateSerializer(serializers.Serializer):
     shipping_city = serializers.CharField(max_length=100)
     shipping_state = serializers.CharField(max_length=100, required=False, allow_blank=True)
     shipping_zip = DigitsCharField(max_length=20)
-    shipping_country = serializers.CharField(max_length=100, required=False, default="US")
+    shipping_country = serializers.CharField(max_length=100, required=False, default="IR")
     shipping_phone = DigitsCharField(max_length=15)
+    shipping_method = serializers.ChoiceField(choices=Order.SHIPPING_CHOICES, required=False, default=Order.SHIPPING_POST)
     notes = serializers.CharField(required=False, allow_blank=True)

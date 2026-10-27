@@ -8,6 +8,8 @@ urlpatterns = [
     path("", views.order_list, name="order-list"),
     path("create/", views.order_create, name="order-create"),
     path("payment/verify/", views.order_pay_verify, name="order-pay-verify"),
+    path("shipping-methods/", views.shipping_methods, name="shipping-methods"),
+    path("shop-info/", views.shop_info, name="shop-info"),
     # Staff endpoints; must come before the <order_number> patterns.
     path("admin/stats/", admin_views.admin_stats, name="admin-stats"),
     path("admin/", admin_views.admin_order_list, name="admin-order-list"),

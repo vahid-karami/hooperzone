@@ -17,10 +17,6 @@ import { GATEWAYS, startPayment } from '../utils/payment';
 import { toPersianNumber } from '../hooks/useLanguage';
 import { usePageMeta } from '../utils/seo';
 
-// Mirrors the backend rule in orders.views.order_create.
-const FREE_SHIPPING_FROM = 100;
-const SHIPPING_COST = 9.99;
-
 function Steps({ current }) {
   const { t } = useTranslation();
   const steps = [t('checkout.stepCart', 'سبد خرید'), t('checkout.stepShipping', 'اطلاعات ارسال'), t('checkout.stepPayment', 'پرداخت')];
@@ -57,6 +53,16 @@ export default function Checkout() {
     notes: '',
   }));
   const [gateway, setGateway] = useState('zarinpal');
+  const [shippingMethods, setShippingMethods] = useState([]);
+  const [shippingMethod, setShippingMethod] = useState('post');
+
+  // Fees are set by staff in the admin portal; the backend charges the same amount.
+  useEffect(() => {
+    apiClient
+      .get(ENDPOINTS.shippingMethods)
+      .then(({ data }) => setShippingMethods(data))
+      .catch(() => setShippingMethods([]));
+  }, []);
 
   // The profile loads after the first render on a hard reload; fill only empty fields.
   useEffect(() => {
@@ -105,6 +111,7 @@ export default function Checkout() {
         shipping_phone: toEnglishDigits(form.shipping_phone),
         shipping_zip: toEnglishDigits(form.shipping_zip).replace(/[\s-]/g, ''),
         shipping_country: 'IR',
+        shipping_method: shippingMethod,
       });
       orderNumber = data.order_number;
       refreshCart();
@@ -124,8 +131,9 @@ export default function Checkout() {
   if (!cart.items || cart.items.length === 0) return <Navigate to="/cart" replace />;
 
   const subtotal = Number(cart.total_price) || 0;
-  const shipping = subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_COST;
-  const total = subtotal + shipping;
+  const selectedMethod = shippingMethods.find((m) => m.code === shippingMethod);
+  const shipping = selectedMethod ? Number(selectedMethod.fee) : null;
+  const total = subtotal + (shipping || 0);
   const itemName = (p) => (lang === 'fa' && p.name_fa) || p.name_localized || p.name;
 
   const fieldError = (name) =>
@@ -215,6 +223,23 @@ export default function Checkout() {
             </section>
 
             <section className="form-card">
+              <h2><Icon name="box" size={20} /> {t('checkout.shippingMethod', 'روش ارسال')}</h2>
+              <div className="gateway-options shipping-options" role="radiogroup" aria-label={t('checkout.shippingMethod', 'روش ارسال')}>
+                {shippingMethods.map((m) => (
+                  <label key={m.code} className={`gateway-option ${shippingMethod === m.code ? 'selected' : ''}`}>
+                    <input type="radio" name="shipping_method" value={m.code} checked={shippingMethod === m.code} onChange={() => setShippingMethod(m.code)} />
+                    <span className="gateway-name">{lang === 'fa' ? m.label_fa : m.label_en}</span>
+                    <span className="gateway-note">
+                      {t('checkout.deliveryDays', '{{days}} روز کاری', { days: num(m.days) })}
+                    </span>
+                    <span className="shipping-fee"><Price amount={m.fee} /></span>
+                  </label>
+                ))}
+                {shippingMethods.length === 0 && <div className="skeleton shipping-skeleton" aria-hidden="true" />}
+              </div>
+            </section>
+
+            <section className="form-card">
               <h2><Icon name="card" size={20} /> {t('checkout.paymentMethod', 'روش پرداخت')}</h2>
               <div className="gateway-options" role="radiogroup" aria-label={t('checkout.paymentMethod', 'روش پرداخت')}>
                 {GATEWAYS.map((g) => (
@@ -246,11 +271,11 @@ export default function Checkout() {
               <div><dt>{t('checkout.subtotal')}</dt><dd><Price amount={subtotal} /></dd></div>
               <div>
                 <dt>{t('checkout.shipping')}</dt>
-                <dd>{shipping === 0 ? <span className="free-tag">{t('checkout.free')}</span> : <Price amount={shipping} />}</dd>
+                <dd>{shipping === null ? '—' : <Price amount={shipping} />}</dd>
               </div>
               <div className="summary-total"><dt>{t('checkout.total')}</dt><dd><Price amount={total} /></dd></div>
             </dl>
-            <button type="submit" disabled={submitting} className="btn btn-primary btn-lg btn-full">
+            <button type="submit" disabled={submitting || !selectedMethod} className="btn btn-primary btn-lg btn-full">
               {submitting ? t('checkout.placingOrder') : t('checkout.payAndPlace', 'ثبت سفارش و پرداخت')}
             </button>
             <p className="summary-fineprint">

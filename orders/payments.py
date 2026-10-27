@@ -21,127 +21,146 @@ def mock_return_url(callback_url, **params):
     return f"{callback_url}{separator}{urllib.parse.urlencode(params)}"
 
 
+def mock_payments_allowed(sandbox):
+    """Offline mock transactions auto-succeed, so they must never exist on the live site."""
+    return sandbox and getattr(settings, "PAYMENT_MOCK_FALLBACK", False)
+
+
 def toman_amount(order):
-    """Order total in Tomans. Totals below 10,000 are treated as USD."""
-    if order.total < 10000:
-        return int(order.total * Decimal("60000"))
-    return int(order.total / 10)
+    """Order total in Tomans (prices are stored in Tomans)."""
+    return int(order.total)
 
 
 def rial_amount(order):
-    """Order total in Rials. Totals below 10,000 are treated as USD."""
-    if order.total < 10000:
-        return int(order.total * Decimal("600000"))
-    return int(order.total)
+    """Order total in Rials."""
+    return int(order.total) * 10
+
+
+def _post_json(url, payload, headers=None, timeout=10):
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Accept": "application/json", **(headers or {})},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        # ZarinPal v4 answers errors with 4xx and a JSON body.
+        try:
+            return json.loads(e.read().decode("utf-8"))
+        except Exception:
+            raise e
 
 
 class ZarinPalGateway:
     """
-    ZarinPal payment gateway service supporting sandbox and production modes.
+    ZarinPal REST API v4 (https://www.zarinpal.com/docs/paymentGateway/).
+    Amounts are sent in Tomans (currency "IRT").
     """
+
+    SANDBOX_MERCHANT = "00000000-0000-0000-0000-000000000000"
+
     def __init__(self, merchant_id=None, sandbox=True):
         self.sandbox = sandbox
-        self.merchant_id = merchant_id or ("00000000-0000-0000-0000-000000000000" if sandbox else "")
+        self.merchant_id = merchant_id or getattr(settings, "ZARINPAL_MERCHANT_ID", "") or (
+            self.SANDBOX_MERCHANT if sandbox else ""
+        )
+
+    @property
+    def host(self):
+        return "https://sandbox.zarinpal.com" if self.sandbox else "https://payment.zarinpal.com"
 
     def get_request_url(self):
-        if self.sandbox:
-            return "https://sandbox.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
-        return "https://www.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
+        return f"{self.host}/pg/v4/payment/request.json"
 
     def get_startpay_url(self, authority):
-        return f"https://sandbox.zarinpal.com/pg/StartPay/{authority}" if self.sandbox else f"https://www.zarinpal.com/pg/StartPay/{authority}"
+        return f"{self.host}/pg/StartPay/{authority}"
 
     def get_verify_url(self):
-        if self.sandbox:
-            return "https://sandbox.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
-        return "https://www.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
+        return f"{self.host}/pg/v4/payment/verify.json"
 
     def request_payment(self, order, callback_url, description=None):
-        """
-        Initiate payment request and return gateway redirect URL and authority code.
-        Amount for Zarinpal is in Tomans.
-        """
-        amount_toman = toman_amount(order)
-        desc = description or f"Payment for Order {order.order_number}"
-
+        """Start a transaction and return the gateway redirect URL and authority code."""
+        amount = toman_amount(order)
         payload = {
-            "MerchantID": self.merchant_id,
-            "Amount": amount_toman,
-            "Description": desc,
-            "CallbackURL": callback_url,
-            "Email": getattr(order.user, "email", ""),
-            "Mobile": getattr(order.user, "phone", order.shipping_phone),
+            "merchant_id": self.merchant_id,
+            "amount": amount,
+            "currency": "IRT",
+            "description": description or f"سفارش {order.order_number} - هوپرزون",
+            "callback_url": callback_url,
+            "metadata": {
+                "mobile": getattr(order.user, "phone", "") or order.shipping_phone,
+                "email": getattr(order.user, "email", "") or "",
+                "order_id": order.order_number,
+            },
         }
 
         try:
-            req = urllib.request.Request(
-                self.get_request_url(),
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json", "Accept": "application/json"},
-            )
-            with urllib.request.urlopen(req, timeout=5) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                status_code = result.get("Status")
-                if status_code == 100:
-                    authority = result.get("Authority")
-                    return {
-                        "success": True,
-                        "authority": authority,
-                        "payment_url": self.get_startpay_url(authority),
-                        "amount": amount_toman,
-                    }
-                raise PaymentGatewayError(f"ZarinPal request failed with status code {status_code}")
+            if not self.merchant_id:
+                raise PaymentGatewayError("ZARINPAL_MERCHANT_ID is not configured.")
+            result = _post_json(self.get_request_url(), payload)
+            data = result.get("data") or {}
+            if isinstance(data, dict) and data.get("code") == 100 and data.get("authority"):
+                authority = data["authority"]
+                return {
+                    "success": True,
+                    "authority": authority,
+                    "payment_url": self.get_startpay_url(authority),
+                    "amount": amount,
+                }
+            raise PaymentGatewayError(f"ZarinPal request failed: {result.get('errors') or data}")
         except Exception as e:
-            if not self.sandbox:
-                logger.error(f"ZarinPal request failed: {e}")
+            if not mock_payments_allowed(self.sandbox):
+                logger.error("ZarinPal request failed for %s: %s", order.order_number, e)
+                if isinstance(e, PaymentGatewayError):
+                    raise
                 raise PaymentGatewayError(str(e)) from e
-            logger.warning(f"ZarinPal online request failed: {e}. Generating local sandbox authority.")
+            logger.warning("ZarinPal sandbox unreachable (%s). Using a local mock authority.", e)
             authority = f"ZP-MOCK-{uuid.uuid4().hex[:12]}"
             return {
                 "success": True,
                 "authority": authority,
                 "payment_url": mock_return_url(callback_url, Authority=authority, Status="OK"),
-                "amount": amount_toman,
+                "amount": amount,
                 "is_mock": True,
             }
 
     def verify_payment(self, order, authority):
-        if self.sandbox and authority.startswith("ZP-MOCK-"):
-            return {
-                "success": True,
-                "ref_id": f"REF-{uuid.uuid4().hex[:8].upper()}",
-                "status": 100,
-                "is_mock": True,
-            }
+        if authority.startswith("ZP-MOCK-"):
+            if mock_payments_allowed(self.sandbox):
+                return {
+                    "success": True,
+                    "ref_id": f"REF-{uuid.uuid4().hex[:8].upper()}",
+                    "status": 100,
+                    "is_mock": True,
+                }
+            return {"success": False, "error": "Invalid payment authority."}
 
         payload = {
-            "MerchantID": self.merchant_id,
-            "Authority": authority,
+            "merchant_id": self.merchant_id,
+            "authority": authority,
             # Must match the amount sent in request_payment or ZarinPal rejects it.
-            "Amount": toman_amount(order),
+            "amount": toman_amount(order),
         }
 
         try:
-            req = urllib.request.Request(
-                self.get_verify_url(),
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json", "Accept": "application/json"},
-            )
-            with urllib.request.urlopen(req, timeout=5) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                status_code = result.get("Status")
-                if status_code in [100, 101]:
-                    return {
-                        "success": True,
-                        "ref_id": str(result.get("RefID", "")),
-                        "status": status_code,
-                    }
+            result = _post_json(self.get_verify_url(), payload)
+            data = result.get("data") or {}
+            code = data.get("code") if isinstance(data, dict) else None
+            if code in (100, 101):
                 return {
-                    "success": False,
-                    "error": f"Payment verification failed with status {status_code}",
+                    "success": True,
+                    "ref_id": str(data.get("ref_id", "")),
+                    "card_pan": data.get("card_pan", "") or "",
+                    "status": code,
                 }
+            return {
+                "success": False,
+                "error": f"Payment verification failed: {result.get('errors') or code}",
+            }
         except Exception as e:
-            logger.error(f"ZarinPal verification error: {e}")
+            logger.error("ZarinPal verification error for %s: %s", order.order_number, e)
             return {"success": False, "error": str(e)}
 
 
@@ -150,7 +169,7 @@ class IDPayGateway:
     IDPay payment gateway service.
     """
     def __init__(self, api_key=None, sandbox=True):
-        self.api_key = api_key or ("mock-idpay-api-key" if sandbox else "")
+        self.api_key = api_key or getattr(settings, "IDPAY_API_KEY", "") or ("mock-idpay-api-key" if sandbox else "")
         self.sandbox = sandbox
 
     def get_headers(self):
@@ -193,7 +212,7 @@ class IDPayGateway:
                     }
                 raise PaymentGatewayError(result.get("error_message", "IDPay request failed"))
         except Exception as e:
-            if not self.sandbox:
+            if not mock_payments_allowed(self.sandbox):
                 logger.error(f"IDPay request failed: {e}")
                 raise PaymentGatewayError(str(e)) from e
             logger.warning(f"IDPay online request failed: {e}. Generating local sandbox transaction.")
@@ -207,7 +226,9 @@ class IDPayGateway:
             }
 
     def verify_payment(self, order, payment_id):
-        if self.sandbox and str(payment_id).startswith("IDP-MOCK-"):
+        if str(payment_id).startswith("IDP-MOCK-"):
+            if not mock_payments_allowed(self.sandbox):
+                return {"success": False, "error": "Invalid payment id."}
             return {
                 "success": True,
                 "track_id": f"TRACK-{uuid.uuid4().hex[:8].upper()}",

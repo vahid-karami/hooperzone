@@ -275,7 +275,8 @@
     "cleared": "Your cart is now empty",
     "itemsCount": "{{count}} items",
     "yourSavings": "You save",
-    "remove": "Remove"
+    "remove": "Remove",
+    "shippingAtCheckout": "At checkout"
   },
   "checkout": {
     "title": "Checkout",
@@ -310,7 +311,9 @@
     "paymentMethod": "Payment method",
     "gatewayNote": "Pay online with any Shetab card",
     "payAndPlace": "Place order & pay",
-    "secureNote": "After placing the order you'll be taken to the secure bank gateway."
+    "secureNote": "After placing the order you'll be taken to the secure bank gateway.",
+    "shippingMethod": "Shipping method",
+    "deliveryDays": "{{days}} business days"
   },
   "auth": {
     "welcomeBack": "Welcome Back",

@@ -37,6 +37,8 @@ export const ENDPOINTS = {
   orderCancel: (id) => `${API_BASE_URL}/orders/${id}/cancel/`,
   orderPay: (id) => `${API_BASE_URL}/orders/${id}/pay/`,
   paymentVerify: `${API_BASE_URL}/orders/payment/verify/`,
+  shippingMethods: `${API_BASE_URL}/orders/shipping-methods/`,
+  shopInfo: `${API_BASE_URL}/orders/shop-info/`,
   adminStats: `${API_BASE_URL}/orders/admin/stats/`,
   adminOrders: `${API_BASE_URL}/orders/admin/`,
   adminOrderUpdate: (id) => `${API_BASE_URL}/orders/admin/${id}/`,
