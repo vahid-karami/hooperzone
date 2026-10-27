@@ -6,7 +6,7 @@ import { ENDPOINTS } from '../api/endpoints';
 import { useToast } from '../context/ToastContext';
 import { formatDate } from '../utils/persianDate';
 import { toPersianNumber } from '../hooks/useLanguage';
-import { ORDER_STEPS, orderStatus, paymentStatus, canPay, canCancel } from '../utils/orderStatus';
+import { ORDER_STEPS, orderStatus, paymentStatus, canPay, canCancel, shippingMethodLabel, trackingUrl } from '../utils/orderStatus';
 import { GATEWAYS, startPayment } from '../utils/payment';
 import { usePageMeta } from '../utils/seo';
 import Price from '../components/Price';
@@ -26,7 +26,7 @@ export default function OrderDetail() {
   const [gateway, setGateway] = useState('zarinpal');
   const [busy, setBusy] = useState(false);
 
-  usePageMeta({ title: t('orders.orderDetail') });
+  usePageMeta({ title: t('orders.orderDetail'), noindex: true });
 
   useEffect(() => {
     apiClient
@@ -166,6 +166,31 @@ export default function OrderDetail() {
                 <p>{t('checkout.phone')}: <span dir="ltr">{num(order.shipping_phone)}</span></p>
               </address>
               {order.notes && <p className="muted">{t('checkout.orderNotes')}: {order.notes}</p>}
+              <div className="shipment-box">
+                <div>
+                  <span className="muted">{t('checkout.shippingMethod', 'روش ارسال')}</span>
+                  <strong>{shippingMethodLabel(order.shipping_method, lang)}</strong>
+                </div>
+                {order.tracking_code ? (
+                  <div>
+                    <span className="muted">{t('orders.trackingCode', 'کد رهگیری مرسوله')}</span>
+                    <strong dir="ltr" className="mono">{order.tracking_code}</strong>
+                    <a href={trackingUrl(order.shipping_method)} target="_blank" rel="noreferrer" className="link-arrow">
+                      {t('orders.trackParcel', 'پیگیری مرسوله')} <Icon name="arrowLeft" size={16} className="flip-ltr" />
+                    </a>
+                  </div>
+                ) : (
+                  order.payment_status === 'paid' && order.status !== 'cancelled' && (
+                    <p className="muted">{t('orders.trackingSoon', 'کد رهگیری پس از ارسال مرسوله همین‌جا نمایش داده می‌شود.')}</p>
+                  )
+                )}
+                {order.payment_ref_id && (
+                  <div>
+                    <span className="muted">{t('payment.refId', 'کد پیگیری پرداخت')}</span>
+                    <strong dir="ltr" className="mono">{order.payment_ref_id}</strong>
+                  </div>
+                )}
+              </div>
             </section>
           </div>
 
@@ -174,8 +199,8 @@ export default function OrderDetail() {
             <dl className="summary-rows">
               <div><dt>{t('cart.subtotal')}</dt><dd><Price amount={order.subtotal} /></dd></div>
               <div>
-                <dt>{t('cart.shipping')}</dt>
-                <dd>{Number(order.shipping_cost) === 0 ? <span className="free-tag">{t('cart.free')}</span> : <Price amount={order.shipping_cost} />}</dd>
+                <dt>{t('cart.shipping')} <span className="muted">({shippingMethodLabel(order.shipping_method, lang)})</span></dt>
+                <dd><Price amount={order.shipping_cost} /></dd>
               </div>
               <div className="summary-total"><dt>{t('cart.total')}</dt><dd><Price amount={order.total} /></dd></div>
             </dl>

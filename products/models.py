@@ -1,5 +1,35 @@
+import io
+import logging
+from pathlib import Path
+
+from django.core.files.base import ContentFile
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils.text import slugify
+
+logger = logging.getLogger(__name__)
+
+THUMBNAIL_SIZE = (600, 600)
+
+
+def make_thumbnail(image_field):
+    """A WebP copy of `image_field` no larger than THUMBNAIL_SIZE, or None if it can't be read."""
+    from PIL import Image, ImageOps
+
+    try:
+        image_field.open("rb")
+        with Image.open(image_field) as img:
+            img = ImageOps.exif_transpose(img)
+            img = img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB")
+            img.thumbnail(THUMBNAIL_SIZE, Image.LANCZOS)
+            buf = io.BytesIO()
+            img.save(buf, "WEBP", quality=82, method=6)
+    except Exception:
+        logger.warning("Could not create a thumbnail for %s", image_field.name, exc_info=True)
+        return None
+    name = f"{Path(image_field.name).stem}-thumb.webp"
+    return ContentFile(buf.getvalue(), name=name)
 
 
 class Category(models.Model):
@@ -9,6 +39,8 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     description_fa = models.TextField(blank=True, verbose_name="Description (Persian)")
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    meta_title = models.CharField(max_length=70, blank=True, help_text="Search result title (optional)")
+    meta_description = models.CharField(max_length=170, blank=True, help_text="Search result snippet (optional)")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -97,6 +129,8 @@ class Product(models.Model):
     color = models.CharField(max_length=50, blank=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Weight in grams")
     material = models.CharField(max_length=100, blank=True)
+    meta_title = models.CharField(max_length=70, blank=True, help_text="Search result title (optional)")
+    meta_description = models.CharField(max_length=170, blank=True, help_text="Search result snippet (optional)")
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -151,9 +185,28 @@ class Product(models.Model):
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="products/")
+    # Small WebP copy for product cards and lists; generated on save.
+    thumbnail = models.ImageField(upload_to="products/thumbs/", blank=True, editable=False)
     alt_text = models.CharField(max_length=200, blank=True)
     is_primary = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        image_changed = self._state.adding or not self.thumbnail or (
+            self.pk and ProductImage.objects.filter(pk=self.pk).exclude(image=self.image.name).exists()
+        )
+        super().save(*args, **kwargs)
+        if image_changed and self.image:
+            self.refresh_thumbnail()
+
+    def refresh_thumbnail(self):
+        thumb = make_thumbnail(self.image)
+        if thumb is None:
+            return
+        if self.thumbnail:
+            self.thumbnail.delete(save=False)
+        self.thumbnail.save(thumb.name, thumb, save=False)
+        ProductImage.objects.filter(pk=self.pk).update(thumbnail=self.thumbnail.name)
 
     class Meta:
         db_table = "product_images"
@@ -161,3 +214,11 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.name}"
+
+
+@receiver(post_delete, sender=ProductImage)
+def delete_product_image_files(sender, instance, **kwargs):
+    """Remove the photo and its thumbnail from disk, also when a whole product is deleted."""
+    for field in (instance.image, instance.thumbnail):
+        if field:
+            field.delete(save=False)

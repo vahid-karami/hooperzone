@@ -99,6 +99,8 @@
   /* Layout */
   --max-width: 1320px;
   --header-height: 76px;
+  /* Side padding of .container; full-bleed rows pull out by the same amount. */
+  --page-gutter: var(--spacing-6);
 
   color-scheme: light;
 }
@@ -114,6 +116,38 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Room for the sticky header when jumping to #anchors. */
+  scroll-padding-top: calc(var(--header-height) + 16px);
+}
+
+/* Touch: no grey flash on tap, no double-tap zoom delay on controls. */
+a, button, label, summary, select, input, textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { user-select: none; }
+
+/* Route changes: a short fade so pages don't pop in. */
+.route-view { animation: route-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes route-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* Slim loading bar while a page's code downloads. */
+.page-loader { min-height: 70vh; }
+.page-loader-bar {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 1000;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), var(--color-primary), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: loader-slide 1s ease-in-out infinite;
+}
+@keyframes loader-slide { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .route-view, .page-loader-bar { animation: none; }
+  html { scroll-behavior: auto; }
 }
 
 body {
@@ -174,7 +208,7 @@ button {
   width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-6);
+  padding: 0 var(--page-gutter);
 }
 
 .sr-only {
@@ -420,11 +454,9 @@ button {
     --font-size-2xl: 1.5rem;
   }
 
-  .container {
-    padding: 0 var(--spacing-4);
-  }}
+  :root { --page-gutter: var(--spacing-4); }
+}
 
 @media (min-width: 641px) and (max-width: 1024px) {
-  .container {
-    padding: 0 var(--spacing-5);
-  }}
+  :root { --page-gutter: var(--spacing-5); }
+}

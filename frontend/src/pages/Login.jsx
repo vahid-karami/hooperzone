@@ -22,7 +22,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  usePageMeta({ title: t('common.login', 'ورود') });
+  usePageMeta({ title: t('common.login', 'ورود'), noindex: true });
 
   const switchMethod = (method) => {
     setAuthMethod(method);

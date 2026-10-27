@@ -108,6 +108,14 @@
 .gateway-option.selected { border-color: var(--color-primary); background: var(--color-primary-50); }
 .gateway-name { font-weight: var(--font-weight-black); color: var(--color-primary); }
 .gateway-note { font-size: var(--font-size-xs); color: var(--color-neutral-600); }
+.shipping-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.shipping-fee { margin-top: 4px; font-weight: var(--font-weight-bold); font-size: var(--font-size-sm); }
+.shipping-skeleton { grid-column: 1 / -1; height: 84px; border-radius: var(--radius-lg); }
+.summary-muted { color: var(--color-neutral-500); font-size: var(--font-size-sm); }
+
+.shipment-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--spacing-4); margin-top: var(--spacing-5); padding: var(--spacing-4); border-radius: var(--radius-lg); background: var(--color-primary-50); }
+.shipment-box > div { display: grid; gap: 2px; align-content: start; font-size: var(--font-size-sm); }
+.shipment-box .link-arrow { margin-top: 4px; font-size: var(--font-size-xs); }
 
 /* Summary items -------------------------------------------------------- */
 .summary-items {
@@ -237,7 +245,7 @@
 }
 
 @media (max-width: 600px) {
-  .form-grid, .gateway-options { grid-template-columns: 1fr; }
+  .form-grid, .gateway-options, .shipping-options { grid-template-columns: 1fr; }
   .form-card { padding: var(--spacing-5); }
   .checkout-steps, .order-timeline { overflow-x: auto; scrollbar-width: none; }
   .checkout-steps li, .order-timeline li { white-space: nowrap; }

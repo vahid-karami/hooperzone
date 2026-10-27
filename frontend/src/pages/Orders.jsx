@@ -32,7 +32,7 @@ export default function Orders() {
   const [filter, setFilter] = useState('all');
   const [paying, setPaying] = useState(null);
 
-  usePageMeta({ title: t('header.myOrders') });
+  usePageMeta({ title: t('header.myOrders'), noindex: true });
 
   useEffect(() => {
     apiClient

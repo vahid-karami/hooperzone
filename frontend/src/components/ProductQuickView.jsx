@@ -72,7 +72,7 @@ export default function ProductQuickView({ slug, onClose }) {
         ) : product ? (
           <div className="quick-view">
             <div className="quick-view-img">
-              {product.images?.length ? <img src={product.images[0].image} alt={name} /> : <Icon name="box" size={56} strokeWidth={1.2} />}
+              {product.images?.length ? <img src={product.images[0].thumbnail || product.images[0].image} alt={name} decoding="async" /> : <Icon name="box" size={56} strokeWidth={1.2} />}
             </div>
             <div className="quick-view-info">
               {product.brand && <span className="eyebrow">{product.brand}</span>}

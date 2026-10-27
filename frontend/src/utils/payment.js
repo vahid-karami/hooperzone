@@ -1,9 +1,9 @@
 import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
 
+// IDPay is still supported by the backend; add it back here once IDPAY_API_KEY is configured.
 export const GATEWAYS = [
   { key: 'zarinpal', fa: 'زرین‌پال', en: 'ZarinPal' },
-  { key: 'idpay', fa: 'آیدی‌پی', en: 'IDPay' },
 ];
 
 /**

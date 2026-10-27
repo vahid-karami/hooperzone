@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../context/ToastContext';
 import { ProductDetailSkeleton } from '../components/Skeletons';
-import { usePageMeta, ProductSchema } from '../utils/seo';
+import { usePageMeta, ProductSchema, BreadcrumbSchema } from '../utils/seo';
 import Price from '../components/Price';
 import Icon from '../components/Icon';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -71,7 +71,12 @@ export default function ProductDetail() {
     ? (lang === 'fa' && product.description_fa) || product.description_localized || product.description
     : '';
 
-  usePageMeta({ title: name, description, image: product?.images?.[0]?.image });
+  usePageMeta({
+    title: (lang === 'fa' && product?.meta_title) || name,
+    description: ((lang === 'fa' && product?.meta_description) || description).slice(0, 170),
+    image: product?.images?.[0]?.image,
+    type: 'product',
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -188,7 +193,7 @@ export default function ProductDetail() {
   const highlights = [
     product.material && t('product.highlightMaterial', 'جنس: {{material}}', { material: product.material }),
     product.size && t('product.highlightSize', 'سایز موجود: {{size}}', { size: product.size }),
-    t('product.highlightShipping', 'ارسال رایگان و ۷ روز ضمانت بازگشت'),
+    t('product.highlightShipping', 'ارسال سریع با پست و تیپاکس و ۷ روز ضمانت بازگشت'),
   ].filter(Boolean);
 
   const crumbs = [
@@ -203,6 +208,7 @@ export default function ProductDetail() {
   return (
     <div className="pdp">
       <ProductSchema product={product} />
+      <BreadcrumbSchema items={crumbs} />
       <div className="container">
         <Breadcrumbs items={crumbs} />
 
@@ -218,14 +224,19 @@ export default function ProductDetail() {
                     onClick={() => setActiveImage(idx)}
                     className={idx === activeImage ? 'active' : ''}
                   >
-                    <img src={img.image} alt="" />
+                    <img src={img.thumbnail || img.image} alt="" loading="lazy" decoding="async" width="96" height="96" />
                   </button>
                 ))}
               </div>
             )}
             <div className="pdp-stage">
               {images.length ? (
-                <img src={images[activeImage]?.image || images[0].image} alt={images[activeImage]?.alt_text || name} />
+                <img
+                  src={images[activeImage]?.image || images[0].image}
+                  alt={images[activeImage]?.alt_text || name}
+                  fetchPriority={activeImage === 0 ? 'high' : 'auto'}
+                  decoding="async"
+                />
               ) : (
                 <Icon name="box" size={64} strokeWidth={1.2} />
               )}
@@ -341,7 +352,7 @@ export default function ProductDetail() {
             </dl>
 
             <div className="pdp-perks">
-              <div><Icon name="truck" size={22} /> {t('home.trustShipText', 'ارسال رایگان به سراسر کشور')}</div>
+              <div><Icon name="truck" size={22} /> {t('home.trustShipText', 'ارسال به سراسر کشور با پست و تیپاکس')}</div>
               <div><Icon name="returns" size={22} /> {t('home.trustReturnText', '۷ روز ضمانت بازگشت کالا')}</div>
               <div><Icon name="shield" size={22} /> {t('footer.genuine', 'ضمانت اصالت کالا')}</div>
             </div>

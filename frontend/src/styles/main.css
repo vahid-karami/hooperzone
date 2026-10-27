@@ -1,66 +1,4 @@
-/* HooperZone - Main Stylesheet */
 
-/* PAGE TRANSITIONS */
-.page-enter {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.page-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-.page-exit {
-  opacity: 1;
-}
-
-.page-exit-active {
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-
-.main-enter {
-  opacity: 0;
-}
-
-.main-enter-active {
-  opacity: 1;
-  transition: opacity 300ms ease;
-}
-
-.fade-in {
-  animation: fadeIn 300ms ease-out;
-}
-
-.fade-in .fade-in-item {
-  opacity: 0;
-  animation: fadeInUp 400ms ease-out forwards;
-}
-
-.fade-in .fade-in-item:nth-child(1) { animation-delay: 0ms; }
-.fade-in .fade-in-item:nth-child(2) { animation-delay: 50ms; }
-.fade-in .fade-in-item:nth-child(3) { animation-delay: 100ms; }
-.fade-in .fade-in-item:nth-child(4) { animation-delay: 150ms; }
-.fade-in .fade-in-item:nth-child(5) { animation-delay: 200ms; }
-.fade-in .fade-in-item:nth-child(6) { animation-delay: 250ms; }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* SMOOTH SCROLL */
 html {
@@ -90,22 +28,6 @@ html {
   .products-grid > * {
     margin: var(--spacing-6);
   }}
-
-/* FOCUS VISIBLE polyfill */
-.html-not-js :focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* Hide scrollbar but keep scrollable */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.hide-scrollbar {
-  -ms-overflow-style: hidden;
-  scrollbar-width: none;
-}
 
 /* LANGUAGE SWITCHER */
 .language-switcher {
@@ -141,223 +63,16 @@ html {
   font-size: var(--font-size-sm);
 }
 
-/* CURRENCY SELECTOR */
-
-.currency-select {
-  background: var(--color-neutral-100);
-  border: 1px solid var(--color-neutral-200);
-  color: var(--color-neutral-700);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  padding-right: 28px;
-}
-
-.currency-select:hover {
-  border-color: var(--color-primary);
-  background-color: var(--color-primary-50);
-}
-
-.currency-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
-}
-
 /* HOMEPAGE */
 
 .section {
   padding: var(--spacing-16) 0;
 }
 
-.body-part-card {
-  background: var(--color-neutral-50);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--color-neutral-800);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-neutral-200);
-  transition: all var(--transition-normal);
-}
-
-.body-part-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-primary);
-}
-
-.body-part-image {
-  height: 140px;
-  overflow: hidden;
-}
-
-.body-part-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-normal);
-}
-
-.body-part-card:hover .body-part-image img {
-  transform: scale(1.05);
-}
-
-.body-part-card h3 {
-  margin: var(--spacing-4) var(--spacing-4) var(--spacing-2);
-}
-
-.body-part-card p {
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-500);
-  margin: 0 var(--spacing-4) var(--spacing-4);
-}
-
-.sport-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-3);
-  background: var(--color-neutral-50);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--color-neutral-700);
-  font-weight: var(--font-weight-medium);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-neutral-200);
-  transition: all var(--transition-normal);
-}
-
-.sport-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  color: var(--color-primary);
-}
-
-.sport-image {
-  height: 100px;
-  width: 100%;
-  overflow: hidden;
-}
-
-.sport-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.sport-card span {
-  padding: 0 var(--spacing-4) var(--spacing-4);
-}
-
-.goal-card {
-  background: var(--color-neutral-50);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--color-neutral-800);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-neutral-200);
-  transition: all var(--transition-normal);
-}
-
-.goal-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary);
-}
-
-.goal-image {
-  height: 150px;
-  overflow: hidden;
-}
-
-.goal-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-normal);
-}
-
-.goal-card:hover .goal-image img {
-  transform: scale(1.05);
-}
-
-.goal-card h3 {
-  margin: var(--spacing-6) var(--spacing-6) var(--spacing-2);
-}
-
-.goal-card p {
-  color: var(--color-neutral-500);
-  margin: 0 var(--spacing-6) var(--spacing-4);
-}
-
-.goal-link {
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-sm);
-  color: var(--color-primary);
-  margin: 0 var(--spacing-6) var(--spacing-6);
-  display: inline-block;
-}
-
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--spacing-6);
-}
-
-.trust-section {
-  background: var(--color-neutral-900);
-  color: white;
-}
-
-.guides-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--spacing-6);
-}
-
-.guide-image {
-  height: 160px;
-  overflow: hidden;
-}
-
-.guide-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-normal);
-}
-
-.guide-content {
-  padding: var(--spacing-6);
-}
-
-.guide-content h3 {
-  margin-bottom: var(--spacing-2);
-}
-
-.guide-content p {
-  color: var(--color-neutral-500);
-  font-size: var(--font-size-sm);
-}
-
-/* ADMIN PRODUCTS */
-
-.text-success {
-  color: var(--color-success);
-}
-
-.text-error {
-  color: var(--color-error);
 }
 
 .btn-sm {
@@ -446,29 +161,11 @@ html {
 
   .products-grid {
     grid-template-columns: 1fr;
-  }
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  .form-row {
-    flex-direction: column;
-  }
-
-  .form-row .form-group {
-    width: 100%;
   }}
 
 /* AUTH PAGE (Persian/Iranian style) */
 .auth-page {
-  min-height: calc(100vh - var(--header-height));
+  min-height: calc(100dvh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -589,20 +286,6 @@ html {
   .auth-title {
     font-size: var(--font-size-xl);
   }}
-
-/* DIGIKALA STYLE HEADER */
-
-/* DIGIKALA HOMEPAGE STYLES */
-
-/* Incredible Offers */
-
-/* Trust Grid */
-
-/* DIGIKALA PRODUCT CARD */
-
-.text-danger {
-  color: #ef4056 !important;
-}
 
 /* ADMIN PORTAL */
 

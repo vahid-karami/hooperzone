@@ -14,12 +14,14 @@ def built_frontend(tmp_path, settings):
     return tmp_path
 
 
+@pytest.mark.django_db
 def test_frontend_routes_serve_the_react_app(built_frontend):
     client = APIClient()
-    for url in ["/", "/products/some-slug", "/cart"]:
+    for url, code in [("/", 200), ("/cart", 200), ("/products/some-slug", 404)]:
         res = client.get(url)
-        assert res.status_code == 200
-        assert b"<title>SPA</title>" in res.content
+        # Unknown products still get the app shell (it shows its own 404 page), but with a real 404 status.
+        assert res.status_code == code, url
+        assert b"<div id=root></div>" in res.content
         assert res["Cache-Control"] == "no-cache"
 
 

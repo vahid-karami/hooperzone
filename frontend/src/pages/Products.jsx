@@ -93,7 +93,9 @@ export default function Products() {
     subtitle = t('products.offersDesc', 'منتخبی از ساپورت‌ها با قیمت ویژه.');
   }
 
-  usePageMeta({ title, description: subtitle || title });
+  // Category and sport listings are their own pages; other filters share the main listing's canonical URL.
+  const canonical = category ? `/products?category=${category}` : sport ? `/products?sport=${sport}` : '/products';
+  usePageMeta({ title, description: subtitle || title, url: canonical });
 
   useEffect(() => {
     const params = new URLSearchParams();

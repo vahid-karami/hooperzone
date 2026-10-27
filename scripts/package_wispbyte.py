@@ -30,7 +30,7 @@ INCLUDE = [
     "reviews",
     "frontend/dist",
 ]
-SKIP_DIRS = {"__pycache__", "media", "tests"}
+SKIP_DIRS = {"__pycache__", "media", "tests", "logs"}
 SKIP_SUFFIXES = {".pyc", ".sqlite3"}
 
 

@@ -27,3 +27,17 @@ export const paymentStatus = (key, lang) => pick(PAYMENT, key, lang);
 
 export const canPay = (order) => order.payment_status !== 'paid' && order.status !== 'cancelled';
 export const canCancel = (order) => ['pending', 'confirmed'].includes(order.status);
+
+export const SHIPPING_METHODS = ['post', 'pishtaz', 'tipax'];
+
+const SHIPPING = {
+  post: { fa: 'پست سفارشی', en: 'Post (registered)' },
+  pishtaz: { fa: 'پست پیشتاز', en: 'Post Pishtaz' },
+  tipax: { fa: 'تیپاکس', en: 'Tipax' },
+};
+
+export const shippingMethodLabel = (key, lang) => (SHIPPING[key] ? SHIPPING[key][lang === 'fa' ? 'fa' : 'en'] : key || '—');
+
+// Public tracking pages for a parcel's tracking code.
+export const trackingUrl = (method) =>
+  method === 'tipax' ? 'https://tipaxco.com/tracking' : 'https://tracking.post.ir/';

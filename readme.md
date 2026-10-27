@@ -1,366 +1,104 @@
-# HooperZone - Sports Injury Recovery E-commerce
+# HooperZone (هوپرزون)
 
-A full-stack e-commerce application for selling sport injury recovery equipment, built with Django REST Framework backend and React frontend.
+Persian-first online store for sports and medical supports: knee braces, ankle and wrist supports,
+back belts and compression wear. The backend is Django REST and the frontend is a React SPA. Live
+at [hooperzone.ir](https://hooperzone.ir).
 
-## Tech Stack
+## Stack
 
-### Backend
-- Python 3.12, Django 6.0.2, Django REST Framework 3.16.1
-- SQLite3 (development)
-- djangorestframework-simplejwt for JWT authentication
-- Pillow for image handling
-- django-cors-headers for frontend communication
+- **Backend:** Python 3.12+, Django 6, Django REST Framework, simplejwt, Pillow, SQLite.
+  Production serves it with Waitress + WhiteNoise.
+- **Frontend:** React 19, Vite, React Router, react-i18next (Persian RTL and English), vitest, oxlint.
+- **Integrations:** ZarinPal (payments, REST v4), SMS.ir (login codes), Enamad/Samandehi badges.
 
-### Frontend
-- React 19 with Vite
-- React Router for navigation
-- Axios for API requests
-- Modern CSS with design tokens (CSS variables)
-
----
-
-## Important Commands
-
-### Initial Setup
-```bash
-# Clone and navigate to project
-cd hooperzone
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install backend dependencies
-pip install -r requirements.txt
-
-# Run migrations
-python manage.py migrate
-
-# Create admin superuser
-python manage.py createsuperuser
-
-# Seed sample data (optional)
-python manage.py seed_demo_data
-```
-
-### Running the Application
-```bash
-# Terminal 1 - Backend (from project root)
-cd hooperzone
-source venv/bin/activate
-python manage.py runserver
-
-# Terminal 2 - Frontend (from project root)
-cd hooperzone/frontend
-npm install
-npm run dev
-```
-
-### Running Tests
-```bash
-# Run all backend tests
-cd hooperzone
-pytest
-
-# Run tests with verbose output
-pytest -v
-
-# Run specific test file
-pytest hooperzone/tests/test_api.py
-```
-
-### Build for Production
-```bash
-# Build frontend
-cd frontend
-npm run build
-
-# Collect static files (Django)
-cd ../hooperzone
-python manage.py collectstatic
-```
-
----
-
-## Access Points
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000/api/ |
-| Admin Panel | http://localhost:8000/admin/ |
-| API Root | http://localhost:8000/ |
-
----
-
-## Features
-
-### Authentication (OTP-based)
-- Phone number registration with OTP verification
-- OTP-based login (no password required for login)
-- Password reset via OTP
-- JWT token authentication for API access
-
-### Products
-- Product catalog with categories
-- Filter by injury type (knee, ankle, back, neck, shoulder, wrist, elbow, hip)
-- Search, filter by price, category, brand, size
-- Product images and detailed descriptions
-- Stock management
-- Featured products
-
-### Shopping Cart
-- Add/remove/update items
-- Persistent cart for authenticated users
-- Stock validation
-
-### Orders
-- Order creation from cart
-- Order history and detail view
-- Visual order tracking timeline
-- Order cancellation (for pending/confirmed orders)
-- Automatic stock management
-
-### Favorites/Wishlist
-- Add/remove products from favorites
-- Favorites page with product grid
-- Favorites count in header
-
-### Reviews
-- Product reviews with star ratings
-- Verified purchase badge
-- One review per product per user
-- Review form on product detail page
-
----
-
-## Repository Layout
-
-```
-hooperzone/
-├── hooperzone/          # Django project settings
-│   ├── settings/
-│   │   ├── base.py        # Shared settings
-│   │   ├── local.py       # Development settings
-│   │   └── production.py  # Production settings
-│   ├── urls.py            # Root URL configuration
-│   └── tests/             # API tests
-├── accounts/              # User authentication & OTP
-├── products/              # Product catalog
-│   └── management/commands/seed_demo_data.py
-├── cart/                  # Shopping cart
-├── orders/                # Order management
-├── reviews/               # Product reviews
-├── favorites/             # Wishlist/favorites
-├── frontend/              # React frontend
-│   ├── src/
-│   │   ├── api/           # API client & endpoints
-│   │   ├── components/    # Reusable components
-│   │   ├── context/       # Auth, Cart, Favorites contexts
-│   │   ├── pages/         # Page components
-│   │   ├── styles/        # CSS design system
-│   │   └── App.jsx        # Main app with routes
-│   └── package.json
-├── requirements.txt
-└── manage.py
-```
-
----
-
-## API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/otp/send/` | Send OTP to phone number |
-| POST | `/api/auth/otp/verify/` | Verify OTP code |
-| POST | `/api/auth/register/` | Register new user |
-| POST | `/api/auth/password/reset/` | Reset password via OTP |
-| GET/PATCH | `/api/auth/profile/` | Get/update user profile |
-| POST | `/api/token/refresh/` | Refresh JWT token |
-
-### Products
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products/categories/` | List all categories |
-| GET | `/api/products/` | List products (with filters) |
-| GET | `/api/products/:slug/` | Product detail |
-| GET | `/api/products/featured/` | Featured products |
-| GET | `/api/products/injury_types/` | List injury types |
-
-**Query Params for Products:**
-- `?search=<text>` - Search by name, description, brand
-- `?category=<slug>` - Filter by category
-- `?injury_type=<type>` - Filter by injury type
-- `?brand=<brand>` - Filter by brand
-- `?size=<size>` - Filter by size
-- `?min_price=<price>&max_price=<price>` - Price range
-- `?in_stock=true` - Only in-stock items
-- `?ordering=<field>` - Sort (price, -price, name, created_at)
-
-### Cart
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/cart/` | View cart |
-| POST | `/api/cart/add/` | Add item to cart |
-| PATCH | `/api/cart/update/` | Update item quantity |
-| DELETE | `/api/cart/remove/` | Remove item from cart |
-| DELETE | `/api/cart/clear/` | Clear cart |
-
-### Orders
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders/` | List user orders |
-| POST | `/api/orders/create/` | Create order from cart |
-| GET | `/api/orders/:order_number/` | Order detail |
-| POST | `/api/orders/:order_number/cancel/` | Cancel order |
-
-### Reviews
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/reviews/product/:slug/` | List product reviews |
-| POST | `/api/reviews/product/:slug/create/` | Create review |
-| PATCH | `/api/reviews/:id/update/` | Update review |
-| DELETE | `/api/reviews/:id/delete/` | Delete review |
-
-### Favorites
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/favorites/` | View favorites |
-| POST | `/api/favorites/add/` | Add to favorites |
-| DELETE | `/api/favorites/remove/` | Remove from favorites |
-| DELETE | `/api/favorites/clear/` | Clear favorites |
-
----
-
-## OTP Authentication Flow
-
-### Registration
-```bash
-# 1. Send OTP
-curl -X POST http://localhost:8000/api/auth/otp/send/ \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "otp_type": "register"}'
-
-# 2. Verify OTP (use code from response)
-curl -X POST http://localhost:8000/api/auth/otp/verify/ \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "code": "123456", "otp_type": "register"}'
-
-# 3. Complete registration
-curl -X POST http://localhost:8000/api/auth/register/ \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "password": "securepass123", "first_name": "John"}'
-```
-
-### Login
-```bash
-# 1. Send OTP
-curl -X POST http://localhost:8000/api/auth/otp/send/ \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "otp_type": "login"}'
-
-# 2. Verify OTP (returns JWT tokens)
-curl -X POST http://localhost:8000/api/auth/otp/verify/ \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "code": "123456", "otp_type": "login"}'
-```
-
----
-
-## Adding Images
-
-### Product Images
-1. Go to http://localhost:8000/admin/
-2. Navigate to **Products** → **Products**
-3. Edit a product
-4. Scroll to **Product Images** section
-5. Click **Add Product Image** and upload
-6. Check **is_primary** for the main image
-
-### Category Images
-1. Go to **Products** → **Categories**
-2. Edit a category and upload an image
-
-### Homepage Images
-Edit `frontend/src/pages/Home.jsx` and replace the Unsplash URLs:
-```javascript
-const bodyParts = [
-  {
-    id: 'knee',
-    name: 'Knee',
-    image: 'YOUR_IMAGE_URL_HERE', // Replace with your image
-  },
-  // ...
-];
-```
-
----
-
-## Models
-
-### User (accounts)
-- Custom user model with phone as username
-- OTP codes for verification
-
-### Product (products)
-- Categories for organization
-- Products with injury type classification
-- Multiple images per product
-
-### Cart (cart)
-- One cart per user
-- Cart items with quantity
-
-### Order (orders)
-- Order with shipping details
-- Order items (snapshot of product at time of purchase)
-- Status tracking (pending → confirmed → processing → shipped → delivered)
-
-### Review (reviews)
-- User reviews with ratings (1-5)
-- Verified purchase tracking
-
-### Favorite (favorites)
-- One favorite list per user
-- Multiple favorite items
-
----
-
-## Running Tests
+## Quick start
 
 ```bash
-cd hooperzone
-pytest
+python scripts/dev.py            # first run: venv, npm packages, migrations, demo data; then starts both servers
+python scripts/dev.py backend    # or just one of them
 ```
 
-Tests cover:
-- OTP authentication (send, verify, register, login)
-- Product listing, filtering, and search
-- Cart operations (add, update, remove, clear)
-- Order creation and cancellation
-- Review creation and listing
+Or by hand:
 
----
-
-## Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+```bash
+python -m venv venv && venv/bin/pip install -r requirements.txt   # Windows: venv\Scripts\...
+venv/bin/python manage.py migrate
+venv/bin/python manage.py seed_demo_store      # demo catalogue (also: seed_sports, seed_category_images)
+venv/bin/python manage.py runserver 8001
+cd frontend && npm install && npm run dev      # http://localhost:5173 (proxies /api and /media to :8001)
 ```
 
----
+Copy `example.env` to `.env` for local settings. In development, OTP codes are returned in the API
+response and the payment gateway falls back to a mock when the ZarinPal sandbox is unreachable.
 
-## License
+## Tests and checks
 
-This project is for educational purposes.
+```bash
+venv/bin/python -m pytest          # backend
+cd frontend && npm test            # vitest
+cd frontend && npm run lint        # oxlint
+```
+
+## What's in it
+
+**Storefront**
+- Catalogue browsing by category, body part and sport, with search, filters and quick view.
+  Product pages have size guides and reviews.
+- Cart, then checkout with a choice of Post (registered), Post Pishtaz or Tipax, then payment on
+  ZarinPal.
+- Accounts: password login or SMS code, plus profile, order history, tracking codes and favourites.
+- Info pages for About, Contact, FAQ, Shipping, Returns, Terms and Privacy. Enamad requires these.
+
+**Admin portal** (`/admin-portal`, staff only)
+- Dashboard: revenue over 7, 30 or 90 days, average order, best sellers, low stock.
+- Orders: filters, status workflow (forward only), bulk status, tracking codes, printable
+  invoice and shipping label, CSV export.
+- Products: create and edit, image upload (WebP thumbnails are generated), bulk actions, inline
+  stock edits, SEO title and description, CSV export, and a bulk price change ("price list").
+- Categories with images; a customers list with CSV export.
+- Store settings: shipping fees, unpaid-order timeout, contact details, Enamad/Samandehi codes.
+
+Django admin (`/admin/`) is still available for everything else.
+
+**Housekeeping**
+- Unpaid orders are cancelled after a configurable timeout and their stock is released
+  (`manage.py cancel_unpaid_orders`). The web app also runs this sweep itself.
+- `manage.py backup_db` keeps daily SQLite copies in `database/backups/` and runs on every boot.
+- `manage.py build_thumbnails` creates missing product thumbnails.
+
+**SEO**
+- Django renders each page's title, description, canonical link, Open Graph tags and JSON-LD
+  (Product, BreadcrumbList, OnlineStore) into the HTML. Unknown URLs return a real 404.
+- `/robots.txt` and `/sitemap.xml` (with product images).
+
+## Configuration
+
+| Variable | Purpose |
+| --- | --- |
+| `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` | Django basics |
+| `SITE_URL` | Public URL used for canonical links and the sitemap (`https://hooperzone.ir`) |
+| `PAYMENT_SANDBOX`, `ZARINPAL_MERCHANT_ID` | ZarinPal sandbox or live mode, and the merchant ID |
+| `SMSIR_API_KEY`, `SMSIR_TEMPLATE_ID` | SMS.ir verify template (with a `CODE` parameter) for OTP codes |
+| `OTP_RETURN_IN_RESPONSE` | Development only: show OTP codes in the API response (always off in production) |
+| `OTP_THROTTLE_RATE`, `AUTH_THROTTLE_RATE` | Per-IP limits for OTP and password endpoints (default `10/min`) |
+| `SECURE_COOKIES`, `SECURE_HSTS_SECONDS` | Production cookie and HSTS settings |
+
+Shop-level settings (shipping fees, contact info and so on) live in the database and are edited in
+**Admin portal → Store settings**.
+
+## Deployment
+
+See [DEPLOY_WISPBYTE.md](DEPLOY_WISPBYTE.md) for building the upload zip, the server and domain
+setup, the ZarinPal, SMS.ir and Enamad steps, and the launch checklist.
+
+## Repository layout
+
+```
+accounts/    users (phone login), OTP, SMS.ir client, customer admin API
+products/    categories, sports, products, images and thumbnails, product admin API
+cart/  favorites/  reviews/
+orders/      orders, payments (ZarinPal/IDPay), shop settings, staff admin API, housekeeping commands
+hooperzone/  settings, URLs, SEO (seo.py), throttling, CSV helper, tests
+frontend/    React app (src/pages, src/components, src/styles, src/i18n/locales)
+scripts/     dev.py (local), package_wispbyte.py (deploy zip)
+```

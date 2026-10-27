@@ -3,10 +3,12 @@ from django.contrib.auth import get_user_model
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
-from rest_framework.throttling import SimpleRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from hooperzone.throttling import AuthRateThrottle, IPRateThrottle
+
 from .models import OTPCode
+from .sms import SMSError, send_otp_sms
 from .serializers import (
     OTPSendSerializer,
     OTPVerifySerializer,
@@ -19,13 +21,10 @@ from .serializers import (
 User = get_user_model()
 
 
-class OTPRateThrottle(SimpleRateThrottle):
+class OTPRateThrottle(IPRateThrottle):
     """Per-IP limit on OTP endpoints to stop code brute-forcing and SMS flooding."""
 
     scope = "otp"
-
-    def get_cache_key(self, request, view):
-        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
 
 
 def get_tokens_for_user(user):
@@ -72,8 +71,17 @@ def send_otp(request):
 
     otp = OTPCode.objects.create(user=user, otp_type=otp_type)
 
-    # TODO: deliver the code by SMS. Never return it to the client in production,
-    # otherwise anyone can request a login OTP for any phone and sign in as that user.
+    # Never return the code to the client in production, otherwise anyone can
+    # request a login OTP for any phone and sign in as that user.
+    try:
+        send_otp_sms(phone, otp.code)
+    except SMSError:
+        otp.mark_used()
+        return Response(
+            {"error": "Could not send the SMS. Please try again in a few minutes."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     data = {
         "message": "OTP sent successfully.",
         "phone": phone,
@@ -154,6 +162,7 @@ def verify_otp(request):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
 def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -216,7 +225,8 @@ def register(request):
         first_name=first_name,
         last_name=last_name,
         email=email,
-        is_verified=True,
+        # Registered without an OTP: the phone number has not been proven.
+        is_verified=False,
     )
     tokens = get_tokens_for_user(user)
     return Response(
@@ -292,6 +302,7 @@ def profile(request):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
 def login_with_password(request):
     serializer = UserLoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

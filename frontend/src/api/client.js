@@ -13,6 +13,12 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${tokens.access}`;
   }
 
+  // Uploads: let the browser set the multipart boundary, and don't spread the FormData.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+    return config;
+  }
+
   const lang = localStorage.getItem('i18nextLng');
   if (lang) {
     if (config.method === 'get') {

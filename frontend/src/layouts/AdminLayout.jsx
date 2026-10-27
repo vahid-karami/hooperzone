@@ -27,11 +27,13 @@ export default function AdminLayout() {
   }
 
   const items = [
-    { to: '/admin-portal', end: true, icon: 'filter', label: t('admin.dashboard', 'داشبورد') },
+    { to: '/admin-portal', end: true, icon: 'chart', label: t('admin.dashboard', 'داشبورد') },
     { to: '/admin-portal/orders', icon: 'box', label: t('admin.orders', 'سفارش‌ها') },
     { to: '/admin-portal/products', icon: 'bag', label: t('admin.products', 'محصولات') },
     { to: '/admin-portal/categories', icon: 'menu', label: t('admin.categories', 'دسته‌بندی‌ها') },
+    { to: '/admin-portal/customers', icon: 'users', label: t('admin.customersTitle', 'مشتریان') },
     { to: '/admin-portal/price-declaration', icon: 'card', label: t('admin.priceList', 'اعلامیه قیمت') },
+    { to: '/admin-portal/settings', icon: 'settings', label: t('admin.settings', 'تنظیمات فروشگاه') },
   ];
 
   return (
@@ -52,7 +54,7 @@ export default function AdminLayout() {
         <div className="admin-side-foot">
           <a href={DJANGO_ADMIN_URL} target="_blank" rel="noreferrer" className="admin-link subtle">
             <Icon name="shield" size={18} />
-            <span>{t('admin.djangoAdmin', 'مدیریت پیشرفته (تصاویر و…)')}</span>
+            <span>{t('admin.djangoAdvanced', 'مدیریت پیشرفته (جنگو)')}</span>
           </a>
           <Link to="/" className="admin-link subtle">
             <Icon name="arrowLeft" size={18} className="flip-ltr" />

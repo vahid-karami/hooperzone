@@ -11,10 +11,6 @@ import { bodyPartLabel } from '../utils/bodyParts';
 import { toPersianNumber } from '../hooks/useLanguage';
 import { usePageMeta } from '../utils/seo';
 
-// Mirrors the backend rule in orders.views.order_create.
-const FREE_SHIPPING_FROM = 100;
-const SHIPPING_COST = 9.99;
-
 export default function Cart() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
@@ -24,7 +20,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const { info, error: showError } = useToast();
 
-  usePageMeta({ title: t('cart.shoppingCart') });
+  usePageMeta({ title: t('cart.shoppingCart'), noindex: true });
 
   const itemName = (product) => (lang === 'fa' && product.name_fa) || product.name_localized || product.name;
 
@@ -93,8 +89,6 @@ export default function Cart() {
   }
 
   const subtotal = Number(cart.total_price) || 0;
-  const shipping = subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_COST;
-  const total = subtotal + shipping;
   const savings = cart.items.reduce(
     (sum, item) => sum + Math.max(0, Number(item.product.price) - Number(item.product.effective_price)) * item.quantity,
     0,
@@ -119,7 +113,7 @@ export default function Cart() {
                   <li key={item.id} className="cart-row">
                     <Link to={`/products/${product.slug}`} className="cart-row-img" tabIndex={-1} aria-hidden="true">
                       {product.primary_image ? (
-                        <img src={product.primary_image.image} alt="" />
+                        <img src={product.primary_image.thumbnail || product.primary_image.image} alt="" loading="lazy" decoding="async" />
                       ) : (
                         <Icon name="box" size={32} strokeWidth={1.2} />
                       )}
@@ -187,11 +181,11 @@ export default function Cart() {
               )}
               <div>
                 <dt>{t('cart.shipping')}</dt>
-                <dd>{shipping === 0 ? <span className="free-tag">{t('cart.free')}</span> : <Price amount={shipping} />}</dd>
+                <dd className="summary-muted">{t('cart.shippingAtCheckout', 'در مرحله بعد')}</dd>
               </div>
               <div className="summary-total">
                 <dt>{t('cart.total')}</dt>
-                <dd><Price amount={total} /></dd>
+                <dd><Price amount={subtotal} /></dd>
               </div>
             </dl>
 
