@@ -188,7 +188,7 @@ export default function ProductDetail() {
   const highlights = [
     product.material && t('product.highlightMaterial', 'جنس: {{material}}', { material: product.material }),
     product.size && t('product.highlightSize', 'سایز موجود: {{size}}', { size: product.size }),
-    t('product.highlightShipping', 'ارسال رایگان و ۷ روز ضمانت بازگشت'),
+    t('product.highlightShipping', 'ارسال سریع با پست و تیپاکس و ۷ روز ضمانت بازگشت'),
   ].filter(Boolean);
 
   const crumbs = [
@@ -341,7 +341,7 @@ export default function ProductDetail() {
             </dl>
 
             <div className="pdp-perks">
-              <div><Icon name="truck" size={22} /> {t('home.trustShipText', 'ارسال رایگان به سراسر کشور')}</div>
+              <div><Icon name="truck" size={22} /> {t('home.trustShipText', 'ارسال به سراسر کشور با پست و تیپاکس')}</div>
               <div><Icon name="returns" size={22} /> {t('home.trustReturnText', '۷ روز ضمانت بازگشت کالا')}</div>
               <div><Icon name="shield" size={22} /> {t('footer.genuine', 'ضمانت اصالت کالا')}</div>
             </div>

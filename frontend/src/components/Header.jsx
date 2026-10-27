@@ -77,7 +77,7 @@ export default function Header() {
             )}
           </div>
           <p className="announcement-text">
-            {t('header.announcement', 'ارسال رایگان به سراسر ایران · ۷ روز ضمانت بازگشت کالا')}
+            {t('header.announcement', 'ارسال به سراسر ایران با پست و تیپاکس · ۷ روز ضمانت بازگشت کالا')}
           </p>
           <div className="announcement-spacer" />
         </div>

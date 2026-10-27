@@ -40,7 +40,7 @@
     "myOrders": "My Orders",
     "myFavorites": "My Favorites",
     "adminPanel": "Admin panel",
-    "announcement": "Free shipping across Iran · 7-day returns",
+    "announcement": "Nationwide delivery by Post and Tipax · 7-day returns",
     "closeMenu": "Close menu",
     "hello": "Hi",
     "loginOrSignup": "Log in or sign up",
@@ -108,7 +108,7 @@
     "trustPayTitle": "Secure payment",
     "trustReturnText": "7-day returns",
     "trustReturnTitle": "Easy returns",
-    "trustShipText": "Free shipping nationwide",
+    "trustShipText": "Nationwide delivery by Post and Tipax",
     "trustShipTitle": "Fast delivery",
     "trustSupportText": "Advice before and after you buy",
     "trustSupportTitle": "Expert support",
@@ -232,7 +232,7 @@
     "discountBadge": "{{percent}}% off",
     "grams": "g",
     "highlightMaterial": "Material: {{material}}",
-    "highlightShipping": "Free shipping and 7-day returns",
+    "highlightShipping": "Fast delivery by Post or Tipax, 7-day returns",
     "highlightSize": "Available size: {{size}}",
     "images": "Product images",
     "increase": "Increase",
@@ -394,7 +394,10 @@
     "noneInFilter": "No orders in this group.",
     "itemsCount": "{{count}} items",
     "details": "Order details",
-    "all": "All"
+    "all": "All",
+    "trackParcel": "Track parcel",
+    "trackingCode": "Parcel tracking code",
+    "trackingSoon": "The tracking code will appear here once your parcel ships."
   },
   "favorites": {
     "myFavorites": "My Favorites",
@@ -425,10 +428,14 @@
     "newsletterDesc": "Hear about new offers and guides first.",
     "paymentMethods": "Payment methods",
     "returns": "7-day returns",
-    "securePay": "Secure ZarinPal & IDPay checkout",
+    "securePay": "Secure payment via ZarinPal",
     "subscribe": "Subscribe",
     "trackOrder": "Track your order",
-    "whyUs": "Why HooperZone"
+    "whyUs": "Why HooperZone",
+    "info": "Information",
+    "secureGateway": "Secure bank gateway",
+    "shetab": "Shetab",
+    "zarinpal": "ZarinPal"
   },
   "profile": {
     "accountDetails": "Account details",
@@ -661,5 +668,243 @@
     "withOrdersOnly": "Buyers only",
     "workingHours": "Support hours",
     "printInvoiceNow": "Print invoice"
+  },
+  "info": {
+    "nav": {
+      "about": "About us",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "shipping": "Shipping",
+      "returns": "Returns",
+      "terms": "Terms & conditions",
+      "privacy": "Privacy"
+    },
+    "navTitle": "Help & information",
+    "updated": "Last updated: October 2026",
+    "about": {
+      "title": "About HooperZone",
+      "lead": "HooperZone is an online store specialising in sports and medical supports, braces and compression wear.",
+      "sections": [
+        {
+          "h": "Who we are",
+          "p": [
+            "HooperZone was started by athletes and health enthusiasts who have been through injuries and the road back to sport themselves. We want buying a knee brace, wrist support or back belt to be simple, reliable and free of guesswork."
+          ]
+        },
+        {
+          "h": "What makes us different",
+          "p": [
+            "Every product is genuine and comes with an authenticity guarantee.",
+            "For each product we explain in plain words what it is for, how much support it gives and how to pick a size.",
+            "You can ask our team for advice on the right product and size before you buy.",
+            "Orders ship across Iran by Post and Tipax and come with a 7-day return guarantee."
+          ]
+        },
+        {
+          "h": "Important",
+          "p": [
+            "Our products are designed for support and prevention and do not replace a doctor's examination or diagnosis. With severe pain, swelling or an acute injury, see a doctor or physiotherapist."
+          ]
+        }
+      ]
+    },
+    "contact": {
+      "title": "Contact us",
+      "lead": "Get in touch for advice before you buy, help with an order, or anything else.",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "hours": "Support hours",
+      "social": "Social media",
+      "defaultHours": "Saturday to Thursday, 9:00–18:00",
+      "orderHelp": "Please have your order number ready. Order status and the parcel tracking code are also shown under “My orders”."
+    },
+    "shipping": {
+      "title": "Shipping",
+      "lead": "After successful payment, orders are usually packed and handed to the carrier within one business day.",
+      "tableMethod": "Method",
+      "tableTime": "Estimated delivery",
+      "tableFee": "Fee",
+      "sections": [
+        {
+          "h": "Choosing a method",
+          "p": [
+            "At checkout you choose registered Post, Post Pishtaz or Tipax, and the shipping fee is added to your order there.",
+            "Delivery time counts from the day after the parcel is handed to the carrier and may be longer during holidays and for remote cities."
+          ]
+        },
+        {
+          "h": "Tracking code",
+          "p": [
+            "Once shipped, the parcel tracking code appears on your order page so you can follow it on the Post or Tipax website."
+          ]
+        },
+        {
+          "h": "Receiving your parcel",
+          "p": [
+            "Check the package when it arrives. If it is damaged, note it with the courier before accepting it and let us know."
+          ]
+        }
+      ]
+    },
+    "returns": {
+      "title": "Returns",
+      "lead": "If a product isn't right for you, you can request a return within 7 days of delivery.",
+      "sections": [
+        {
+          "h": "Conditions",
+          "p": [
+            "The item is unused, clean and returned with its original packaging, labels and accessories.",
+            "The return is requested within 7 days of delivery.",
+            "For hygiene reasons, items worn directly on the skin (such as socks and compression wear) can only be returned unopened."
+          ]
+        },
+        {
+          "h": "How to return",
+          "p": [
+            "Contact us by the phone or email on the Contact page with your order number and the reason.",
+            "After we confirm, send the item to the store address by Post.",
+            "Once we receive and check it (within 2 business days), the refund reaches your bank account within 3–7 business days."
+          ]
+        },
+        {
+          "h": "Faulty or wrong items",
+          "p": [
+            "If an item is faulty or not what you ordered, HooperZone pays the return shipping and replaces it or refunds you in full."
+          ]
+        },
+        {
+          "h": "Size exchange",
+          "p": [
+            "If the size doesn't fit, you can request an exchange within the same 7 days. In that case the customer pays the shipping for the replacement."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms & conditions",
+      "lead": "By using the HooperZone website and placing orders you accept the terms below. They follow the e-commerce laws of the Islamic Republic of Iran.",
+      "sections": [
+        {
+          "h": "Your account",
+          "p": [
+            "Ordering requires an account with a valid mobile number. You are responsible for keeping your password safe and for activity on your account.",
+            "The details you enter when registering and ordering must be accurate and complete."
+          ]
+        },
+        {
+          "h": "Prices and payment",
+          "p": [
+            "Prices are in Toman and include VAT where applicable. Shipping is shown separately before you pay.",
+            "Payment is made only through secure bank gateways (ZarinPal) with Shetab cards. HooperZone never receives or stores your card details.",
+            "Orders not paid within the set time are cancelled automatically."
+          ]
+        },
+        {
+          "h": "Stock and orders",
+          "p": [
+            "Placing an order is not final confirmation. If we cannot ship an item for any reason, we will contact you and refund any payment in full.",
+            "If a price is shown incorrectly because of a technical error, HooperZone may cancel the order and refund you."
+          ]
+        },
+        {
+          "h": "Cancelling an order",
+          "p": [
+            "Until it ships, you can cancel your order under “My orders” or by contacting support. Paid amounts are refunded within 3–7 business days."
+          ]
+        },
+        {
+          "h": "Using the products",
+          "p": [
+            "Product information is for guidance only and does not replace medical advice. Consult a doctor before using medical supports for an acute injury."
+          ]
+        },
+        {
+          "h": "Disputes",
+          "p": [
+            "Please raise any dispute with our support first. If it cannot be resolved, the competent courts of the Islamic Republic of Iran have jurisdiction."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy",
+      "lead": "We take your personal data seriously. This page explains what we collect and how we use it.",
+      "sections": [
+        {
+          "h": "What we collect",
+          "p": [
+            "Your name, mobile number, email (optional) and shipping address, entered when you register and order.",
+            "Your order history, favourites and the reviews you post."
+          ]
+        },
+        {
+          "h": "How we use it",
+          "p": [
+            "To process and ship orders, send SMS verification codes and update you on your order.",
+            "To answer support requests and improve the store."
+          ]
+        },
+        {
+          "h": "Sharing",
+          "p": [
+            "We never sell your data. Only your name, address and phone number are given to the carrier (Post or Tipax) to deliver your parcel.",
+            "Payment happens on the bank gateway; your card details never reach HooperZone."
+          ]
+        },
+        {
+          "h": "Security",
+          "p": [
+            "The site is served over HTTPS and your password is stored encrypted."
+          ]
+        },
+        {
+          "h": "Your rights",
+          "p": [
+            "You can edit your details on your profile page, or contact support to delete your account."
+          ]
+        }
+      ]
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "lead": "Answers to common questions about ordering, shipping and choosing a product.",
+      "items": [
+        {
+          "q": "How do I choose the right size?",
+          "a": "Each product page has a size guide. Measure around the joint (for example the knee or wrist) with a tape and compare with the chart. If you are between sizes, ask our support."
+        },
+        {
+          "q": "When will my order arrive?",
+          "a": "Orders usually ship one business day after payment. Delivery depends on the method: Tipax 1–3, Post Pishtaz 2–4 and registered Post 3–7 business days."
+        },
+        {
+          "q": "How much is shipping?",
+          "a": "The fee for each method is shown on the Shipping page and at checkout."
+        },
+        {
+          "q": "How do I track my order?",
+          "a": "Sign in and open “My orders”. Once shipped, the parcel tracking code is shown there too."
+        },
+        {
+          "q": "Is payment secure?",
+          "a": "Yes. Payment happens only on the ZarinPal bank gateway and your card details never reach HooperZone."
+        },
+        {
+          "q": "What if the product doesn't suit me?",
+          "a": "Within 7 days of delivery you can return an unused item or exchange the size. See the Returns page for details."
+        },
+        {
+          "q": "Does a brace replace treatment?",
+          "a": "No. Supports help with stability and prevention, but for acute injuries you should see a doctor or physiotherapist."
+        }
+      ]
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you are looking for doesn't exist or has moved.",
+    "home": "Back to home",
+    "shop": "Browse products"
   }
 }

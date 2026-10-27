@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BODY_PARTS } from '../utils/bodyParts';
+import { telHref, useShopInfo } from '../utils/shopInfo';
+import { toPersianNumber } from '../hooks/useLanguage';
 import Icon from './Icon';
 import Logo from './Logo';
 
@@ -8,6 +10,8 @@ export default function Footer() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
   const { pathname } = useLocation();
+  const shop = useShopInfo();
+  const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   // Solar Hijri year for Persian (e.g. ۱۴۰۵), Gregorian otherwise.
   const year = new Intl.DateTimeFormat(lang === 'fa' ? 'fa-IR' : 'en-US', { year: 'numeric' }).format(new Date());
 
@@ -20,11 +24,24 @@ export default function Footer() {
         <div className="footer-brand">
           <Logo />
           <p>{t('footer.about', 'هوپرزون فروشگاه تخصصی ساپورت‌ها و بریس‌های ورزشی و طبی است؛ برای پیشگیری از آسیب، همراهی در دوران درمان و بازگشت مطمئن به فعالیت.')}</p>
-          <a className="footer-phone" href="tel:+982112345678">
-            <Icon name="phone" size={20} />
-            <span dir="ltr">۰۲۱-۱۲۳۴۵۶۷۸</span>
-          </a>
-          <p className="footer-hours">{t('footer.hours', 'شنبه تا پنج‌شنبه، ۹ تا ۱۸')}</p>
+          {shop.store_phone && (
+            <a className="footer-phone" href={telHref(shop.store_phone)}>
+              <Icon name="phone" size={20} />
+              <span dir="ltr">{num(shop.store_phone)}</span>
+            </a>
+          )}
+          <p className="footer-hours">{shop.working_hours || t('footer.hours', 'شنبه تا پنج‌شنبه، ۹ تا ۱۸')}</p>
+          {shop.store_email && <a className="footer-mail" href={`mailto:${shop.store_email}`} dir="ltr">{shop.store_email}</a>}
+          {(shop.instagram || shop.telegram) && (
+            <div className="footer-social">
+              {shop.instagram && (
+                <a href={`https://instagram.com/${shop.instagram}`} target="_blank" rel="noreferrer" aria-label="Instagram"><Icon name="instagram" size={20} /></a>
+              )}
+              {shop.telegram && (
+                <a href={`https://t.me/${shop.telegram}`} target="_blank" rel="noreferrer" aria-label="Telegram"><Icon name="send" size={20} /></a>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="footer-col">
@@ -53,28 +70,35 @@ export default function Footer() {
           <ul className="footer-checks">
             <li><Icon name="check" size={16} /> {t('footer.genuine', 'ضمانت اصالت کالا')}</li>
             <li><Icon name="check" size={16} /> {t('footer.returns', '۷ روز ضمانت بازگشت')}</li>
-            <li><Icon name="check" size={16} /> {t('footer.securePay', 'پرداخت امن زرین‌پال و آیدی‌پی')}</li>
+            <li><Icon name="check" size={16} /> {t('footer.securePay', 'پرداخت امن از درگاه زرین‌پال')}</li>
             <li><Icon name="check" size={16} /> {t('footer.advice', 'مشاوره انتخاب سایز')}</li>
           </ul>
         </div>
 
-        <div className="footer-col footer-newsletter">
-          <h4>{t('footer.newsletter', 'خبرنامه')}</h4>
-          <p>{t('footer.newsletterDesc', 'از تخفیف‌ها و راهنماهای تازه باخبر شوید.')}</p>
-          <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder={t('footer.emailPlaceholder', 'ایمیل شما')} aria-label={t('footer.emailPlaceholder', 'ایمیل شما')} dir="ltr" />
-            <button type="submit" className="btn btn-primary btn-sm">{t('footer.subscribe', 'عضویت')}</button>
-          </form>
+        <div className="footer-col">
+          <h4>{t('footer.info', 'اطلاعات')}</h4>
+          <ul>
+            {['about', 'contact', 'faq', 'shipping', 'returns', 'terms', 'privacy'].map((page) => (
+              <li key={page}><Link to={`/${page}`}>{t(`info.nav.${page}`)}</Link></li>
+            ))}
+          </ul>
         </div>
       </div>
 
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
           <p>© {year} {t('footer.copyright', 'هوپرزون. تمامی حقوق محفوظ است.')}</p>
+          {(shop.enamad_html || shop.samandehi_html) && (
+            // Badge code is pasted by staff from enamad.ir / samandehi.ir in the admin portal.
+            <div className="trust-badges">
+              {shop.enamad_html && <div dangerouslySetInnerHTML={{ __html: shop.enamad_html }} />}
+              {shop.samandehi_html && <div dangerouslySetInnerHTML={{ __html: shop.samandehi_html }} />}
+            </div>
+          )}
           <div className="payment-badges" aria-label={t('footer.paymentMethods', 'روش‌های پرداخت')}>
-            <span>شتاب</span>
-            <span>زرین‌پال</span>
-            <span>آیدی‌پی</span>
+            <span>{t('footer.shetab', 'شتاب')}</span>
+            <span>{t('footer.zarinpal', 'زرین‌پال')}</span>
+            <span>{t('footer.secureGateway', 'درگاه امن بانکی')}</span>
           </div>
         </div>
       </div>

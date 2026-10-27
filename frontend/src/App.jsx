@@ -21,6 +21,8 @@ const Orders = lazy(() => import('./pages/Orders'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 const Favorites = lazy(() => import('./pages/Favorites'));
 const PaymentResult = lazy(() => import('./pages/PaymentResult'));
+const InfoPage = lazy(() => import('./pages/info/InfoPage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
@@ -64,7 +66,10 @@ function App() {
                       <Route path="/orders/:orderNumber" element={<OrderDetail />} />
                       <Route path="/payment/result" element={<PaymentResult />} />
                       <Route path="/favorites" element={<Favorites />} />
-                      
+                      {['about', 'contact', 'faq', 'shipping', 'returns', 'terms', 'privacy'].map((page) => (
+                        <Route key={page} path={`/${page}`} element={<InfoPage page={page} />} />
+                      ))}
+
                       <Route path="/admin-portal" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="orders" element={<AdminOrders />} />
@@ -75,6 +80,7 @@ function App() {
                         <Route path="categories" element={<AdminCategories />} />
                         <Route path="price-declaration" element={<AdminPriceDeclaration />} />
                       </Route>
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
                 </main>
