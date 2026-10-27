@@ -1,7 +1,6 @@
 import json
 import logging
 import uuid
-from decimal import Decimal
 import urllib.error
 import urllib.parse
 import urllib.request

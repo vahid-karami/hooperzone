@@ -12,6 +12,9 @@ urlpatterns = [
     path("shop-info/", views.shop_info, name="shop-info"),
     # Staff endpoints; must come before the <order_number> patterns.
     path("admin/stats/", admin_views.admin_stats, name="admin-stats"),
+    path("admin/settings/", admin_views.admin_shop_settings, name="admin-settings"),
+    path("admin/export.csv", admin_views.admin_order_export, name="admin-order-export"),
+    path("admin/bulk-status/", admin_views.admin_order_bulk_status, name="admin-order-bulk-status"),
     path("admin/", admin_views.admin_order_list, name="admin-order-list"),
     path("admin/<str:order_number>/", admin_views.admin_order_update, name="admin-order-update"),
     path("<str:order_number>/", views.order_detail, name="order-detail"),

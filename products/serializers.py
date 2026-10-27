@@ -24,7 +24,9 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
 
     def get_product_count(self, obj):
-        return obj.products.filter(is_active=True).count()
+        # CategoryViewSet annotates the count so a list costs one query.
+        count = getattr(obj, "active_product_count", None)
+        return count if count is not None else obj.products.filter(is_active=True).count()
 
     def get_name_localized(self, obj):
         lang = self.context.get('lang', 'en')
@@ -66,6 +68,33 @@ class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ["id", "image", "alt_text", "is_primary"]
+
+
+class CategoryAdminSerializer(serializers.ModelSerializer):
+    """Categories as staff edit them: includes inactive ones and accepts an image upload."""
+
+    product_count = serializers.IntegerField(read_only=True, default=0)
+    image = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Category
+        fields = [
+            "id", "name", "name_fa", "slug", "description", "description_fa", "image",
+            "is_active", "product_count", "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
+        extra_kwargs = {"slug": {"required": False}}
+
+    def validate(self, attrs):
+        if not attrs.get("slug") and not (self.instance and self.instance.slug):
+            from django.utils.text import slugify
+
+            base = slugify(attrs.get("name", ""))[:45] or "category"
+            slug, n = base, 2
+            while Category.objects.filter(slug=slug).exists():
+                slug, n = f"{base}-{n}", n + 1
+            attrs["slug"] = slug
+        return attrs
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -199,14 +228,24 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "in_stock",
             "margin",
             "margin_percent",
+            "sports",
+            "images",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "in_stock"]
 
+    images = serializers.SerializerMethodField()
+
+    def _sorted_images(self, obj):
+        return sorted(obj.images.all(), key=lambda i: (not i.is_primary, -i.created_at.timestamp()))
+
     def get_primary_image(self, obj):
-        image = sorted(obj.images.all(), key=lambda i: (not i.is_primary, -i.created_at.timestamp()))
+        image = self._sorted_images(obj)
         return image[0].image.url if image else None
+
+    def get_images(self, obj):
+        return ProductImageSerializer(self._sorted_images(obj), many=True).data
 
     def get_margin(self, obj):
         cost = obj.cost or 0
