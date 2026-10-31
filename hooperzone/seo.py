@@ -91,7 +91,7 @@ def organization_ld():
         "name": SITE_NAME,
         "alternateName": SITE_NAME_EN,
         "url": settings.SITE_URL,
-        "logo": absolute(f"{settings.STATIC_URL}favicon.svg"),
+        "logo": absolute(f"{settings.STATIC_URL}images/brand/logo.png"),
     }
     if shop.store_phone:
         org["telephone"] = shop.store_phone
