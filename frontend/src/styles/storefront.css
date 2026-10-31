@@ -109,9 +109,7 @@ body {
 }
 
 .brand:hover { color: var(--color-primary); }
-.brand-mark { color: var(--color-primary); }
-.brand-text { display: flex; flex-direction: column; line-height: 1.05; }
-.brand-name { font-size: 1.35rem; font-weight: var(--font-weight-black); }
+.brand-logo { display: block; height: 40px; width: auto; }
 
 /* ------------------------------------------------------------------ */
 /* Header                                                              */
@@ -458,8 +456,7 @@ body {
 @media (max-width: 600px) {
   :root { --header-height: 64px; }
   .hide-sm { display: none !important; }
-  .brand-name { font-size: 1.15rem; }
-  .brand-mark { width: 30px; height: 30px; }
+  .brand-logo { height: 32px; }
   .icon-btn { width: 38px; height: 38px; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--spacing-8); }
   .footer-brand { grid-column: span 2; }
