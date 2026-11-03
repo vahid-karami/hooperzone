@@ -28,6 +28,8 @@ def make_thumbnail(image_field):
     except Exception:
         logger.warning("Could not create a thumbnail for %s", image_field.name, exc_info=True)
         return None
+    finally:
+        image_field.close()  # an open handle leaks, and on Windows it blocks deleting the photo
     name = f"{Path(image_field.name).stem}-thumb.webp"
     return ContentFile(buf.getvalue(), name=name)
 

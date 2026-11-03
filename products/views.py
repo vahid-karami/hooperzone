@@ -10,6 +10,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from hooperzone.csv_export import csv_response
+from hooperzone.permissions import CanManageCatalog, can_delete
 
 from .models import Category, Product, ProductImage, Sport
 from .serializers import (
@@ -141,7 +142,7 @@ class AdminPagination(PageNumberPagination):
 class CategoryAdminViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.annotate(product_count=Count("products")).order_by("name")
     serializer_class = CategoryAdminSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [CanManageCatalog]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     lookup_field = "slug"
     pagination_class = None
@@ -158,7 +159,8 @@ class CategoryAdminViewSet(viewsets.ModelViewSet):
 
 class ProductAdminViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related("category").prefetch_related("images")
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [CanManageCatalog]
+    delete_models = {"image_detail": ProductImage}
     pagination_class = AdminPagination
     parser_classes = [JSONParser, MultiPartParser, FormParser]
     lookup_field = "slug"
@@ -291,6 +293,9 @@ class ProductAdminViewSet(viewsets.ModelViewSet):
             count = products.update(**updates[action_name])
         elif action_name == "delete":
             from orders.models import OrderItem
+
+            if not can_delete(request.user, Product):
+                return Response({"error": "You can't delete products."}, status=status.HTTP_403_FORBIDDEN)
 
             # Products that were ordered stay for the order history; deactivate those instead.
             ordered = set(OrderItem.objects.filter(product__in=products).values_list("product_id", flat=True))

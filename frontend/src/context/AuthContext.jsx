@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
 
@@ -82,6 +82,14 @@ export function AuthProvider({ children }) {
     return response.data;
   };
 
+  // Re-read the profile, e.g. after the owner changed this user's staff access.
+  const refreshUser = useCallback(async () => {
+    const response = await apiClient.get(ENDPOINTS.profile);
+    localStorage.setItem('user', JSON.stringify(response.data));
+    setUser(response.data);
+    return response.data;
+  }, []);
+
   const isAuthenticated = !!user;
 
   return (
@@ -97,6 +105,7 @@ export function AuthProvider({ children }) {
         resetPassword,
         logout,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}

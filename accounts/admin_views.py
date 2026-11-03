@@ -2,11 +2,11 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
-from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 
 from hooperzone.csv_export import csv_response
+from hooperzone.permissions import CanManageShop
 
 User = get_user_model()
 
@@ -61,7 +61,7 @@ def serialize(user):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def customer_list(request):
     paginator = CustomerPagination()
     page = paginator.paginate_queryset(customer_queryset(request.query_params), request)
@@ -69,7 +69,7 @@ def customer_list(request):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def customer_export(request):
     def fmt(dt):
         return timezone.localtime(dt).strftime("%Y-%m-%d %H:%M") if dt else ""

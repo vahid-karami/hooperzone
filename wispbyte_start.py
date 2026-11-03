@@ -69,6 +69,7 @@ def prepare():
     call_command("build_thumbnails")  # small WebP copies for images that don't have one yet
     call_command("cancel_unpaid_orders")  # release stock held by abandoned checkouts
     call_command("backup_db")  # daily copy of the SQLite database, keeps the last 7
+    call_command("setup_roles")  # the "Product editors" staff group
     create_admin()
 
 

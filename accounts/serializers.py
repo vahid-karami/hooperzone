@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from hooperzone.fields import DigitsCharField, normalize_digits
+from hooperzone.permissions import admin_access
 
 User = get_user_model()
 
@@ -60,13 +61,19 @@ class PasswordResetSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    # Which staff-portal sections this user may open: {"catalog": bool, "shop": bool}.
+    admin_access = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
             "id", "username", "phone", "email", "first_name", "last_name", "date_joined",
-            "address", "province", "city", "postal_code", "is_staff",
+            "address", "province", "city", "postal_code", "is_staff", "admin_access",
         ]
         read_only_fields = ["id", "date_joined", "is_staff"]
+
+    def get_admin_access(self, user):
+        return admin_access(user)
 
     def validate_phone(self, value):
         # The model's unique check ran on the raw input; re-check after normalizing digits.

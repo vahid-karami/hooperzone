@@ -120,6 +120,20 @@ Never put `.env` in git, and never change `SECRET_KEY` (it signs everyone's logi
       Do the same in Bing Webmaster Tools.
 - [ ] Check a product link preview by pasting a product URL into Telegram.
 
+## Staff who manage products
+
+The **Product editors** group (created on every boot by `setup_roles`) can add and edit
+products, photos, categories and prices in `/admin-portal`, but can't see orders, customers or
+shop settings, and can't delete products or categories.
+
+1. The person signs up at `https://hooperzone.ir/register` with their phone and a password.
+2. You open `https://hooperzone.ir/admin/` → **Users** → their phone number.
+3. Tick **Staff status**. Under **Groups**, add **Product editors**. Leave **Superuser status** off. Save.
+4. They open **پنل مدیریت** from their account menu (or `https://hooperzone.ir/admin-portal`).
+
+To remove access, untick **Staff status**. To let someone delete products too, add the
+`products | product | Can delete product` permission to that user.
+
 ## Every later deploy
 
 ```bash

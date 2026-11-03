@@ -67,5 +67,6 @@ elif getattr(settings, "SERVE_MEDIA", False):
     ]
 
 urlpatterns += [
-    re_path(r"^(?!api/|admin/|media/|static/|robots\.txt$|sitemap\.xml$).*$", frontend_app, name="frontend"),
+    # "admin" without the slash is left out too, so APPEND_SLASH redirects it to /admin/.
+    re_path(r"^(?!api/|admin(?:/|$)|media/|static/|robots\.txt$|sitemap\.xml$).*$", frontend_app, name="frontend"),
 ]

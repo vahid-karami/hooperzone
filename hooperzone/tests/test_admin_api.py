@@ -25,7 +25,7 @@ def shop(db):
         user=customer, order_number="ORD-UNPAID", shipping_address="x", shipping_city="Tehran", shipping_zip="1",
         shipping_phone="0912", subtotal=100, total=100,
     )
-    staff = User.objects.create_user(phone="09129990000", password="securepass123", is_staff=True)
+    staff = User.objects.create_superuser(phone="09129990000", password="securepass123")  # the shop owner
     client = APIClient()
     client.force_authenticate(staff)
     return {"client": client, "customer": customer, "product": product, "paid": paid}

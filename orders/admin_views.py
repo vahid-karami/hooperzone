@@ -7,12 +7,13 @@ from django.db.models import Avg, Count, F, Q, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from rest_framework import permissions, status
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from hooperzone.csv_export import csv_response
+from hooperzone.permissions import CanManageShop
 from products.models import Product
 
 from .models import Order, OrderItem, ShopSettings
@@ -27,7 +28,7 @@ class AdminPagination(PageNumberPagination):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def admin_stats(request):
     maybe_cancel_unpaid_orders()
     now = timezone.now()
@@ -135,7 +136,7 @@ def filtered_orders(params):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def admin_order_list(request):
     maybe_cancel_unpaid_orders()
     orders = filtered_orders(request.query_params)
@@ -174,7 +175,7 @@ def apply_status(order, new_status):
 
 
 @api_view(["GET", "PATCH"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 @transaction.atomic
 def admin_order_update(request, order_number):
     if request.method == "GET":
@@ -213,7 +214,7 @@ def admin_order_update(request, order_number):
 
 
 @api_view(["POST"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def admin_order_bulk_status(request):
     numbers = request.data.get("order_numbers") or []
     new_status = request.data.get("status")
@@ -238,7 +239,7 @@ def admin_order_bulk_status(request):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def admin_order_export(request):
     orders = filtered_orders(request.query_params)[:5000]
     header = [
@@ -272,7 +273,7 @@ def admin_order_export(request):
 
 
 @api_view(["GET", "PATCH"])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([CanManageShop])
 def admin_shop_settings(request):
     shop = ShopSettings.load()
     if request.method == "PATCH":
