@@ -64,7 +64,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("price", "discount_price", "stock")
         }),
         ("Classification", {
-            "fields": ("injury_type", "sports", "size", "color", "material", "weight")
+            "fields": ("injury_type", "sports", "color", "material", "weight")
         }),
         ("Display Options", {
             "fields": ("is_active", "is_featured")

@@ -5,6 +5,8 @@ from django.db import transaction
 
 from products.models import Category, Product, ProductImage
 
+from ._sizes import STANDARD_SIZES, set_demo_sizes
+
 
 class Command(BaseCommand):
     help = 'Seed database with Persian (Farsi) products and categories for Iranian market testing'
@@ -96,7 +98,7 @@ class Command(BaseCommand):
                 'stock': 50,
                 'injury_type': 'knee',
                 'brand': 'HooperZone',
-                'size': 'L',
+                'sizes': STANDARD_SIZES,
                 'material': 'نئوپرین، نایلون',
             },
             {
@@ -115,7 +117,7 @@ class Command(BaseCommand):
                 'stock': 100,
                 'injury_type': 'knee',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نایلون، اسپانکس',
                 'is_featured': True,
             },
@@ -133,7 +135,7 @@ class Command(BaseCommand):
                 'stock': 75,
                 'injury_type': 'ankle',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نئوپرین',
                 'is_featured': True,
             },
@@ -151,7 +153,6 @@ class Command(BaseCommand):
                 'stock': 120,
                 'injury_type': 'ankle',
                 'brand': 'MediPro',
-                'size': 'یک اندازه',
                 'material': 'نایلون، لایکرا',
             },
             {
@@ -168,7 +169,7 @@ class Command(BaseCommand):
                 'stock': 40,
                 'injury_type': 'back',
                 'brand': 'HooperZone',
-                'size': 'L',
+                'sizes': STANDARD_SIZES,
                 'material': 'شبکه، الاستیک',
                 'is_featured': True,
             },
@@ -186,7 +187,7 @@ class Command(BaseCommand):
                 'stock': 60,
                 'injury_type': 'shoulder',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نئوپرین',
             },
             {
@@ -203,7 +204,6 @@ class Command(BaseCommand):
                 'stock': 80,
                 'injury_type': 'elbow',
                 'brand': 'MediPro',
-                'size': 'یک اندازه',
                 'material': 'نایلون، رابر',
             },
             {
@@ -220,7 +220,7 @@ class Command(BaseCommand):
                 'stock': 65,
                 'injury_type': 'wrist',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نئوپرین، آلومینیوم',
                 'is_featured': True,
             },
@@ -238,7 +238,7 @@ class Command(BaseCommand):
                 'stock': 90,
                 'injury_type': 'general',
                 'brand': 'MediPro',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نایلون، اسپانکس',
             },
             {
@@ -255,7 +255,6 @@ class Command(BaseCommand):
                 'stock': 45,
                 'injury_type': 'general',
                 'brand': 'HooperZone',
-                'size': 'استاندارد',
                 'material': 'اورا فوم',
             },
             {
@@ -272,7 +271,7 @@ class Command(BaseCommand):
                 'stock': 35,
                 'injury_type': 'shoulder',
                 'brand': 'MediPro',
-                'size': 'L',
+                'sizes': STANDARD_SIZES,
                 'material': 'فایبرر، الاستیک',
                 'discount_price': Decimal('649000'),
                 'discount_price_irr': 64900000,
@@ -291,13 +290,14 @@ class Command(BaseCommand):
                 'stock': 55,
                 'injury_type': 'ankle',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'نئوپرین، تایل',
             },
         ]
 
         for prod_data in products_data:
             category_slug = prod_data.pop('category')
+            sizes = prod_data.pop('sizes', [])
             product, created = Product.objects.get_or_create(
                 slug=prod_data['slug'],
                 defaults={**prod_data, 'category': categories[category_slug]}
@@ -307,6 +307,7 @@ class Command(BaseCommand):
                     setattr(product, key, value)
                 product.category = categories[category_slug]
                 product.save()
+            set_demo_sizes(product, sizes, prod_data.get('stock', 0))
             self.stdout.write(f'  {"Created" if created else "Updated"} product: {product.name}')
 
         self.stdout.write(self.style.SUCCESS('Persian seed data created successfully!'))

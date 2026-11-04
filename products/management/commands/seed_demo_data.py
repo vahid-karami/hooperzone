@@ -4,6 +4,8 @@ from django.core.management.base import BaseCommand
 
 from products.models import Category, Product
 
+from ._sizes import STANDARD_SIZES, set_demo_sizes
+
 
 class Command(BaseCommand):
     help = 'Seed database with sample sport injury equipment products'
@@ -40,7 +42,7 @@ class Command(BaseCommand):
                 'stock': 50,
                 'injury_type': 'knee',
                 'brand': 'HooperZone',
-                'size': 'L',
+                'sizes': STANDARD_SIZES,
                 'material': 'Neoprene, Nylon',
             },
             {
@@ -53,7 +55,7 @@ class Command(BaseCommand):
                 'stock': 100,
                 'injury_type': 'knee',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'Nylon, Spandex',
             },
             {
@@ -65,7 +67,7 @@ class Command(BaseCommand):
                 'stock': 75,
                 'injury_type': 'ankle',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'Neoprene',
             },
             {
@@ -77,7 +79,6 @@ class Command(BaseCommand):
                 'stock': 120,
                 'injury_type': 'ankle',
                 'brand': 'HooperZone',
-                'size': 'One Size',
                 'material': 'Nylon, Lycra',
             },
             {
@@ -89,7 +90,7 @@ class Command(BaseCommand):
                 'stock': 40,
                 'injury_type': 'back',
                 'brand': 'HooperZone',
-                'size': 'L',
+                'sizes': STANDARD_SIZES,
                 'material': 'Mesh, Elastic',
             },
             {
@@ -101,7 +102,7 @@ class Command(BaseCommand):
                 'stock': 60,
                 'injury_type': 'shoulder',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'Neoprene',
             },
             {
@@ -113,7 +114,6 @@ class Command(BaseCommand):
                 'stock': 80,
                 'injury_type': 'elbow',
                 'brand': 'HooperZone',
-                'size': 'One Size',
                 'material': 'Nylon, Rubber',
             },
             {
@@ -125,7 +125,7 @@ class Command(BaseCommand):
                 'stock': 65,
                 'injury_type': 'wrist',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'Neoprene, Aluminum',
             },
             {
@@ -137,7 +137,7 @@ class Command(BaseCommand):
                 'stock': 90,
                 'injury_type': 'general',
                 'brand': 'HooperZone',
-                'size': 'M',
+                'sizes': STANDARD_SIZES,
                 'material': 'Nylon, Spandex',
             },
             {
@@ -149,18 +149,19 @@ class Command(BaseCommand):
                 'stock': 45,
                 'injury_type': 'general',
                 'brand': 'HooperZone',
-                'size': 'Standard',
                 'material': 'EVA Foam',
             },
         ]
 
         for prod_data in products_data:
             category_slug = prod_data.pop('category')
+            sizes = prod_data.pop('sizes', [])
             product, created = Product.objects.get_or_create(
                 slug=prod_data['slug'],
                 defaults={**prod_data, 'category': categories[category_slug]}
             )
             if created:
+                set_demo_sizes(product, sizes, prod_data.get('stock', 0))
                 self.stdout.write(f'  Created product: {product.name}')
 
         # Mark some products as featured

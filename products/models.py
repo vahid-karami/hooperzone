@@ -201,7 +201,6 @@ class Product(models.Model):
     )
     injury_type = models.CharField(max_length=20, choices=INJURY_TYPE_CHOICES, default=INJURY_TYPE_GENERAL)
     brand = models.CharField(max_length=100, blank=True)
-    size = models.CharField(max_length=20, blank=True, help_text="e.g., S, M, L, XL or One Size")
     color = models.CharField(max_length=50, blank=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Weight in grams")
     material = models.CharField(max_length=100, blank=True)

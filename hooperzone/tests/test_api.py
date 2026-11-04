@@ -46,7 +46,6 @@ def product(category):
         stock=100,
         injury_type=Product.INJURY_TYPE_KNEE,
         brand="HooperZone",
-        size="L",
     )
 
 

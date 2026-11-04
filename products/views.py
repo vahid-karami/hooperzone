@@ -93,7 +93,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         size = self.request.query_params.get("size")
         if size:
-            queryset = queryset.filter(size__iexact=size)
+            queryset = queryset.filter(sizes__label__iexact=size, sizes__is_active=True).distinct()
 
         min_price = self.request.query_params.get("min_price")
         if min_price:
@@ -309,16 +309,17 @@ class ProductAdminViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request):
-        products = self.filter_queryset(self.get_queryset()).prefetch_related("sports")
+        products = self.filter_queryset(self.get_queryset()).prefetch_related("sports", "sizes")
         header = [
             "slug", "name", "name_fa", "category", "brand", "price", "discount_price", "cost", "stock",
-            "injury_type", "size", "color", "material", "is_active", "is_featured", "sports",
+            "injury_type", "sizes", "color", "material", "is_active", "is_featured", "sports",
         ]
         rows = (
             [
                 p.slug, p.name, p.name_fa, p.category.name_fa or p.category.name, p.brand,
                 int(p.price), int(p.discount_price) if p.discount_price else "", int(p.cost) if p.cost else "",
-                p.stock, p.get_injury_type_display(), p.size, p.color, p.material,
+                p.stock, p.get_injury_type_display(),
+                ", ".join(f"{s.label}:{s.stock}" for s in p.sizes.all() if s.is_active), p.color, p.material,
                 "yes" if p.is_active else "no", "yes" if p.is_featured else "no",
                 ", ".join(s.name_fa or s.name for s in p.sports.all()),
             ]
