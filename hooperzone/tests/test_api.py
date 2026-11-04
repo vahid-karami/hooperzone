@@ -427,9 +427,21 @@ class TestLocalizationEndpoints:
 
 @pytest.mark.django_db
 class TestOrderPayments:
-    def test_payment_initiation_and_verification(self, authenticated_client, user, product):
+    def test_payment_initiation_and_verification(self, authenticated_client, user, product, monkeypatch, settings):
+        import urllib.error
+
         from cart.models import Cart, CartItem
+        from orders import payments
         from orders.models import Order
+
+        # Never call ZarinPal from tests: an unreachable sandbox takes the offline mock path.
+        settings.PAYMENT_SANDBOX = True
+        settings.PAYMENT_MOCK_FALLBACK = True
+
+        def offline(*args, **kwargs):
+            raise urllib.error.URLError("offline in tests")
+
+        monkeypatch.setattr(payments, "_post_json", offline)
 
         cart = Cart.objects.create(user=user)
         CartItem.objects.create(cart=cart, product=product, quantity=2)

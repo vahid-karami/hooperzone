@@ -6,17 +6,32 @@ Set the egg's "App py file" to wispbyte_start.py. On every boot this:
    admin user from ADMIN_PHONE / ADMIN_PASSWORD in .env,
 3. serves the site with Waitress on the port Wispbyte assigned (SERVER_PORT).
 
+Auto-deploy (on the Wispbyte server only): GitHub Actions publishes every tested push to master
+as a ready-to-run bundle on the `deploy` branch (.github/workflows/ci-cd.yml). This script installs
+the newest bundle on boot and checks for a new one every AUTO_DEPLOY_INTERVAL seconds, then
+restarts itself. .env, database/, media/ and logs/ are never touched.
+
 Works locally too: `python wispbyte_start.py` then open http://localhost:8000.
 """
+import io
 import os
 import secrets
+import shutil
+import subprocess
 import sys
+import threading
+import time
+import urllib.request
+import zipfile
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
 ENV_FILE = ROOT / ".env"
+VERSION_FILE = ROOT / ".deployed_version"
+# Server-only data that a release never overwrites (pip packages live in .local).
+KEEP = {".env", ".deployed_version", "database", "media", "logs", "staticfiles", ".local", ".cache"}
 
 DEFAULT_ENV = """\
 # Created by wispbyte_start.py on first boot. Edit in the Wispbyte file manager, then restart.
@@ -52,6 +67,117 @@ def ensure_env_file():
     server_ip = os.environ.get("SERVER_IP", "")
     if server_ip and server_ip != "0.0.0.0":
         os.environ["ALLOWED_HOSTS"] = f"{os.environ.get('ALLOWED_HOSTS', '')},{server_ip}"
+
+
+def auto_deploy_settings():
+    """(repo, branch, check interval in seconds) when auto-deploy is on, else None.
+
+    AUTO_DEPLOY=auto (default) turns it on only on a Pterodactyl server (P_SERVER_UUID is set),
+    so running this script on your PC never replaces your code. A git checkout is never touched.
+    """
+    mode = os.environ.get("AUTO_DEPLOY", "auto").lower()
+    enabled = mode == "true" or (mode == "auto" and "P_SERVER_UUID" in os.environ)
+    if not enabled or (ROOT / ".git").exists():
+        return None
+    repo = os.environ.get("AUTO_DEPLOY_REPO", "vahid-karami/drfecommerce")
+    branch = os.environ.get("AUTO_DEPLOY_BRANCH", "deploy")
+    return repo, branch, int(os.environ.get("AUTO_DEPLOY_INTERVAL", "300"))
+
+
+def fetch(url, timeout=30):
+    request = urllib.request.Request(url, headers={"User-Agent": "hooperzone-autodeploy"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read()
+
+
+def remote_version(repo, branch):
+    # The query string skips GitHub's raw-file cache, so a new release is seen right away.
+    url = f"https://raw.githubusercontent.com/{repo}/{branch}/DEPLOY_VERSION?t={int(time.time())}"
+    return fetch(url).decode().strip()
+
+
+def local_version():
+    return VERSION_FILE.read_text(encoding="utf-8").strip() if VERSION_FILE.exists() else ""
+
+
+def install_release(zip_bytes, root=ROOT):
+    """Unpack a GitHub branch zip over `root`, keeping server data (KEEP). Returns its version."""
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        names = zf.namelist()
+        prefix = names[0].split("/")[0] + "/"  # GitHub wraps the branch in "<repo>-<branch>/"
+        files = {n[len(prefix):]: n for n in names if n.startswith(prefix) and not n.endswith("/")}
+        for required in ("wispbyte_start.py", "manage.py", "frontend/dist/index.html", "DEPLOY_VERSION"):
+            if required not in files:
+                raise ValueError(f"Not a HooperZone release: {required} is missing.")
+        shutil.rmtree(root / "frontend" / "dist", ignore_errors=True)  # drop old hashed assets
+        for rel, name in files.items():
+            if rel.split("/")[0] in KEEP:
+                continue
+            target = root / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(name) as src, open(target, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+        return zf.read(files["DEPLOY_VERSION"]).decode().strip()
+
+
+def deploy_release(repo, branch):
+    """Download and install the newest release, plus any new Python packages."""
+    requirements = ROOT / "requirements.txt"
+    old_requirements = requirements.read_bytes() if requirements.exists() else b""
+    data = fetch(f"https://codeload.github.com/{repo}/zip/refs/heads/{branch}", timeout=120)
+    version = install_release(data)
+    if requirements.read_bytes() != old_requirements:
+        print("requirements.txt changed: installing packages...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "-U", "--prefix", ".local", "-r", "requirements.txt"])
+    VERSION_FILE.write_text(version, encoding="utf-8")
+    print(f"Deployed version {version[:7]}.")
+
+
+def restart():
+    print("Restarting with the new version...")
+    sys.stdout.flush()
+    os.execv(sys.executable, [sys.executable, str(ROOT / "wispbyte_start.py")])
+
+
+def sync_on_boot():
+    """Install a newer release before starting; restart into it so the new start script runs."""
+    settings = auto_deploy_settings()
+    if not settings:
+        return
+    repo, branch, _ = settings
+    try:
+        remote = remote_version(repo, branch)
+        if remote == local_version():
+            print(f"Auto-deploy: up to date ({remote[:7]}).")
+            return
+        print(f"Auto-deploy: installing {remote[:7]} from {repo}@{branch}...")
+        deploy_release(repo, branch)
+    except Exception as e:  # never block the site from starting
+        print(f"Auto-deploy skipped: {e}")
+        return
+    restart()
+
+
+def watch_for_releases():
+    settings = auto_deploy_settings()
+    if not settings or settings[2] <= 0:
+        return
+    repo, branch, interval = settings
+
+    def loop():
+        while True:
+            time.sleep(interval)
+            try:
+                remote = remote_version(repo, branch)
+                if remote and remote != local_version():
+                    print(f"Auto-deploy: new version {remote[:7]} found.")
+                    deploy_release(repo, branch)
+                    restart()
+            except Exception as e:
+                print(f"Auto-deploy check failed: {e}")
+
+    threading.Thread(target=loop, name="auto-deploy", daemon=True).start()
+    print(f"Auto-deploy: checking {repo}@{branch} every {interval}s.")
 
 
 def prepare():
@@ -112,5 +238,7 @@ if __name__ == "__main__":
     sys.path.insert(0, str(ROOT))
     os.chdir(ROOT)
     ensure_env_file()
+    sync_on_boot()
     prepare()
+    watch_for_releases()
     serve()

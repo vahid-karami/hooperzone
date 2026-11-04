@@ -134,14 +134,36 @@ shop settings, and can't delete products or categories.
 To remove access, untick **Staff status**. To let someone delete products too, add the
 `products | product | Can delete product` permission to that user.
 
-## Every later deploy
+## Every later deploy (automatic)
 
-```bash
-python scripts/package_wispbyte.py
-```
+Edit, commit and push to `master`, from your PC or by editing a file on github.com:
 
-Upload the new zip in **Files**, unarchive it (overwrite), delete the zip and **Restart**.
-Migrations run automatically on boot.
+1. **GitHub Actions** (`.github/workflows/ci-cd.yml`, the repo's **Actions** tab) runs the backend
+   and frontend tests, lint and the build. A failing pull request or push is never deployed.
+2. When a push to `master` passes, CI builds the site and force-pushes the ready-to-run files
+   to the **`deploy`** branch, with the commit id in `DEPLOY_VERSION`.
+3. The server checks that branch every 5 minutes. When the version is new, it downloads it,
+   installs any new Python packages and restarts itself, which also runs migrations. The site is
+   down for about 10 seconds. `.env`, `database/`, `media/` and `logs/` are never replaced.
+
+The console shows `Auto-deploy: ...` lines, and `.deployed_version` holds the live commit id.
+A manual **Restart** in Wispbyte also installs the newest release first.
+
+Settings in `.env` (all optional):
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `AUTO_DEPLOY` | `auto` | `auto` = on only on the Wispbyte server, `False` = off |
+| `AUTO_DEPLOY_INTERVAL` | `300` | Seconds between checks; `0` = only check when the server starts |
+| `AUTO_DEPLOY_REPO`, `AUTO_DEPLOY_BRANCH` | `vahid-karami/drfecommerce`, `deploy` | Where releases come from |
+
+**Rolling back:** revert the bad commit on `master` (`git revert <id>` and push). CI publishes
+the reverted code like any other change. If a release breaks the start-up so the site won't come
+back, set `AUTO_DEPLOY=False`, upload a working zip by hand (below) and restart.
+
+**Manual deploy (fallback):** run `python scripts/package_wispbyte.py`, upload the zip in
+**Files**, unarchive it (overwrite), delete the zip and **Restart**. With auto-deploy on, the
+server goes back to the newest `deploy` release at the next check, so push your changes too.
 
 ## Backups and housekeeping
 

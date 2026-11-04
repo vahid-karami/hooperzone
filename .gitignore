@@ -40,3 +40,7 @@ nginx/
 .idea/
 *.swp
 *.swo
+
+# Auto-deploy (CI bundle, server version marker)
+bundle/
+.deployed_version

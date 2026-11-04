@@ -2,9 +2,11 @@
 
     python scripts/package_wispbyte.py              # build frontend + zip
     python scripts/package_wispbyte.py --no-build   # zip the existing frontend/dist
+    python scripts/package_wispbyte.py --dir OUT    # copy the bundle into folder OUT instead (CI)
 
 Output: build/hooperzone-wispbyte.zip. Upload it in the Wispbyte file manager and unarchive it
 in /home/container. It never contains .env, database/ or media/, so redeploys keep live data.
+CI uses --dir to publish the same files on the `deploy` branch for auto-deploy.
 """
 import shutil
 import subprocess
@@ -53,6 +55,17 @@ def main():
         subprocess.run([NPM, "run", "build:django"], cwd=FRONTEND, check=True)
     if not (FRONTEND / "dist" / "index.html").exists():
         raise SystemExit("frontend/dist is missing: run without --no-build.")
+
+    if "--dir" in sys.argv:
+        out_dir = Path(sys.argv[sys.argv.index("--dir") + 1]).resolve()
+        shutil.rmtree(out_dir, ignore_errors=True)
+        files = list(files_to_pack())
+        for file in files:
+            target = out_dir / file.relative_to(ROOT)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(file, target)
+        print(f"Copied {len(files)} files into {out_dir}")
+        return
 
     OUT.parent.mkdir(exist_ok=True)
     count = 0

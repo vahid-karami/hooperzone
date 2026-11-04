@@ -1,15 +1,21 @@
 name: CI/CD
 
+# Every push and pull request to master is tested. A push to master that passes is published
+# as a ready-to-run bundle on the `deploy` branch; the live Wispbyte server checks that branch
+# every few minutes and installs new versions itself (wispbyte_start.py, DEPLOY_WISPBYTE.md).
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Backend tests
         env:
           SECRET_KEY: test-secret-key
           DEBUG: "True"
@@ -36,7 +42,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
@@ -44,38 +50,58 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run frontend tests
+      - name: Frontend tests
         working-directory: frontend
         run: npx vitest run
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
       - name: Lint frontend
         working-directory: frontend
-        run: npm run lint --if-present
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build:django
 
   deploy:
     needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
+    permissions:
+      contents: write
+    concurrency:
+      group: production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /path/to/hooperzone
-            git pull origin main
-            source venv/bin/activate
-            pip install -r requirements.txt
-            python manage.py migrate --noinput
-            python manage.py collectstatic --noinput
-            sudo systemctl restart gunicorn
-            sudo systemctl reload nginx
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build the release bundle
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run build:django
+          python scripts/package_wispbyte.py --no-build --dir bundle
+          echo "${GITHUB_SHA}" > bundle/DEPLOY_VERSION
+
+      - name: Publish to the deploy branch
+        working-directory: bundle
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q -b deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Release ${GITHUB_SHA::7} from master"
+          git push -q --force "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy
+          echo "Published ${GITHUB_SHA::7}. The server installs it within ~5 minutes." >> "$GITHUB_STEP_SUMMARY"
