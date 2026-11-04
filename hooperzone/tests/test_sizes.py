@@ -87,3 +87,86 @@ def test_size_guide_table_validation():
     for columns, rows in bad:
         with pytest.raises(ValidationError):
             validate_size_guide_table(columns, rows)
+
+
+# --- Cart ---------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def sized(product):
+    small = ProductSize.objects.create(product=product, label="S", stock=2, sort_order=0)
+    medium = ProductSize.objects.create(product=product, label="M", stock=5, sort_order=1)
+    return {"product": product, "S": small, "M": medium}
+
+
+@pytest.fixture
+def shopper(db):
+    from django.contrib.auth import get_user_model
+    from rest_framework.test import APIClient
+
+    user = get_user_model().objects.create_user(phone="09123334444", password="securepass123")
+    client = APIClient()
+    client.force_authenticate(user)
+    return client
+
+
+def add(client, product, size=None, quantity=1):
+    from django.urls import reverse
+
+    data = {"product_id": product.id, "quantity": quantity}
+    if size is not None:
+        data["size_id"] = size.id
+    return client.post(reverse("cart:cart-add"), data, format="json")
+
+
+def test_cart_needs_a_size_for_a_sized_product(sized, shopper):
+    res = add(shopper, sized["product"])
+    assert res.status_code == 400 and "size" in res.data["error"].lower()
+
+
+def test_cart_rejects_a_size_of_another_product(sized, shopper):
+    other = Product.objects.create(category=sized["product"].category, name="B", slug="b", description="d", price=1)
+    foreign = ProductSize.objects.create(product=other, label="S", stock=9)
+    assert add(shopper, sized["product"], foreign).status_code == 400
+
+
+def test_cart_rejects_an_inactive_size(sized, shopper):
+    sized["M"].is_active = False
+    sized["M"].save()
+    assert add(shopper, sized["product"], sized["M"]).status_code == 400
+
+
+def test_cart_keeps_one_line_per_size_and_checks_that_sizes_stock(sized, shopper):
+    assert add(shopper, sized["product"], sized["S"], 2).status_code == 200
+    assert add(shopper, sized["product"], sized["S"]).status_code == 400  # only 2 small ones
+    res = add(shopper, sized["product"], sized["M"], 3)
+    assert res.status_code == 200
+    lines = {item["size"]["label"]: item["quantity"] for item in res.data["items"]}
+    assert lines == {"S": 2, "M": 3}
+
+
+def test_cart_update_checks_the_sizes_stock(sized, shopper):
+    from django.urls import reverse
+
+    item_id = add(shopper, sized["product"], sized["S"]).data["items"][0]["id"]
+    res = shopper.patch(reverse("cart:cart-update"), {"item_id": item_id, "quantity": 3}, format="json")
+    assert res.status_code == 400
+
+
+def test_size_less_product_takes_no_size(product, shopper):
+    Product.objects.filter(pk=product.pk).update(stock=4)
+    assert add(shopper, product).status_code == 200
+    other_size = ProductSize.objects.create(
+        product=Product.objects.create(category=product.category, name="C", slug="c", description="d", price=1),
+        label="S",
+    )
+    assert add(shopper, product, other_size).status_code == 400
+
+
+def test_database_allows_one_size_less_line_per_product(product, shopper):
+    from cart.models import Cart, CartItem
+
+    cart = Cart.objects.create(user=shopper.handler._force_user)
+    CartItem.objects.create(cart=cart, product=product)
+    with pytest.raises(IntegrityError), transaction.atomic():
+        CartItem.objects.create(cart=cart, product=product)

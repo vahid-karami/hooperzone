@@ -2,7 +2,7 @@ from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from products.models import Product
+from products.models import Product, ProductSize
 
 from .models import Cart, CartItem
 from .serializers import CartSerializer
@@ -56,29 +56,48 @@ def cart_add_item(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    if product.stock < quantity:
+    size, error = resolve_size(product, request.data.get("size_id"))
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+    available = size.stock if size else product.stock
+
+    if available < quantity:
         return Response(
-            {"error": f"Only {product.stock} items available in stock."},
+            {"error": f"Only {available} items available in stock."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     cart_item, created = CartItem.objects.get_or_create(
         cart=cart,
         product=product,
+        size=size,
         defaults={"quantity": quantity},
     )
 
     if not created:
         new_quantity = cart_item.quantity + quantity
-        if product.stock < new_quantity:
+        if available < new_quantity:
             return Response(
-                {"error": f"Only {product.stock} items available in stock."},
+                {"error": f"Only {available} items available in stock."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         cart_item.quantity = new_quantity
         cart_item.save()
 
     return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
+
+
+def resolve_size(product, size_id):
+    """(size, error). A product with sizes needs one of its active sizes; one without takes none."""
+    sizes = ProductSize.objects.filter(product=product, is_active=True)
+    if not sizes.exists():
+        return (None, "This product has no sizes.") if size_id else (None, None)
+    if not size_id:
+        return None, "Please choose a size."
+    try:
+        return sizes.get(pk=size_id), None
+    except (ProductSize.DoesNotExist, ValueError, TypeError):
+        return None, "This size is not available."
 
 
 @api_view(["PATCH"])
@@ -114,9 +133,9 @@ def cart_update_item(request):
         cart_item.delete()
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
-    if cart_item.product.stock < quantity:
+    if cart_item.available_stock < quantity:
         return Response(
-            {"error": f"Only {cart_item.product.stock} items available in stock."},
+            {"error": f"Only {cart_item.available_stock} items available in stock."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
