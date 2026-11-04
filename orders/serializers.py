@@ -12,7 +12,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ["id", "product", "product_slug", "product_image", "product_name", "product_price", "quantity", "subtotal"]
+        fields = [
+            "id", "product", "product_slug", "product_image", "product_name", "size_label",
+            "product_price", "quantity", "subtotal",
+        ]
         read_only_fields = ["id"]
 
     def get_product_image(self, obj):

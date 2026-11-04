@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from cart.models import Cart
-from products.models import Product
+from products.models import Product, ProductSize
 
 from .models import Order, OrderItem, ShopSettings
 from .serializers import OrderCreateSerializer, OrderSerializer, ShopInfoSerializer
@@ -87,23 +87,35 @@ def order_create(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Lock the product rows so concurrent checkouts can't both pass the stock
+    # Lock the product and size rows so concurrent checkouts can't both pass the stock
     # check and oversell.
     products = Product.objects.select_for_update().in_bulk([item.product_id for item in cart_items])
+    sizes = ProductSize.objects.select_for_update().in_bulk([item.size_id for item in cart_items if item.size_id])
+    sized_products = set(
+        ProductSize.objects.filter(product_id__in=products, is_active=True).values_list("product_id", flat=True)
+    )
     for item in cart_items:
         item.product = products[item.product_id]
+        item.size = sizes.get(item.size_id)
 
     for item in cart_items:
-        if not item.product.is_active:
+        name = f"{item.product.name} ({item.size.label})" if item.size else item.product.name
+        if not item.product.is_active or (item.size and not item.size.is_active):
             return Response(
-                {"error": f"{item.product.name} is no longer available."},
+                {"error": f"{name} is no longer available."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if item.quantity > item.product.stock:
+        if item.size is None and item.product_id in sized_products:
+            return Response(
+                {"error": f"Please choose a size for {item.product.name} in your cart."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        available = item.size.stock if item.size else item.product.stock
+        if item.quantity > available:
             return Response(
                 {
-                    "error": f"Insufficient stock for {item.product.name}. "
-                    f"Available: {item.product.stock}, Requested: {item.quantity}"
+                    "error": f"Insufficient stock for {name}. "
+                    f"Available: {available}, Requested: {item.quantity}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -125,12 +137,18 @@ def order_create(request):
         OrderItem.objects.create(
             order=order,
             product=item.product,
+            size=item.size,
+            size_label=item.size.label if item.size else "",
             product_name=item.product.name,
             product_price=item.product.effective_price,
             quantity=item.quantity,
         )
-        item.product.stock -= item.quantity
-        item.product.save(update_fields=["stock"])
+        if item.size:
+            item.size.stock -= item.quantity
+            item.size.save(update_fields=["stock"])  # its signal updates the product's total
+        else:
+            item.product.stock -= item.quantity
+            item.product.save(update_fields=["stock"])
 
     cart.items.all().delete()
     transaction.on_commit(maybe_cancel_unpaid_orders)

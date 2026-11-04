@@ -261,7 +261,7 @@ def admin_order_export(request):
             o.shipping_address,
             o.get_shipping_method_display(),
             o.tracking_code,
-            " | ".join(f"{i.product_name} x{i.quantity}" for i in o.items.all()),
+            " | ".join(str(i) for i in o.items.all()),  # "2x Knee sleeve (M) | 1x ..."
             int(o.subtotal),
             int(o.shipping_cost),
             int(o.total),

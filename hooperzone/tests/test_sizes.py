@@ -170,3 +170,65 @@ def test_database_allows_one_size_less_line_per_product(product, shopper):
     CartItem.objects.create(cart=cart, product=product)
     with pytest.raises(IntegrityError), transaction.atomic():
         CartItem.objects.create(cart=cart, product=product)
+
+
+# --- Orders -------------------------------------------------------------------------------
+
+ADDRESS = {
+    "shipping_address": "Tehran, Azadi St", "shipping_city": "Tehran", "shipping_zip": "1234567890",
+    "shipping_phone": "09121234567",
+}
+
+
+def checkout(client):
+    from django.urls import reverse
+
+    return client.post(reverse("orders:order-create"), ADDRESS, format="json")
+
+
+def test_checkout_takes_stock_from_the_chosen_size(sized, shopper):
+    add(shopper, sized["product"], sized["M"], 2)
+    res = checkout(shopper)
+    assert res.status_code == 201, res.data
+    assert res.data["items"][0]["size_label"] == "M"
+    sized["M"].refresh_from_db()
+    sized["S"].refresh_from_db()
+    assert (sized["S"].stock, sized["M"].stock) == (2, 3)
+    assert stock_of(sized["product"]) == 5
+
+
+def test_cancelling_puts_stock_back_on_the_size(sized, shopper):
+    from django.urls import reverse
+
+    add(shopper, sized["product"], sized["S"], 2)
+    number = checkout(shopper).data["order_number"]
+    assert shopper.post(reverse("orders:order-cancel", kwargs={"order_number": number})).status_code == 200
+    sized["S"].refresh_from_db()
+    assert sized["S"].stock == 2 and stock_of(sized["product"]) == 7
+
+
+def test_checkout_refuses_more_than_the_size_has(sized, shopper):
+    from cart.models import CartItem
+
+    add(shopper, sized["product"], sized["S"], 2)
+    CartItem.objects.update(quantity=3)  # e.g. stock dropped after it was added
+    assert checkout(shopper).status_code == 400
+
+
+def test_checkout_asks_for_a_size_on_an_old_size_less_line(sized, shopper):
+    from cart.models import Cart, CartItem
+
+    cart = Cart.objects.create(user=shopper.handler._force_user)
+    CartItem.objects.create(cart=cart, product=sized["product"], quantity=1)
+    res = checkout(shopper)
+    assert res.status_code == 400 and "size" in res.data["error"].lower()
+
+
+def test_order_keeps_the_size_label_after_the_size_is_deleted(sized, shopper):
+    from orders.models import OrderItem
+
+    add(shopper, sized["product"], sized["M"])
+    checkout(shopper)
+    sized["M"].delete()
+    item = OrderItem.objects.get()
+    assert item.size is None and item.size_label == "M"

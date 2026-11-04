@@ -149,7 +149,7 @@ class Order(models.Model):
 
     def cancel(self, restock=True):
         """Cancel the order and put its items back in stock. Call inside a transaction."""
-        from products.models import Product
+        from products.models import Product, ProductSize
 
         if self.status == self.STATUS_CANCELLED:
             return
@@ -157,7 +157,10 @@ class Order(models.Model):
         self.save(update_fields=["status", "updated_at"])
         if restock:
             for item in self.items.all():
-                if item.product_id:
+                size = ProductSize.objects.filter(pk=item.size_id) if item.size_id else None
+                if size and size.update(stock=F("stock") + item.quantity):
+                    Product(pk=item.product_id).refresh_stock()
+                elif item.product_id:
                     Product.objects.filter(pk=item.product_id).update(stock=F("stock") + item.quantity)
 
     def can_move_to(self, new_status):
@@ -171,6 +174,9 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey("products.Product", on_delete=models.SET_NULL, null=True)
+    size = models.ForeignKey("products.ProductSize", on_delete=models.SET_NULL, null=True, blank=True)
+    # Copied at checkout so the order still shows the size if it is later renamed or deleted.
+    size_label = models.CharField(max_length=20, blank=True)
     product_name = models.CharField(max_length=200)
     product_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
@@ -179,7 +185,8 @@ class OrderItem(models.Model):
         db_table = "order_items"
 
     def __str__(self):
-        return f"{self.quantity}x {self.product_name}"
+        size = f" ({self.size_label})" if self.size_label else ""
+        return f"{self.quantity}x {self.product_name}{size}"
 
     @property
     def subtotal(self):
