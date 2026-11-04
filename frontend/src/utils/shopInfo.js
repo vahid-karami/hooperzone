@@ -35,5 +35,13 @@ export function useShopInfo() {
   return info;
 }
 
+// Bale messenger (بله) chat link from a username ("hooperzone", "@hooperzone") or a full link.
+export const baleHref = (value) => {
+  const v = String(value || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  return `https://ble.ir/${v.replace(/^@/, '').replace(/^ble\.ir\//i, '')}`;
+};
+
 // "+98 21 ..." style tel: link from whatever the staff typed.
 export const telHref = (phone) => `tel:${String(phone || '').replace(/[^\d+]/g, '')}`;

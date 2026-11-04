@@ -8,7 +8,7 @@ import Icon from '../../components/Icon';
 import { toPersianNumber } from '../../hooks/useLanguage';
 import { usePageMeta } from '../../utils/seo';
 
-const EMPTY = { name: '', name_fa: '', slug: '', description: '', description_fa: '', meta_title: '', meta_description: '', is_active: true };
+const EMPTY = { name: '', name_fa: '', slug: '', description: '', description_fa: '', meta_title: '', meta_description: '', is_active: true, show_on_home: false };
 
 export default function AdminCategories() {
   const { t, i18n } = useTranslation();
@@ -124,6 +124,7 @@ export default function AdminCategories() {
               <div className="admin-tile-img">
                 {c.image ? <img src={c.image} alt="" loading="lazy" /> : <span className="no-image"><Icon name="image" size={28} /> {t('admin.noImage', 'بدون تصویر')}</span>}
                 {!c.is_active && <span className="status-pill tone-bad tile-flag">{t('admin.inactive', 'غیرفعال')}</span>}
+                {c.is_active && c.show_on_home && <span className="status-pill tone-info tile-flag">{t('admin.onHome', 'ویژه صفحه اصلی')}</span>}
               </div>
               <div className="admin-tile-body">
                 <h3>{c.name_fa || c.name}</h3>
@@ -200,6 +201,10 @@ export default function AdminCategories() {
               <label className="check-inline">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setField('is_active', e.target.checked)} />
                 {t('admin.activeHint', 'نمایش در فروشگاه')}
+              </label>
+              <label className="check-inline">
+                <input type="checkbox" checked={!!form.show_on_home} onChange={(e) => setField('show_on_home', e.target.checked)} />
+                {t('admin.showOnHomeHint', 'نمایش ویژه در صفحه اصلی (دایره‌های زیر نوار تصاویر)')}
               </label>
               <div className="modal-actions">
                 <button type="button" onClick={() => setEditing(null)} className="btn btn-outline">{t('admin.cancel', 'انصراف')}</button>

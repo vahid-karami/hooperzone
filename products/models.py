@@ -41,6 +41,9 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     description_fa = models.TextField(blank=True, verbose_name="Description (Persian)")
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    show_on_home = models.BooleanField(
+        default=False, help_text="Show as a highlighted circle on the home page"
+    )
     meta_title = models.CharField(max_length=70, blank=True, help_text="Search result title (optional)")
     meta_description = models.CharField(max_length=170, blank=True, help_text="Search result snippet (optional)")
     is_active = models.BooleanField(default=True)

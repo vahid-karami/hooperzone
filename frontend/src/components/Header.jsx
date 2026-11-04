@@ -5,10 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { BODY_PARTS } from '../utils/bodyParts';
+import { useShopInfo, baleHref } from '../utils/shopInfo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
 import Icon from './Icon';
 import Logo from './Logo';
-import Price from './Price';
 
 export default function Header() {
   const { t, i18n } = useTranslation();
@@ -23,10 +23,12 @@ export default function Header() {
   const sports = useSports();
   const [megaOpen, setMegaOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = useRef(null);
+  const headerRef = useRef(null);
+  const toolsRef = useRef(null);
+  const shop = useShopInfo();
+  const baleLink = baleHref(shop.bale);
 
   // Close every overlay on navigation.
   const onSalePage = new URLSearchParams(location.search).get('on_sale') === 'true';
@@ -36,13 +38,24 @@ export default function Header() {
     setLastRouteKey(routeKey);
     setMegaOpen(false);
     setDrawerOpen(false);
-    setSearchOpen(false);
     setAccountOpen(false);
   }
 
+  // On phones the header is tall (logo row, search box, labelled shortcuts), so only the
+  // shortcut row stays pinned while scrolling: the header sticks at minus the height above it.
   useEffect(() => {
-    if (searchOpen) searchInputRef.current?.focus();
-  }, [searchOpen]);
+    const header = headerRef.current;
+    const tools = toolsRef.current;
+    if (!header || !tools || !('ResizeObserver' in window)) return undefined;
+    const update = () => {
+      const offset = tools.getBoundingClientRect().top - header.getBoundingClientRect().top;
+      header.style.setProperty('--header-stick', `${-Math.round(offset)}px`);
+    };
+    const ro = new ResizeObserver(update);
+    ro.observe(header);
+    update();
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
@@ -64,7 +77,7 @@ export default function Header() {
   const partName = (p) => (lang === 'fa' ? p.fa : p.en);
 
   return (
-    <header className="site-header">
+    <header className="site-header" ref={headerRef}>
       <div className="announcement-bar">
         <div className="container announcement-inner">
           <div className="announcement-account">
@@ -171,25 +184,51 @@ export default function Header() {
             <Logo />
           </div>
 
-          <div className="header-tools">
-            <button
-              className={`icon-btn ${searchOpen ? 'active' : ''}`}
-              onClick={() => setSearchOpen((o) => !o)}
+          <form className="header-search" onSubmit={handleSearchSubmit} role="search">
+            <Icon name="search" size={22} />
+            <input
+              type="search"
+              enterKeyHint="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('header.searchPlaceholder', 'دنبال چه محصولی هستید؟ مثلاً زانوبند')}
               aria-label={t('common.search')}
-              aria-expanded={searchOpen}
-            >
-              <Icon name={searchOpen ? 'close' : 'search'} />
+            />
+            <button type="submit" className="btn btn-primary">
+              {t('common.search')}
             </button>
+          </form>
+
+          <div className="header-tools" ref={toolsRef}>
+            <Link to="/products" className="tool tool-mobile">
+              <span className="tool-icon"><Icon name="store" /></span>
+              <span className="tool-label">{t('header.shop', 'فروشگاه')}</span>
+            </Link>
+
+            {baleLink && (
+              <a href={baleLink} target="_blank" rel="noreferrer" className="tool tool-bale">
+                <span className="tool-icon"><Icon name="chat" /></span>
+                <span className="tool-label">{t('header.bale', 'پیام در بله')}</span>
+              </a>
+            )}
+
+            <Link to="/favorites" className="tool hide-sm">
+              <span className="tool-icon">
+                <Icon name="heart" />
+                {favorites.total_items > 0 && <span className="count-badge">{favorites.total_items}</span>}
+              </span>
+              <span className="tool-label">{t('header.favoritesShort', 'علاقه‌مندی')}</span>
+            </Link>
 
             {isAuthenticated ? (
               <div className={`account-menu ${accountOpen ? 'open' : ''}`}>
                 <button
-                  className="icon-btn"
+                  className={`tool ${accountOpen ? 'active' : ''}`}
                   onClick={() => setAccountOpen((o) => !o)}
-                  aria-label={t('header.myAccount')}
                   aria-expanded={accountOpen}
                 >
-                  <Icon name="user" />
+                  <span className="tool-icon"><Icon name="user" /></span>
+                  <span className="tool-label">{t('header.myAccount')}</span>
                 </button>
                 <div className="account-dropdown">
                   <Link to="/profile">{t('header.myAccount')}</Link>
@@ -202,46 +241,20 @@ export default function Header() {
                 </div>
               </div>
             ) : (
-              <Link to="/login" className="icon-btn" aria-label={t('common.signIn')}>
-                <Icon name="user" />
+              <Link to="/login" className="tool">
+                <span className="tool-icon"><Icon name="user" /></span>
+                <span className="tool-label">{t('header.loginShort', 'ورود / ثبت‌نام')}</span>
               </Link>
             )}
 
-            <Link to="/favorites" className="icon-btn hide-sm" aria-label={t('common.favorites')}>
-              <Icon name="heart" />
-              {favorites.total_items > 0 && <span className="count-badge">{favorites.total_items}</span>}
-            </Link>
-
-            <Link to="/cart" className="cart-link" aria-label={t('common.cart')}>
-              <span className="icon-btn">
+            <Link to="/cart" className="tool">
+              <span className="tool-icon">
                 <Icon name="bag" />
                 {cart.total_items > 0 && <span className="count-badge">{cart.total_items}</span>}
               </span>
-              {Number(cart.total_price) > 0 && (
-                <span className="cart-total hide-sm">
-                  <Price amount={Number(cart.total_price)} />
-                </span>
-              )}
+              <span className="tool-label">{t('common.cart')}</span>
             </Link>
           </div>
-        </div>
-
-        <div className={`search-panel ${searchOpen ? 'open' : ''}`}>
-          <form className="container search-form" onSubmit={handleSearchSubmit} role="search">
-            <Icon name="search" />
-            <input
-              ref={searchInputRef}
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('header.searchPlaceholder', 'جستجوی محصول، مثلاً زانوبند')}
-              aria-label={t('common.search')}
-              tabIndex={searchOpen ? 0 : -1}
-            />
-            <button type="submit" className="btn btn-primary btn-sm" tabIndex={searchOpen ? 0 : -1}>
-              {t('common.search')}
-            </button>
-          </form>
         </div>
       </div>
 

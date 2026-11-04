@@ -50,7 +50,11 @@
     "openMenu": "Open menu",
     "productTypes": "Product types",
     "quickLinks": "Quick links",
-    "searchPlaceholder": "Search products, e.g. knee brace"
+    "searchPlaceholder": "What are you looking for? e.g. knee brace",
+    "shop": "Shop",
+    "favoritesShort": "Favorites",
+    "loginShort": "Sign in",
+    "bale": "Message on Bale"
   },
   "home": {
     "heroBadge": "Sports Recovery Specialists",
@@ -92,17 +96,17 @@
     "scrollForward": "Next",
     "seeOffers": "See offers",
     "shopByType": "Shop by product type",
-    "slide1Cta": "Shop knee braces",
-    "slide1Eyebrow": "Targeted knee support",
-    "slide1Text": "Our knee braces and compression sleeves support the joint precisely, easing pain and restoring stability.",
-    "slide1Title": "Get back in the game with confidence",
-    "slide2Cta": "Shop back supports",
-    "slide2Eyebrow": "Spine health",
-    "slide2Text": "Even compression relaxes the muscles and supports you through daily work and sport.",
-    "slide2Title": "Take back pain seriously",
-    "slide3Eyebrow": "Special offer",
-    "slide3Text": "Best-selling supports at special prices, for a limited time.",
-    "slide3Title": "This week's deals",
+    "slide1Cta": "Browse products",
+    "slide1Eyebrow": "HooperZone",
+    "slide1Text": "Supports and braces for every joint and every sport.",
+    "slide1Title": "Move better. Come back stronger.",
+    "slide2Cta": "Free sizing advice",
+    "slide2Eyebrow": "With you from injury to comeback",
+    "slide2Text": "With the right support, get back on the court with confidence.",
+    "slide2Title": "An injury is not the end of the game.",
+    "slide3Eyebrow": "For every age",
+    "slide3Text": "From pro training to your daily walk, we have you covered.",
+    "slide3Title": "Every day, pain-free.",
     "topSellers": "Top sellers",
     "trustPayText": "ZarinPal & IDPay",
     "trustPayTitle": "Secure payment",
@@ -119,7 +123,13 @@
     "heroCta": "Shop by sport",
     "heroCta2": "Free advice",
     "partsLabel": "Which area is hurting?",
-    "sportsText": "Pick your sport and see only the products that suit it."
+    "sportsText": "Pick your sport and see only the products that suit it.",
+    "slide3Cta": "Shop by sport",
+    "sliderLabel": "HooperZone highlights",
+    "sliderPrev": "Previous slide",
+    "sliderNext": "Next slide",
+    "sliderGoTo": "Slide {{n}}",
+    "circlesLabel": "Featured categories"
   },
   "bodyParts": {
     "knee": "Knee",
@@ -664,7 +674,6 @@
     "uploadFailed": "Image upload failed",
     "uploading": "Uploading…",
     "verified": "Verified",
-    "whatsapp": "WhatsApp",
     "withOrdersOnly": "Buyers only",
     "workingHours": "Support hours",
     "printInvoiceNow": "Print invoice",
@@ -672,7 +681,10 @@
     "metaDescription": "Search result description",
     "metaTitle": "Search result title",
     "seo": "SEO (how it appears on Google)",
-    "seoHint": "Leave empty to use the name and description."
+    "seoHint": "Leave empty to use the name and description.",
+    "showOnHomeHint": "Highlight on the home page (circles under the slider)",
+    "onHome": "On home page",
+    "bale": "Bale username (without @)"
   },
   "info": {
     "nav": {
@@ -722,7 +734,8 @@
       "hours": "Support hours",
       "social": "Social media",
       "defaultHours": "Saturday to Thursday, 9:00–18:00",
-      "orderHelp": "Please have your order number ready. Order status and the parcel tracking code are also shown under “My orders”."
+      "orderHelp": "Please have your order number ready. Order status and the parcel tracking code are also shown under “My orders”.",
+      "bale": "Bale messenger"
     },
     "shipping": {
       "title": "Shipping",

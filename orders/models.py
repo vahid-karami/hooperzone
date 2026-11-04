@@ -19,7 +19,7 @@ class ShopSettings(models.Model):
     store_address = models.TextField(blank=True)
     instagram = models.CharField(max_length=100, blank=True, help_text="Instagram username without @")
     telegram = models.CharField(max_length=100, blank=True, help_text="Telegram username without @")
-    whatsapp = models.CharField(max_length=30, blank=True)
+    bale = models.CharField(max_length=100, blank=True, help_text="Bale messenger username without @ (or a full ble.ir link)")
     working_hours = models.CharField(max_length=200, blank=True)
     enamad_html = models.TextField(blank=True, help_text="Badge code from enamad.ir")
     samandehi_html = models.TextField(blank=True, help_text="Badge code from samandehi.ir")

@@ -23,7 +23,7 @@ export default function Footer() {
       <div className="container footer-grid">
         <div className="footer-brand">
           <Logo />
-          <p>{t('footer.about', 'هوپرزون فروشگاه تخصصی ساپورت‌ها و بریس‌های ورزشی و طبی است؛ برای پیشگیری از آسیب، همراهی در دوران درمان و بازگشت مطمئن به فعالیت.')}</p>
+          <p>{t('footer.about', 'هوپرزون فروشگاه تخصصی بندهای طبی و محافظ‌های ورزشی است؛ برای پیشگیری از آسیب، همراهی در دوران درمان و بازگشت مطمئن به فعالیت.')}</p>
           {shop.store_phone && (
             <a className="footer-phone" href={telHref(shop.store_phone)}>
               <Icon name="phone" size={20} />
@@ -71,7 +71,7 @@ export default function Footer() {
             <li><Icon name="check" size={16} /> {t('footer.genuine', 'ضمانت اصالت کالا')}</li>
             <li><Icon name="check" size={16} /> {t('footer.returns', '۷ روز ضمانت بازگشت')}</li>
             <li><Icon name="check" size={16} /> {t('footer.securePay', 'پرداخت امن از درگاه زرین‌پال')}</li>
-            <li><Icon name="check" size={16} /> {t('footer.advice', 'مشاوره انتخاب سایز')}</li>
+            <li><Icon name="check" size={16} /> {t('footer.advice', 'مشاوره انتخاب اندازه')}</li>
           </ul>
         </div>
 

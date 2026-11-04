@@ -65,7 +65,7 @@ class ShopInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopSettings
         fields = [
-            "store_phone", "store_email", "store_address", "instagram", "telegram", "whatsapp",
+            "store_phone", "store_email", "store_address", "instagram", "telegram", "bale",
             "working_hours", "enamad_html", "samandehi_html", "shipping_methods",
         ]
 

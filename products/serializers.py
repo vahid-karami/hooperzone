@@ -18,6 +18,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "description",
             "description_fa",
             "image",
+            "show_on_home",
             "product_count",
             "name_localized",
             "description_localized",
@@ -86,7 +87,7 @@ class CategoryAdminSerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             "id", "name", "name_fa", "slug", "description", "description_fa", "image",
-            "meta_title", "meta_description", "is_active", "product_count", "created_at",
+            "meta_title", "meta_description", "is_active", "show_on_home", "product_count", "created_at",
         ]
         read_only_fields = ["id", "created_at"]
         extra_kwargs = {"slug": {"required": False}}

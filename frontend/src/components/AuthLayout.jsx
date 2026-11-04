@@ -4,7 +4,7 @@ import Icon from './Icon';
 const PERKS = [
   { icon: 'shield', key: 'authentic', fa: 'اصالت کالا تضمین‌شده' },
   { icon: 'truck', key: 'shipping', fa: 'ارسال سریع به سراسر کشور' },
-  { icon: 'headset', key: 'support', fa: 'مشاوره تخصصی انتخاب سایز و مدل' },
+  { icon: 'headset', key: 'support', fa: 'مشاوره تخصصی انتخاب اندازه و مدل' },
 ];
 
 // Shared shell for login/register: form on the start side, photo panel on the end side.

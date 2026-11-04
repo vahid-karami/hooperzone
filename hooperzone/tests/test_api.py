@@ -404,7 +404,7 @@ class TestLocalizationEndpoints:
         product = Product.objects.create(
             category=category,
             name="English Knee Brace",
-            name_fa="بریس زانوی فارسی",
+            name_fa="زانوبند فارسی",
             slug="localized-knee-brace",
             description="English description",
             description_fa="توضیحات فارسی",
@@ -421,7 +421,7 @@ class TestLocalizationEndpoints:
         # Persian
         res_fa = api_client.get(f"{url}?lang=fa")
         assert res_fa.status_code == status.HTTP_200_OK
-        assert res_fa.data["name_localized"] == "بریس زانوی فارسی"
+        assert res_fa.data["name_localized"] == "زانوبند فارسی"
         assert res_fa.data["description_localized"] == "توضیحات فارسی"
 
 

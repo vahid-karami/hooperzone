@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
         persian_categories = {
             'knee-braces': {
-                'name_fa': 'بریس زانو',
+                'name_fa': 'زانوبند',
                 'description_fa': 'حمایت و تثبیت برای آسیب‌های زانویی'
             },
             'ankle-supports': {
@@ -34,7 +34,7 @@ class Command(BaseCommand):
             },
             'compression-wear': {
                 'name_fa': 'لباس فشاری',
-                'description_fa': 'اسلیوهای فشاری و حمایت‌ها'
+                'description_fa': 'بندهای کشی فشاری و حمایت‌ها'
             },
         }
 
@@ -50,28 +50,28 @@ class Command(BaseCommand):
 
         persian_products = {
             'premium-knee-stabilizer': {
-                'name_fa': 'بریس زانو حرفه‌ای',
-                'description_fa': 'بریس زانو طراحی شده برای حداکثر تثبیت در طول بهبودی. دارای بندهای قابل تنظیم و مواد قابل تنفس برای راحتی تمام روز.'
+                'name_fa': 'زانوبند مفصل‌دار حرفه‌ای',
+                'description_fa': 'زانوبند مفصل‌دار طراحی شده برای حداکثر تثبیت در طول بهبودی. دارای بندهای قابل تنظیم و مواد قابل تنفس برای راحتی تمام روز.'
             },
             'performance-knee-sleeve': {
-                'name_fa': 'اسلیو زانو ورزشی',
-                'description_fa': 'اسلیو فشاری سبک وزن برای حمایت خفیف و بهبود گردش خون در طول فعالیت.'
+                'name_fa': 'زانوبند کشی ورزشی',
+                'description_fa': 'بند کشی فشاری سبک وزن برای حمایت خفیف و بهبود گردش خون در طول فعالیت.'
             },
             'ankle-stabilizer-brace': {
-                'name_fa': 'بریس تثبیت‌کننده مچ پا',
+                'name_fa': 'قوزک‌بند آتل‌دار',
                 'description_fa': 'ارائه حمایت محکم برای許可 مچ پا و جلوگیری از آسیب مجدد در طول فعالیت‌های ورزشی.'
             },
             'compression-ankle-sleeve': {
-                'name_fa': 'اسلیو فشاری مچ پا',
-                'description_fa': 'اسلیو فشاری بدون درز برای حمایت خفیف و بهبود بهبودی.'
+                'name_fa': 'قوزک‌بند کشی',
+                'description_fa': 'بند کشی فشاری بدون درز برای حمایت خفیف و بهبود بهبودی.'
             },
             'lumbar-sports-support': {
                 'name_fa': 'حمایت کمری ورزشی',
                 'description_fa': 'حمایت کمری ارگونومیک طراحی شده برای ورزشکاران. ارائه تثبیت کمری در طول بلند کردن وزن و ورزش.'
             },
             'shoulder-support-brace': {
-                'name_fa': 'بریس حمایت شانه',
-                'description_fa': 'بریس قابل تنظیم برای حمایت چرخنده شانه و پیشگیری از آسیب.'
+                'name_fa': 'شانه‌بند',
+                'description_fa': 'شانه‌بند قابل تنظیم برای حمایت چرخنده شانه و پیشگیری از آسیب.'
             },
             'tennis-elbow-support': {
                 'name_fa': 'حمایت آرنج تنیس',
@@ -82,7 +82,7 @@ class Command(BaseCommand):
                 'description_fa': 'حمایت صلب برای许可 مچ دست و کاهش درد تونل کارپال.'
             },
             'compression-calf-sleeve': {
-                'name_fa': 'اسلیو فشاری ساق پا',
+                'name_fa': 'ساق‌بند فشاری',
                 'description_fa': 'فشاری تدریجی برای بهبود گردش خون و کاهش خستگی عضلات.'
             },
             'recovery-foam-roller': {

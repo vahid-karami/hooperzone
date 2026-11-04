@@ -74,7 +74,7 @@ export default function Products() {
   const currentSportName = currentSport ? sportName(currentSport, lang) : sport;
 
   let title = t('products.allProducts');
-  let subtitle = t('products.allProductsDesc', 'ساپورت‌ها، بریس‌ها و پوشاک فشاری برای پیشگیری، درمان و عملکرد بهتر.');
+  let subtitle = t('products.allProductsDesc', 'بندهای طبی، محافظ‌های ورزشی و پوشاک فشاری برای پیشگیری، درمان و عملکرد بهتر.');
   if (search) {
     title = t('products.searchResults', 'نتایج جستجو برای «{{query}}»', { query: search });
     subtitle = '';
@@ -82,15 +82,15 @@ export default function Products() {
     title = categoryName;
     subtitle = (lang === 'fa' && currentCategory.description_fa) || currentCategory.description || subtitle;
   } else if (sport) {
-    title = t('products.sportTitle', 'ساپورت‌های مناسب {{sport}}', { sport: currentSportName });
+    title = t('products.sportTitle', 'محصولات مناسب {{sport}}', { sport: currentSportName });
     subtitle = t('products.sportDesc', 'محصولاتی که برای این ورزش پیشنهاد می‌کنیم.');
   } else if (injuryType) {
     const part = BODY_PARTS.find((p) => p.key === injuryType);
-    title = t('products.bodyPartTitle', 'ساپورت‌های {{part}}', { part: bodyPartLabel(injuryType, lang) });
+    title = t('products.bodyPartTitle', 'محصولات ویژه {{part}}', { part: bodyPartLabel(injuryType, lang) });
     subtitle = part ? (lang === 'fa' ? part.blurbFa : part.blurbEn) : subtitle;
   } else if (onSale) {
     title = t('header.offers', 'تخفیف‌ها');
-    subtitle = t('products.offersDesc', 'منتخبی از ساپورت‌ها با قیمت ویژه.');
+    subtitle = t('products.offersDesc', 'منتخبی از محصولات با قیمت ویژه.');
   }
 
   // Category and sport listings are their own pages; other filters share the main listing's canonical URL.

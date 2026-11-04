@@ -246,7 +246,7 @@ export default function Checkout() {
                   <label key={g.key} className={`gateway-option ${gateway === g.key ? 'selected' : ''}`}>
                     <input type="radio" name="gateway" value={g.key} checked={gateway === g.key} onChange={() => setGateway(g.key)} />
                     <span className="gateway-name">{lang === 'fa' ? g.fa : g.en}</span>
-                    <span className="gateway-note">{t('checkout.gatewayNote', 'پرداخت آنلاین با کلیه کارت‌های شتاب')}</span>
+                    <span className="gateway-note">{t('checkout.gatewayNote', 'پرداخت اینترنتی با کلیه کارت‌های شتاب')}</span>
                   </label>
                 ))}
               </div>

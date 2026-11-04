@@ -5,9 +5,10 @@ import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/Skeletons';
-import Price from '../components/Price';
+import HeroSlider from '../components/HeroSlider';
 import Icon from '../components/Icon';
-import { BODY_PARTS, localized } from '../utils/bodyParts';
+import { BODY_PARTS } from '../utils/bodyParts';
+import { useShopInfo, telHref } from '../utils/shopInfo';
 import { usePageMeta } from '../utils/seo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
 
@@ -22,9 +23,11 @@ export default function Home() {
   const categories = useCategories();
   const sports = useSports();
   const rootRef = useRef(null);
+  const shop = useShopInfo();
+  const phoneHref = shop.store_phone ? telHref(shop.store_phone) : 'tel:+982112345678';
 
   usePageMeta({
-    title: t('home.metaTitle', 'ساپورت‌ها و بریس‌های ورزشی و طبی'),
+    title: t('home.metaTitle', 'زانوبند، مچ‌بند و بندهای طبی و ورزشی'),
     description: t('home.metaDescription', 'زانوبند، قوزک‌بند، کمربند طبی و پوشاک فشاری برای پیشگیری، درمان و عملکرد بهتر.'),
   });
 
@@ -85,6 +88,7 @@ export default function Home() {
     title: (lang === 'fa' && c.name_fa) || c.name,
     subtitle: t('products.productsCount', { count: c.product_count }),
     image: c.image || imageOf(byCategoryName[c.name]),
+    showOnHome: !!c.show_on_home,
   }));
 
   const sportTiles = sports
@@ -101,7 +105,7 @@ export default function Home() {
     {
       key: 'knee',
       title: t('home.guideKneeTitle', 'راهنمای زانودرد'),
-      text: t('home.guideKneeText', 'علت‌ها، علائم و ساپورت مناسب برای هر مرحله.'),
+      text: t('home.guideKneeText', 'علت‌ها، نشانه‌ها و زانوبند مناسب برای هر مرحله.'),
       to: '/products?injury_type=knee',
       image: imageOf(byInjury.knee),
     },
@@ -123,37 +127,61 @@ export default function Home() {
 
   const topSellers = (featured.length ? featured : products).slice(0, 4);
 
-  const spotlight = topSellers[0];
-  const spotlightName = spotlight && localized(spotlight, 'name', lang);
+  // Slogan slides: brand messages, not product categories (those live in the circles below).
+  const slides = [
+    {
+      key: 'move',
+      theme: 'photo',
+      image: `${import.meta.env.BASE_URL}images/home/hero.jpg`,
+      eyebrow: t('home.slide1Eyebrow', 'هوپرزون'),
+      title: t('home.slide1Title', 'بهتر حرکت کن. قوی‌تر برگرد.'),
+      text: t('home.slide1Text', 'زانوبند، مچ‌بند و کمربند طبی مناسب هر عضو و هر ورزش.'),
+      cta: { label: t('home.slide1Cta', 'مشاهده محصولات'), to: '/products', icon: 'store' },
+    },
+    {
+      key: 'comeback',
+      theme: 'navy',
+      eyebrow: t('home.slide2Eyebrow', 'کنار تو، از آسیب تا بازگشت'),
+      title: t('home.slide2Title', 'آسیب، پایان بازی نیست.'),
+      text: t('home.slide2Text', 'با محافظ درست، با خیال راحت به میدان برگرد.'),
+      cta: { label: t('home.slide2Cta', 'مشاوره رایگان انتخاب اندازه'), href: phoneHref, icon: 'phone' },
+    },
+    {
+      key: 'everyday',
+      theme: 'teal',
+      eyebrow: t('home.slide3Eyebrow', 'برای همه سنین'),
+      title: t('home.slide3Title', 'هر روز، بدون درد.'),
+      text: t('home.slide3Text', 'از تمرین حرفه‌ای تا پیاده‌روی روزانه، همراه تو هستیم.'),
+      cta: { label: t('home.slide3Cta', 'خرید بر اساس ورزش'), href: '#sports' },
+    },
+  ];
+
+  // Highlighted categories (chosen in the admin portal); every category if none is chosen yet.
+  const highlighted = categoryTiles.filter((c) => c.showOnHome);
+  const circles = highlighted.length ? highlighted : categoryTiles;
 
   return (
     <div className="home" ref={rootRef}>
       <section className="home2-hero">
-        <div className="container home2-hero-grid">
-          <div className="home2-hero-copy">
-            <h1>{t('home.heroTitle', 'با خیال راحت به میدان برگرد')}</h1>
-            <p>{t('home.heroText', 'ساپورت و بریس مناسب هر عضو و هر ورزش، همراه با مشاوره تخصصی انتخاب سایز.')}</p>
-            <div className="home2-hero-actions">
-              <a href="#sports" className="btn btn-primary btn-lg">{t('home.heroCta', 'خرید بر اساس ورزش')}</a>
-              <a href="tel:+982112345678" className="btn btn-outline btn-lg">
-                <Icon name="phone" size={18} /> {t('home.heroCta2', 'مشاوره رایگان')}
-              </a>
-            </div>
-          </div>
+        <div className="container">
+          <HeroSlider slides={slides} />
 
-          <div className="home2-hero-visual">
-            <img src={`${import.meta.env.BASE_URL}images/home/hero.jpg`} alt="" fetchPriority="high" decoding="async" />
-            {spotlight && (
-              <Link to={`/products/${spotlight.slug}`} className="home2-spotlight">
-                {imageOf(spotlight) && <img src={imageOf(spotlight)} alt="" decoding="async" />}
-                <span className="home2-spotlight-text">
-                  <small>{t('home.topSellers', 'پرفروش‌ترین‌ها')}</small>
-                  <strong>{spotlightName}</strong>
-                  <Price amount={spotlight.effective_price ?? spotlight.price} />
-                </span>
+          {circles.length > 0 && (
+            <nav className="home-circles" aria-label={t('home.circlesLabel', 'دسته‌بندی‌های ویژه')}>
+              {circles.map((c) => (
+                <Link key={c.key} to={c.to} className="home-circle">
+                  <span className="home-circle-img">
+                    {c.image ? <img src={c.image} alt="" loading="lazy" /> : <Icon name="box" size={30} strokeWidth={1.5} />}
+                  </span>
+                  <span className="home-circle-label">{c.title}</span>
+                </Link>
+              ))}
+              <Link to="/categories" className="home-circle is-all">
+                <span className="home-circle-img"><Icon name="menu" size={28} /></span>
+                <span className="home-circle-label">{t('home.viewAllCategories', 'همه دسته‌ها')}</span>
               </Link>
-            )}
-          </div>
+            </nav>
+          )}
         </div>
 
         {bodyParts.length > 0 && (
@@ -260,10 +288,10 @@ export default function Home() {
         <div className="container">
           <div className="advice-banner" data-reveal>
             <div>
-              <h2>{t('home.adviceTitle', 'در انتخاب سایز یا مدل مردد هستید؟')}</h2>
-              <p>{t('home.adviceText', 'کارشناسان ما کمک می‌کنند ساپورتی را انتخاب کنید که دقیقاً به نیاز شما پاسخ می‌دهد.')}</p>
+              <h2>{t('home.adviceTitle', 'در انتخاب اندازه یا مدل مردد هستید؟')}</h2>
+              <p>{t('home.adviceText', 'کارشناسان ما کمک می‌کنند محصولی را انتخاب کنید که دقیقاً به کار شما بیاید.')}</p>
             </div>
-            <a href="tel:+982112345678" className="btn btn-secondary btn-lg">
+            <a href={phoneHref} className="btn btn-secondary btn-lg">
               <Icon name="phone" size={18} /> {t('home.adviceCta', 'تماس با کارشناس')}
             </a>
           </div>
@@ -293,7 +321,7 @@ export default function Home() {
         <div className="container narrow">
           <h2 className="section-title">{t('home.aboutTitle', 'هوپرزون')}</h2>
           <p>
-            {t('home.aboutText', 'ساپورت‌ها و پوشاک فشاری هوپرزون با پارچه‌های تنفس‌پذیر و فشار هدفمند، گردش خون را بهبود می‌دهند و به ثبات مفصل کمک می‌کنند؛ نتیجه، درد کمتر، ریکاوری سریع‌تر و اعتماد به نفس بیشتر در حرکت است. برای شروع، عضو بدن یا نوع محصول مورد نظرتان را انتخاب کنید.')}
+            {t('home.aboutText', 'بندهای طبی و پوشاک فشاری هوپرزون با پارچه‌های قابل تنفس و فشار یکنواخت، گردش خون را بهتر می‌کنند و از مفصل حمایت می‌کنند؛ نتیجه، درد کمتر، بهبودی سریع‌تر و حرکت با خیال راحت است. برای شروع، عضو بدن یا نوع محصول مورد نظرتان را انتخاب کنید.')}
           </p>
         </div>
       </section>

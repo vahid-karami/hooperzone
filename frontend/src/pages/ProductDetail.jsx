@@ -192,7 +192,7 @@ export default function ProductDetail() {
 
   const highlights = [
     product.material && t('product.highlightMaterial', 'جنس: {{material}}', { material: product.material }),
-    product.size && t('product.highlightSize', 'سایز موجود: {{size}}', { size: product.size }),
+    product.size && t('product.highlightSize', 'اندازه موجود: {{size}}', { size: product.size }),
     t('product.highlightShipping', 'ارسال سریع با پست و تیپاکس و ۷ روز ضمانت بازگشت'),
   ].filter(Boolean);
 

@@ -30,7 +30,7 @@ export default function Categories() {
         <header className="listing-banner">
           <div className="listing-banner-copy">
             <h1>{title}</h1>
-            <p>{t('categories.intro', 'ساپورت مناسب را بر اساس نوع محصول، عضو بدن یا ورزش خود پیدا کنید.')}</p>
+            <p>{t('categories.intro', 'بند طبی مناسب خود را بر اساس نوع محصول، عضو بدن یا ورزش پیدا کنید.')}</p>
           </div>
         </header>
 

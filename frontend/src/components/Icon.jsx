@@ -39,6 +39,8 @@ const PATHS = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" /></>,
   send: <><path d="M21 3 3 10.5l7 2.5 2.5 7Z" /><path d="m10 13 4-4" /></>,
+  store: <><path d="M4 10v10h16V10" /><path d="M3 10 5 4h14l2 6a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z" /><path d="M10 20v-5h4v5" /></>,
+  chat: <><path d="M4 20l1.3-4A8.5 8.5 0 1 1 8.4 19Z" /><path d="M8.5 10.5h7" /><path d="M8.5 13.5h4.5" /></>,
 };
 
 export default function Icon({ name, size = 22, strokeWidth = 1.8, className = '', filled = false, ...rest }) {

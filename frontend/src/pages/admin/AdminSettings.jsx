@@ -96,7 +96,7 @@ export default function AdminSettings() {
               {field('store_email', t('admin.storeEmail', 'ایمیل'), { dir: 'ltr', type: 'email' })}
               {field('instagram', t('admin.instagram', 'اینستاگرام (بدون @)'), { dir: 'ltr' })}
               {field('telegram', t('admin.telegram', 'تلگرام (بدون @)'), { dir: 'ltr' })}
-              {field('whatsapp', t('admin.whatsapp', 'واتس‌اپ'), { dir: 'ltr', inputMode: 'tel' })}
+              {field('bale', t('admin.bale', 'نام کاربری بله (بدون @)'), { dir: 'ltr' })}
               {field('working_hours', t('admin.workingHours', 'ساعات پاسخگویی'))}
             </div>
             <div className="form-group">

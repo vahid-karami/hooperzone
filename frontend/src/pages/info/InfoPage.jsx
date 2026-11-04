@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs';
 import Icon from '../../components/Icon';
 import Price from '../../components/Price';
 import { toPersianNumber } from '../../hooks/useLanguage';
-import { telHref, useShopInfo } from '../../utils/shopInfo';
+import { baleHref, telHref, useShopInfo } from '../../utils/shopInfo';
 import { usePageMeta } from '../../utils/seo';
 
 export const INFO_PAGES = ['about', 'contact', 'faq', 'shipping', 'returns', 'terms', 'privacy'];
@@ -29,7 +29,7 @@ function Contact({ shop, num }) {
   const { t } = useTranslation();
   const rows = [
     shop.store_phone && { icon: 'phone', label: t('info.contact.phone'), value: <a href={telHref(shop.store_phone)} dir="ltr">{num(shop.store_phone)}</a> },
-    shop.whatsapp && { icon: 'send', label: 'WhatsApp', value: <a href={`https://wa.me/${String(shop.whatsapp).replace(/\D/g, '').replace(/^0/, '98')}`} target="_blank" rel="noreferrer" dir="ltr">{num(shop.whatsapp)}</a> },
+    shop.bale && { icon: 'chat', label: t('info.contact.bale', 'پیام‌رسان بله'), value: <a href={baleHref(shop.bale)} target="_blank" rel="noreferrer" dir="ltr">{String(shop.bale).replace(/^https?:\/\//, '').replace(/^@/, '')}</a> },
     shop.store_email && { icon: 'mail', label: t('info.contact.email'), value: <a href={`mailto:${shop.store_email}`} dir="ltr">{shop.store_email}</a> },
     shop.store_address && { icon: 'location', label: t('info.contact.address'), value: <address>{shop.store_address}</address> },
     { icon: 'clock', label: t('info.contact.hours'), value: shop.working_hours || t('info.contact.defaultHours') },
