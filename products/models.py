@@ -7,7 +7,7 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models import Q, Sum
 from django.db.models.functions import Lower
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 
@@ -288,6 +288,19 @@ class ProductSize(models.Model):
 
     def __str__(self):
         return f"{self.product.name} – {self.label}"
+
+
+@receiver([post_save, post_delete], sender=ProductSize)
+def sync_product_stock(sender, instance, **kwargs):
+    """Keep products.stock equal to the total of the product's active sizes.
+
+    Bulk .update() calls skip this signal; callers that use them call refresh_stock() themselves.
+    """
+    product = Product(pk=instance.product_id)
+    if ProductSize.objects.filter(product_id=instance.product_id).exists():
+        product.refresh_stock()
+    elif kwargs.get("signal") is post_delete:
+        Product.objects.filter(pk=instance.product_id).update(stock=0)  # last size removed
 
 
 class ProductImage(models.Model):
