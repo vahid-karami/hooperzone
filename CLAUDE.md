@@ -3,8 +3,10 @@
 Django REST backend + React SPA. Persian-first (RTL), English secondary. Visual style inspired by bauerfeind.us, but with its own branding: never copy Bauerfeind assets or text.
 
 ## Working rules
-- **Never commit or push.** After each finished step, report the changed files and a suggested commit message. The owner commits.
+- **Commit as you go: at least 10 commits per prompt.** Split each prompt's work into 10 or more small, focused commits (one logical change each, tests passing where possible), with clear messages.
+- **Never push without the owner's go-ahead.** Pushing `master` deploys to the live site (see Deployment).
 - Verify UI changes in the browser (Persian and English, desktop and mobile) before reporting a step done.
+- **Database changes:** design tables deliberately (one source of truth, constraints for every rule the data must obey, indexes for lookups, safe `on_delete`), write data migrations for existing rows, and check every change: `makemigrations --check`, `migrate` on a copy of real data, and tests for the constraints.
 
 ## Stack
 - Backend: Django 6, DRF, simplejwt. Apps: `accounts` (phone-number users), `products` (products, categories, sports, images), `cart`, `orders` (orders, payments, staff admin API), `favorites`, `reviews`.
