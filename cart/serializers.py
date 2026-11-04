@@ -30,5 +30,5 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ["id", "items", "total_price", "total_items", "created_at", "updated_at"]
 
     def get_items(self, obj):
-        items = obj.items.select_related("product", "size").prefetch_related("product__images")
+        items = obj.items.select_related("product", "size").prefetch_related("product__images", "product__sizes")
         return CartItemSerializer(items, many=True).data

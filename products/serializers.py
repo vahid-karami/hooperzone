@@ -1,6 +1,28 @@
 from rest_framework import serializers
 
-from .models import Category, Product, ProductImage, Sport
+from .models import Category, Product, ProductImage, ProductSize, SizeGuide, Sport
+
+
+class ProductSizeSerializer(serializers.ModelSerializer):
+    in_stock = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductSize
+        fields = ["id", "label", "stock", "in_stock"]
+
+    def get_in_stock(self, obj):
+        return obj.stock > 0
+
+
+class SizeGuideSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SizeGuide
+        fields = ["id", "title_fa", "title_en", "how_to_measure_fa", "how_to_measure_en", "image", "columns", "rows"]
+
+
+def active_sizes(product):
+    """Active sizes in display order, from the prefetch cache when there is one."""
+    return [s for s in product.sizes.all() if s.is_active]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -109,6 +131,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     name_localized = serializers.SerializerMethodField()
+    size_labels = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -123,6 +146,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "effective_price",
             "injury_type",
             "brand",
+            "size_labels",
             "primary_image",
             "in_stock",
             "is_featured",
@@ -137,6 +161,10 @@ class ProductListSerializer(serializers.ModelSerializer):
     def get_name_localized(self, obj):
         lang = self.context.get('lang', 'en')
         return obj.get_name(lang)
+
+    def get_size_labels(self, obj):
+        # A product with sizes must be added to the cart from its page, where a size is chosen.
+        return [s.label for s in active_sizes(obj)]
 
 
 class SportBriefSerializer(serializers.ModelSerializer):
@@ -154,6 +182,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     name_localized = serializers.SerializerMethodField()
     description_localized = serializers.SerializerMethodField()
+    sizes = serializers.SerializerMethodField()
+    size_guide = SizeGuideSerializer(read_only=True)
 
     class Meta:
         model = Product
@@ -170,6 +200,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "discount_price",
             "effective_price",
             "stock",
+            "sizes",
+            "size_guide",
             "injury_type",
             "brand",
             "color",
@@ -201,6 +233,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     def get_rating_count(self, obj):
         return self._ratings(obj)["count"]
+
+    def get_sizes(self, obj):
+        return ProductSizeSerializer(active_sizes(obj), many=True).data
 
     def get_name_localized(self, obj):
         lang = self.context.get('lang', 'en')

@@ -54,7 +54,11 @@ class SportViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.filter(is_active=True).select_related("category").prefetch_related("images")
+    queryset = (
+        Product.objects.filter(is_active=True)
+        .select_related("category", "size_guide")
+        .prefetch_related("images", "sizes")
+    )
     permission_classes = [permissions.AllowAny]
     lookup_field = "slug"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

@@ -232,3 +232,42 @@ def test_order_keeps_the_size_label_after_the_size_is_deleted(sized, shopper):
     sized["M"].delete()
     item = OrderItem.objects.get()
     assert item.size is None and item.size_label == "M"
+
+
+# --- Shop API -----------------------------------------------------------------------------
+
+
+def test_product_page_lists_active_sizes_and_the_size_guide(sized, client):
+    from django.urls import reverse
+
+    guide = SizeGuide.objects.create(name="Knee", title_fa="راهنمای سایز زانوبند", columns=COLUMNS, rows=ROWS)
+    sized["product"].size_guide = guide
+    sized["product"].save()
+    ProductSize.objects.create(product=sized["product"], label="XL", stock=4, is_active=False, sort_order=9)
+
+    data = client.get(reverse("products:product-detail", kwargs={"slug": "sleeve"})).data
+    assert [s["label"] for s in data["sizes"]] == ["S", "M"]
+    assert data["sizes"][0] == {"id": sized["S"].id, "label": "S", "stock": 2, "in_stock": True}
+    assert data["size_guide"]["title_fa"] == "راهنمای سایز زانوبند"
+    assert data["size_guide"]["rows"] == ROWS
+    assert data["stock"] == 7
+
+
+def test_product_list_shows_size_labels_without_extra_queries(sized, client, django_assert_max_num_queries):
+    from django.urls import reverse
+
+    for i in range(5):
+        p = Product.objects.create(category=sized["product"].category, name=f"P{i}", slug=f"p{i}", description="d", price=1)
+        ProductSize.objects.create(product=p, label="M", stock=1)
+    with django_assert_max_num_queries(6):
+        res = client.get(reverse("products:product-list"))
+    labels = {p["slug"]: p["size_labels"] for p in res.data["results"]}
+    assert labels["sleeve"] == ["S", "M"] and labels["p0"] == ["M"]
+
+
+def test_product_list_filters_by_size(sized, client):
+    from django.urls import reverse
+
+    Product.objects.create(category=sized["product"].category, name="Plain", slug="plain", description="d", price=1)
+    res = client.get(reverse("products:product-list"), {"size": "m"})
+    assert [p["slug"] for p in res.data["results"]] == ["sleeve"]
