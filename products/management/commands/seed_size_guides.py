@@ -85,7 +85,9 @@ GUIDES = [
         "title_fa": "راهنمای سایز مچ‌بند و آرنج‌بند",
         "title_en": "Wrist and elbow support size guide",
         "how_to_measure_fa": "مچ‌بند: دور مچ دست درست پایین کف دست.\nآرنج‌بند: دور ساعد ۵ سانتی‌متر پایین آرنج.",
-        "how_to_measure_en": "Wrist: around the wrist just below the palm.\nElbow: around the forearm 5 cm below the elbow.",
+        "how_to_measure_en": (
+            "Wrist: around the wrist just below the palm.\nElbow: around the forearm 5 cm below the elbow."
+        ),
         "columns": [
             {"label_fa": "دور مچ دست", "label_en": "Wrist", "unit": CM},
             {"label_fa": "دور ساعد", "label_en": "Forearm", "unit": CM},

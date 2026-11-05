@@ -36,6 +36,11 @@ cd frontend && npm run build:django               # production build served by D
 - Account pages (profile, orders) are wrapped in `components/AccountLayout.jsx`. The admin portal (`/admin-portal`, `layouts/AdminLayout.jsx`) is staff-only (`user.is_staff`). Its backend is `orders/admin_views.py` (orders, stats, shop settings), `products/views.py` (`ProductAdminViewSet` incl. images, `CategoryAdminViewSet`) and `accounts/admin_views.py` (customers). Product and category images are uploaded in the portal; thumbnails are generated on save.
 - SEO: `hooperzone/seo.py` renders per-page meta/JSON-LD into index.html and serves robots.txt and sitemap.xml; `utils/seo.js` `usePageMeta` keeps the head in sync client-side (pass `noindex` for private pages).
 
+## Product sizes and size guides
+- `product_sizes` (ProductSize) is the one source of truth for sizes: one row per sellable size with its own `stock`, optional unique `sku`, `sort_order`, `is_active`. Label is unique per product (case-insensitive). With sizes, `products.stock` is the total of the active sizes, kept in sync by a signal / `Product.refresh_stock()` (call it after bulk `.update()`s). No sizes = one-size product using `products.stock`.
+- Cart lines and order lines point at the size (`cart_items.size`, `order_items.size` + `size_label` copy). Adding a sized product needs `size_id`; checkout locks size rows and takes stock from the size; cancelling restocks it.
+- `size_guides` (SizeGuide) are reusable charts (راهنمای سایز) linked by `products.size_guide`; the table is validated JSON (`validate_size_guide_table`). Edited in the admin portal product form (`components/admin/ProductSizes.jsx`), shown by `components/SizeGuideTable.jsx`. `seed_size_guides` creates the starter guides once.
+
 ## Payments
 `utils/payment.js` `startPayment()` → `POST /api/orders/<number>/pay/` with a callback URL of `/payment/result`. The backend validates the callback host. In sandbox mode it redirects straight back, and `PaymentResult` verifies the payment.
 
