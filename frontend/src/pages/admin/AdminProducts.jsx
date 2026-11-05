@@ -6,6 +6,8 @@ import { useToast } from '../../context/ToastContext';
 import Price from '../../components/Price';
 import Icon from '../../components/Icon';
 import AdminPager from '../../components/admin/AdminPager';
+import { SizeGuideFieldset, SizesFieldset } from '../../components/admin/ProductSizes';
+import { sizesFromProduct, sizesPayload, sizesTotal } from '../../utils/productSizes';
 import { BODY_PARTS } from '../../utils/bodyParts';
 import { downloadFile } from '../../utils/download';
 import { toPersianNumber } from '../../hooks/useLanguage';
@@ -130,8 +132,8 @@ function ImageManager({ product, onChange }) {
 const EMPTY_FORM = {
   name: '', name_fa: '', description: '', description_fa: '', category: '',
   price: '', cost: '', discount_price: '', stock: '', injury_type: 'general',
-  brand: '', size: '', color: '', weight: '', material: '', is_active: true, is_featured: false, sports: [],
-  meta_title: '', meta_description: '',
+  brand: '', color: '', weight: '', material: '', is_active: true, is_featured: false, sports: [],
+  meta_title: '', meta_description: '', sizes: [], size_guide: '',
 };
 
 const toNumberOrNull = (v, parse = parseFloat) => (v === '' || v === null || v === undefined ? null : parse(v));
@@ -143,6 +145,7 @@ export default function AdminProducts() {
   const { success, error: showError } = useToast();
   const [categories, setCategories] = useState([]);
   const [sports, setSports] = useState([]);
+  const [sizeGuides, setSizeGuides] = useState([]);
   const [data, setData] = useState(null);
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
@@ -160,7 +163,16 @@ export default function AdminProducts() {
   useEffect(() => {
     apiClient.get(ENDPOINTS.adminCategories).then((r) => setCategories(r.data.results || r.data)).catch(() => {});
     apiClient.get(ENDPOINTS.sports).then((r) => setSports(r.data.results || r.data)).catch(() => {});
+    apiClient.get(ENDPOINTS.adminSizeGuides).then((r) => setSizeGuides(r.data.results || r.data)).catch(() => {});
   }, []);
+
+  const guideSaved = (guide) => {
+    setSizeGuides((list) => {
+      const others = list.filter((g) => g.id !== guide.id);
+      return [...others, guide].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    setForm((f) => ({ ...f, size_guide: String(guide.id) }));
+  };
 
   // Search as the user types, without a request per keystroke.
   useEffect(() => {
@@ -257,12 +269,15 @@ export default function AdminProducts() {
       weight: p.weight != null ? String(Number(p.weight)) : '',
       stock: String(p.stock ?? ''),
       sports: p.sports || [],
+      sizes: sizesFromProduct(p),
+      size_guide: p.size_guide != null ? String(p.size_guide) : '',
     });
     setFormError('');
     setEditing(p);
   };
 
   const setField = (name, value) => setForm((f) => ({ ...f, [name]: value }));
+  const hasSizes = form.sizes.some((s) => s.label.trim());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -276,6 +291,8 @@ export default function AdminProducts() {
       discount_price: toNumberOrNull(form.discount_price),
       stock: parseInt(form.stock, 10) || 0,
       weight: toNumberOrNull(form.weight),
+      sizes: sizesPayload(form.sizes),
+      size_guide: form.size_guide ? parseInt(form.size_guide, 10) : null,
     };
     try {
       if (editing?.slug) {
@@ -428,6 +445,14 @@ export default function AdminProducts() {
                         ) : '—'}
                       </td>
                       <td>
+                        {p.sizes?.length > 0 ? (
+                          <div className="cell-stack" title={t('admin.stockFromSizes', 'جمع موجودی سایزها')}>
+                            <strong className={p.stock === 0 ? 'text-bad' : ''}>{num(p.stock)}</strong>
+                            <span className="muted size-stock-list" dir="ltr">
+                              {p.sizes.filter((s) => s.is_active).map((s) => `${s.label}:${num(s.stock)}`).join('  ')}
+                            </span>
+                          </div>
+                        ) : (
                         <input
                           key={`${p.id}-${p.stock}`}
                           className={`stock-input ${p.stock === 0 ? 'tone-bad' : p.stock <= 5 ? 'tone-warn' : 'tone-ok'}`}
@@ -439,6 +464,7 @@ export default function AdminProducts() {
                           onBlur={(e) => quickStock(p, e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
                         />
+                        )}
                       </td>
                       <td>
                         <div className="order-badges">
@@ -522,15 +548,32 @@ export default function AdminProducts() {
                   {input('price', t('admin.price', 'قیمت فروش'), { type: 'number', min: 0, step: 1000, dir: 'ltr', required: true })}
                   {input('discount_price', t('admin.discountPrice', 'قیمت با تخفیف'), { type: 'number', min: 0, step: 1000, dir: 'ltr' })}
                   {input('cost', t('admin.cost', 'قیمت خرید'), { type: 'number', min: 0, step: 1000, dir: 'ltr' })}
-                  {input('stock', t('admin.stock', 'موجودی'), { type: 'number', min: 0, dir: 'ltr', required: true })}
+                  {hasSizes ? (
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="p-stock">{t('admin.stock', 'موجودی')}</label>
+                      <input id="p-stock" className="form-input" value={num(sizesTotal(form.sizes))} readOnly dir="ltr" />
+                      <p className="field-hint">{t('admin.stockFromSizes', 'جمع موجودی سایزها')}</p>
+                    </div>
+                  ) : (
+                    input('stock', t('admin.stock', 'موجودی'), { type: 'number', min: 0, dir: 'ltr', required: true })
+                  )}
                 </div>
               </fieldset>
+
+              <SizesFieldset rows={form.sizes} onChange={(sizes) => setField('sizes', sizes)} />
+
+              <SizeGuideFieldset
+                guides={sizeGuides}
+                value={form.size_guide}
+                onChange={(id) => setField('size_guide', id)}
+                onGuideSaved={guideSaved}
+                sizeLabels={form.sizes.map((s) => s.label.trim()).filter(Boolean)}
+              />
 
               <fieldset>
                 <legend>{t('product.specifications')}</legend>
                 <div className="form-grid">
                   {input('brand', t('product.brand', 'برند'))}
-                  {input('size', t('product.size'))}
                   {input('color', t('product.color'))}
                   {input('material', t('product.material'))}
                   {input('weight', t('admin.weight', 'وزن (گرم)'), { type: 'number', min: 0, dir: 'ltr' })}
