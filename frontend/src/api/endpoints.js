@@ -30,6 +30,8 @@ export const ENDPOINTS = {
   adminProductImage: (slug, id) => `${API_BASE_URL}/products/admin/products/${slug}/images/${id}/`,
   adminCategories: `${API_BASE_URL}/products/admin/categories/`,
   adminCategory: (slug) => `${API_BASE_URL}/products/admin/categories/${slug}/`,
+  adminSizeGuides: `${API_BASE_URL}/products/admin/size-guides/`,
+  adminSizeGuide: (id) => `${API_BASE_URL}/products/admin/size-guides/${id}/`,
 
   cart: `${API_BASE_URL}/cart/`,
   cartAdd: `${API_BASE_URL}/cart/add/`,

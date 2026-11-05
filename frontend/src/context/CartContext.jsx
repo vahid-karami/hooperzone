@@ -30,10 +30,12 @@ export function CartProvider({ children }) {
     fetchCart();
   }, [fetchCart]);
 
-  const addToCart = async (productId, quantity = 1) => {
+  // sizeId is required for products that have sizes (product.sizes / product.size_labels).
+  const addToCart = async (productId, quantity = 1, sizeId = null) => {
     const response = await apiClient.post(ENDPOINTS.cartAdd, {
       product_id: productId,
       quantity,
+      ...(sizeId ? { size_id: sizeId } : {}),
     });
     setCart(response.data);
     return response.data;
