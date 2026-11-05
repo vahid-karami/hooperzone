@@ -13,6 +13,7 @@ import Price from '../components/Price';
 import Icon from '../components/Icon';
 import Breadcrumbs from '../components/Breadcrumbs';
 import ProductCard from '../components/ProductCard';
+import SizeGuideModal from '../components/SizeGuideTable';
 import { bodyPartLabel } from '../utils/bodyParts';
 import { toPersianNumber } from '../hooks/useLanguage';
 import { formatDate } from '../utils/persianDate';
@@ -58,6 +59,8 @@ export default function ProductDetail() {
   const [reviews, setReviews] = useState([]);
   const [related, setRelated] = useState([]);
   const [quantity, setQuantity] = useState(1);
+  const [sizeId, setSizeId] = useState(null);
+  const [sizeMissing, setSizeMissing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -87,6 +90,10 @@ export default function ProductDetail() {
       .then(([productRes, reviewsRes]) => {
         if (cancelled) return;
         setProduct(productRes.data);
+        // A single size in stock needs no choice; otherwise the customer picks one.
+        const buyable = (productRes.data.sizes || []).filter((s) => s.in_stock);
+        setSizeId(productRes.data.sizes?.length === 1 && buyable.length === 1 ? buyable[0].id : null);
+        setSizeMissing(false);
         setReviews(reviewsRes.data);
         return apiClient.get(ENDPOINTS.products, { params: { injury_type: productRes.data.injury_type } });
       })
@@ -109,9 +116,15 @@ export default function ProductDetail() {
       navigate('/login');
       return;
     }
+    if (product.sizes?.length && !sizeId) {
+      setSizeMissing(true);
+      document.getElementById('pdp-sizes')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showError(t('product.chooseSize', 'لطفاً سایز را انتخاب کنید'));
+      return;
+    }
     setAddingToCart(true);
     try {
-      await addToCart(product.id, quantity);
+      await addToCart(product.id, quantity, sizeId);
       success(t('cart.addedToCart'));
     } catch (err) {
       showError(err.response?.data?.error || t('cart.addFailed'));
@@ -178,12 +191,22 @@ export default function ProductDetail() {
   const isFavorite = isInFavorites(product.id);
   const alreadyReviewed = user && reviews.some((r) => r.user?.id === user.id);
   const categoryName = (lang === 'fa' && product.category?.name_fa) || product.category?.name;
+  const sizes = product.sizes || [];
+  const selectedSize = sizes.find((s) => s.id === sizeId);
+  const maxQuantity = selectedSize ? selectedSize.stock : product.stock;
+  const sizeList = sizes.map((s) => s.label).join(lang === 'fa' ? '، ' : ', ');
+
+  const chooseSize = (size) => {
+    setSizeId(size.id);
+    setSizeMissing(false);
+    setQuantity((q) => Math.max(1, Math.min(q, size.stock)));
+  };
 
   const specs = [
     { label: t('product.category'), value: categoryName },
     { label: t('products.bodyPart'), value: product.injury_type ? bodyPartLabel(product.injury_type, lang) : '' },
     { label: t('product.brand', 'برند'), value: product.brand },
-    { label: t('product.size'), value: product.size },
+    { label: t('product.sizes', 'سایزها'), value: sizeList },
     { label: t('product.color'), value: product.color },
     { label: t('product.material'), value: product.material },
     { label: t('product.weight'), value: product.weight ? `${num(Number(product.weight))} ${t('product.grams', 'گرم')}` : '' },
@@ -192,7 +215,7 @@ export default function ProductDetail() {
 
   const highlights = [
     product.material && t('product.highlightMaterial', 'جنس: {{material}}', { material: product.material }),
-    product.size && t('product.highlightSize', 'اندازه موجود: {{size}}', { size: product.size }),
+    sizes.length > 1 && t('product.highlightSizes', 'در سایزهای {{sizes}}', { sizes: sizeList }),
     t('product.highlightShipping', 'ارسال سریع با پست و تیپاکس و ۷ روز ضمانت بازگشت'),
   ].filter(Boolean);
 
@@ -299,24 +322,49 @@ export default function ProductDetail() {
                 {product.in_stock ? t('product.available', 'موجود') : t('common.outOfStock')}
               </span>
 
-              {product.size && (
-                <div className="pdp-option">
+              {(sizes.length > 0 || product.size_guide) && (
+                <div className={`pdp-option ${sizeMissing ? 'is-missing' : ''}`} id="pdp-sizes">
                   <div className="pdp-option-head">
-                    <span>{t('product.size')}</span>
-                    <button type="button" className="text-btn" onClick={() => setShowSizeGuide(true)}>
-                      <Icon name="ruler" size={16} /> {t('product.sizeGuide')}
-                    </button>
+                    <span id="pdp-size-label">
+                      {t('product.size')}
+                      {selectedSize && <>: <strong><bdi>{selectedSize.label}</bdi></strong></>}
+                    </span>
+                    {product.size_guide && (
+                      <button type="button" className="text-btn" onClick={() => setShowSizeGuide(true)}>
+                        <Icon name="ruler" size={16} /> {t('product.sizeGuide')}
+                      </button>
+                    )}
                   </div>
-                  <div className="size-chips">
-                    <span className="chip active">{product.size}</span>
-                  </div>
+                  {sizes.length > 0 && (
+                    <div className="size-chips" role="radiogroup" aria-labelledby="pdp-size-label">
+                      {sizes.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={s.id === sizeId}
+                          disabled={!s.in_stock}
+                          className={`chip size-chip ${s.id === sizeId ? 'active' : ''}`}
+                          title={s.in_stock ? undefined : t('common.outOfStock')}
+                          onClick={() => chooseSize(s)}
+                          dir="ltr"
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {sizeMissing && <p className="field-error" role="alert">{t('product.chooseSize', 'لطفاً سایز را انتخاب کنید')}</p>}
+                  {selectedSize && selectedSize.stock <= 3 && (
+                    <p className="size-low">{t('product.fewLeft', 'فقط {{count}} عدد باقی مانده', { count: num(selectedSize.stock) })}</p>
+                  )}
                 </div>
               )}
 
               {product.in_stock && (
                 <div className="pdp-actions">
                   <div className="qty" role="group" aria-label={t('cart.quantity', 'تعداد')}>
-                    <button onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))} aria-label={t('product.increase', 'افزایش')} disabled={quantity >= product.stock}>
+                    <button onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))} aria-label={t('product.increase', 'افزایش')} disabled={quantity >= maxQuantity}>
                       <Icon name="plus" size={18} />
                     </button>
                     <span aria-live="polite">{num(quantity)}</span>
@@ -502,34 +550,8 @@ export default function ProductDetail() {
         </div>
       )}
 
-      {showSizeGuide && (
-        <div className="modal-overlay" onClick={() => setShowSizeGuide(false)}>
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 id="size-guide-title">{t('product.sizeGuide')}</h2>
-              <button onClick={() => setShowSizeGuide(false)} className="icon-btn" aria-label={t('common.close', 'بستن')}>
-                <Icon name="close" />
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>{t('product.sizeGuideDesc')}</p>
-              <table className="size-table">
-                <thead>
-                  <tr>
-                    <th>{t('product.size')}</th>
-                    <th>{t('product.measurement')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>S</td><td>{t('product.sizeS', '۳۰ تا ۳۵ سانتی‌متر')}</td></tr>
-                  <tr><td>M</td><td>{t('product.sizeM', '۳۵ تا ۴۰ سانتی‌متر')}</td></tr>
-                  <tr><td>L</td><td>{t('product.sizeL', '۴۰ تا ۴۵ سانتی‌متر')}</td></tr>
-                  <tr><td>XL</td><td>{t('product.sizeXL', '۴۵ تا ۵۰ سانتی‌متر')}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      {showSizeGuide && product.size_guide && (
+        <SizeGuideModal guide={product.size_guide} highlight={selectedSize?.label} onClose={() => setShowSizeGuide(false)} />
       )}
     </div>
   );
