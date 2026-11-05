@@ -99,3 +99,14 @@ def test_sitemap_lists_active_products_with_images(site, settings, tmp_path):
     assert "/products/hidden" not in body
     assert "<image:loc>https://hooperzone.ir/media/products/p.jpg</image:loc>" in body
     assert "https://hooperzone.ir/terms" in body
+
+
+def test_seo_cache_follows_a_new_frontend_build(client, settings, tmp_path, db):
+    from django.core.cache import cache
+
+    cache.clear()
+    settings.FRONTEND_DIST = tmp_path
+    (tmp_path / "index.html").write_text('<html><head><title>x</title></head><script src="/static/a-OLD.js">', "utf-8")
+    assert b"a-OLD.js" in client.get("/products").content
+    (tmp_path / "index.html").write_text('<html><head><title>x</title></head><script src="/static/a-NEW.js">', "utf-8")
+    assert b"a-NEW.js" in client.get("/products").content

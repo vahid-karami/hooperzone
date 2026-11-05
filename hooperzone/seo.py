@@ -8,6 +8,7 @@ JSON-LD before index.html is sent, and reports unknown URLs as 404.
 import html
 import json
 import re
+import zlib
 from dataclasses import dataclass, field
 
 from django.conf import settings
@@ -276,7 +277,9 @@ def inject(index_html, meta):
 
 def render_page(request, index_html):
     """index.html with this URL's meta tags, and its HTTP status (404 for unknown pages)."""
-    key = f"seo:{request.get_full_path()}"
+    # The build's fingerprint is in the key, so a new frontend build never gets old cached HTML
+    # that points at asset files the build removed.
+    key = f"seo:{zlib.crc32(index_html.encode())}:{request.get_full_path()}"
     cached = cache.get(key)
     if cached is None:
         meta = page_meta(request)
