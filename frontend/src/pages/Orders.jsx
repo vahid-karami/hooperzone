@@ -114,7 +114,7 @@ export default function Orders() {
                       ))}
                       {order.items.length > 4 && <span className="order-thumb more">+{num(order.items.length - 4)}</span>}
                       <span className="order-row-summary">
-                        {order.items.map((i) => i.product_name).slice(0, 2).join('، ')}
+                        {order.items.map((i) => (i.size_label ? `${i.product_name} (${i.size_label})` : i.product_name)).slice(0, 2).join('، ')}
                         {order.items.length > 2 ? ' …' : ''}
                       </span>
                     </div>

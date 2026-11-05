@@ -5,6 +5,7 @@ import apiClient from '../../api/client';
 import { ENDPOINTS } from '../../api/endpoints';
 import Price from '../../components/Price';
 import Icon from '../../components/Icon';
+import SizeTag from '../../components/SizeTag';
 import Logo from '../../components/Logo';
 import { formatDate } from '../../utils/persianDate';
 import { paymentStatus, shippingMethodLabel } from '../../utils/orderStatus';
@@ -87,7 +88,7 @@ export default function AdminInvoice() {
             {order.items.map((item, i) => (
               <tr key={item.id}>
                 <td>{num(i + 1)}</td>
-                <td>{item.product_name}</td>
+                <td>{item.product_name} <SizeTag label={item.size_label} /></td>
                 <td><Price amount={item.product_price} /></td>
                 <td>{num(item.quantity)}</td>
                 <td><Price amount={item.subtotal} /></td>

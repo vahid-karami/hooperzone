@@ -6,6 +6,7 @@ import { ENDPOINTS } from '../../api/endpoints';
 import { useToast } from '../../context/ToastContext';
 import Price from '../../components/Price';
 import Icon from '../../components/Icon';
+import SizeTag from '../../components/SizeTag';
 import AdminPager from '../../components/admin/AdminPager';
 import { formatDate } from '../../utils/persianDate';
 import { ORDER_STEPS, orderStatus, paymentStatus, shippingMethodLabel, SHIPPING_METHODS } from '../../utils/orderStatus';
@@ -359,7 +360,7 @@ export default function AdminOrders() {
                                 <ul className="order-lines">
                                   {o.items.map((item) => (
                                     <li key={item.id}>
-                                      <span className="order-line-name">{item.product_name}</span>
+                                      <span className="order-line-name">{item.product_name} <SizeTag label={item.size_label} /></span>
                                       <span className="muted">× {num(item.quantity)}</span>
                                       <Price amount={item.subtotal} />
                                     </li>

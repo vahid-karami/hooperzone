@@ -11,6 +11,7 @@ import { GATEWAYS, startPayment } from '../utils/payment';
 import { usePageMeta } from '../utils/seo';
 import Price from '../components/Price';
 import Icon from '../components/Icon';
+import SizeTag from '../components/SizeTag';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -150,6 +151,7 @@ export default function OrderDetail() {
                 {order.items.map((item) => (
                   <li key={item.id}>
                     <span className="order-line-name">{item.product_name}</span>
+                    <SizeTag label={item.size_label} />
                     <span className="muted">× {num(item.quantity)}</span>
                     <Price amount={item.subtotal} />
                   </li>

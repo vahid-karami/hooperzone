@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { CartSkeleton } from '../components/Skeletons';
 import Price from '../components/Price';
 import Icon from '../components/Icon';
+import SizeTag from '../components/SizeTag';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { bodyPartLabel } from '../utils/bodyParts';
 import { toPersianNumber } from '../hooks/useLanguage';
@@ -126,6 +127,7 @@ export default function Cart() {
                       <h2 className="cart-row-title">
                         <Link to={`/products/${product.slug}`}>{itemName(product)}</Link>
                       </h2>
+                      <SizeTag label={item.size?.label} />
                       <div className="cart-row-unit">
                         <Price amount={product.effective_price} />
                         {hasDiscount && <span className="price-was"><Price amount={product.price} showSymbol={false} /></span>}

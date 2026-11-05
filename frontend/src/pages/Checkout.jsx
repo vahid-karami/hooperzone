@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Price from '../components/Price';
 import Icon from '../components/Icon';
+import SizeTag from '../components/SizeTag';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { validateIranianPhone } from '../utils/iranianPhone';
@@ -262,7 +263,7 @@ export default function Checkout() {
                     {item.product.primary_image && <img src={item.product.primary_image.thumbnail || item.product.primary_image.image} alt="" />}
                     <span className="summary-qty">{num(item.quantity)}</span>
                   </span>
-                  <span className="summary-name">{itemName(item.product)}</span>
+                  <span className="summary-name">{itemName(item.product)} <SizeTag label={item.size?.label} /></span>
                   <Price amount={item.subtotal} />
                 </li>
               ))}
