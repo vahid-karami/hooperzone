@@ -19,11 +19,16 @@ export default function ProductQuickView({ slug, onClose }) {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [sizeId, setSizeId] = useState(null);
 
   useEffect(() => {
     apiClient
       .get(ENDPOINTS.productDetail(slug))
-      .then((response) => setProduct(response.data))
+      .then((response) => {
+        setProduct(response.data);
+        const sizes = response.data.sizes || [];
+        if (sizes.length === 1 && sizes[0].in_stock) setSizeId(sizes[0].id);
+      })
       .catch((error) => console.error('Failed to fetch product:', error))
       .finally(() => setLoading(false));
   }, [slug]);
@@ -43,9 +48,13 @@ export default function ProductQuickView({ slug, onClose }) {
       navigate('/login');
       return;
     }
+    if (product.sizes?.length && !sizeId) {
+      showError(t('product.chooseSize', 'لطفاً سایز را انتخاب کنید'));
+      return;
+    }
     setAdding(true);
     try {
-      await addToCart(product.id, 1);
+      await addToCart(product.id, 1, sizeId);
       success(t('cart.addedToCart'));
       onClose();
     } catch (err) {
@@ -86,6 +95,27 @@ export default function ProductQuickView({ slug, onClose }) {
                 <span className="dot" />
                 {product.in_stock ? t('product.available', 'موجود') : t('common.outOfStock')}
               </span>
+              {product.in_stock && product.sizes?.length > 0 && (
+                <div className="pdp-option">
+                  <div className="pdp-option-head"><span id="qv-size-label">{t('product.size')}</span></div>
+                  <div className="size-chips" role="radiogroup" aria-labelledby="qv-size-label">
+                    {product.sizes.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={s.id === sizeId}
+                        disabled={!s.in_stock}
+                        className={`chip size-chip ${s.id === sizeId ? 'active' : ''}`}
+                        onClick={() => setSizeId(s.id)}
+                        dir="ltr"
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="quick-view-actions">
                 {product.in_stock && (
                   <button onClick={handleAddToCart} disabled={adding} className="btn btn-primary btn-lg">
