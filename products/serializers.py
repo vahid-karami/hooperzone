@@ -285,10 +285,17 @@ class JSONOrTextField(serializers.JSONField):
         return super().to_internal_value(data)
 
 
+class ClearableImageField(serializers.ImageField):
+    """An empty value from a multipart form clears the image."""
+
+    def to_internal_value(self, data):
+        return None if data in ("", None) else super().to_internal_value(data)
+
+
 class SizeGuideAdminSerializer(serializers.ModelSerializer):
     columns = JSONOrTextField()
     rows = JSONOrTextField()
-    image = serializers.ImageField(required=False, allow_null=True)
+    image = ClearableImageField(required=False, allow_null=True)
     product_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -310,6 +317,11 @@ class SizeGuideAdminSerializer(serializers.ModelSerializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.message_dict)
         return attrs
+
+    def update(self, instance, validated_data):
+        if "image" in validated_data and instance.image and validated_data["image"] != instance.image:
+            instance.image.delete(save=False)  # replaced or removed: don't leave the old file behind
+        return super().update(instance, validated_data)
 
 
 class ProductAdminSerializer(serializers.ModelSerializer):

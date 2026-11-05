@@ -443,3 +443,30 @@ def test_demo_store_gets_sizes_and_size_guides(db, settings, tmp_path):
 def test_admin_typed_stock_cannot_override_the_sizes_total(sized, owner):
     res = owner.patch(admin_url("sleeve"), {"stock": 500}, format="json")
     assert res.status_code == 200 and res.data["stock"] == 7
+
+
+def test_size_guide_diagram_can_be_uploaded_and_removed(owner, settings, tmp_path, db):
+    import io
+    import json
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.urls import reverse
+    from PIL import Image
+
+    settings.MEDIA_ROOT = tmp_path
+    buf = io.BytesIO()
+    Image.new("RGB", (10, 10), "navy").save(buf, "PNG")
+    res = owner.post(reverse("products:admin-size-guide-list"), {
+        "name": "Diagram", "columns": json.dumps(COLUMNS), "rows": json.dumps(ROWS),
+        "image": SimpleUploadedFile("d.png", buf.getvalue(), content_type="image/png"),
+    }, format="multipart")
+    assert res.status_code == 201 and res.data["image"]
+    guide = SizeGuide.objects.get(pk=res.data["id"])
+    path = guide.image.path
+    detail = reverse("products:admin-size-guide-detail", kwargs={"pk": guide.pk})
+    res = owner.patch(detail, {"image": "", "columns": json.dumps(COLUMNS), "rows": json.dumps(ROWS)}, format="multipart")
+    assert res.status_code == 200, res.data
+    assert res.data["image"] is None
+    import os
+
+    assert not os.path.exists(path)
