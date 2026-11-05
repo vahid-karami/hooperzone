@@ -12,11 +12,12 @@ from rest_framework.response import Response
 from hooperzone.csv_export import csv_response
 from hooperzone.permissions import CanManageCatalog, can_delete
 
-from .models import Category, Product, ProductImage, Sport
+from .models import Category, Product, ProductImage, SizeGuide, Sport
 from .serializers import (
     CategoryAdminSerializer,
     CategorySerializer,
     ProductImageSerializer,
+    SizeGuideAdminSerializer,
     SportSerializer,
     ProductAdminSerializer,
     ProductCreateSerializer,
@@ -161,8 +162,20 @@ class CategoryAdminViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+class SizeGuideAdminViewSet(viewsets.ModelViewSet):
+    """Size guides (راهنمای سایز) staff pick from when editing a product."""
+
+    queryset = SizeGuide.objects.all().order_by("name")
+    serializer_class = SizeGuideAdminSerializer
+    permission_classes = [CanManageCatalog]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    pagination_class = None
+
+
 class ProductAdminViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all().select_related("category").prefetch_related("images")
+    queryset = (
+        Product.objects.all().select_related("category", "size_guide").prefetch_related("images", "sizes")
+    )
     permission_classes = [CanManageCatalog]
     delete_models = {"image_detail": ProductImage}
     pagination_class = AdminPagination

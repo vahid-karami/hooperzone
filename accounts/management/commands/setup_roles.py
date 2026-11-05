@@ -8,9 +8,9 @@ from django.core.management.base import BaseCommand
 PRODUCT_EDITORS = "Product editors"
 PRODUCT_EDITOR_PERMISSIONS = [
     f"{action}_{model}"
-    for model in ("product", "productimage", "category", "sport")
+    for model in ("product", "productimage", "productsize", "sizeguide", "category", "sport")
     for action in ("add", "change", "view")
-] + ["delete_productimage"]
+] + ["delete_productimage", "delete_productsize"]  # removing a photo or a size is part of editing
 
 
 class Command(BaseCommand):

@@ -1,6 +1,12 @@
+import json
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from rest_framework import serializers
 
-from .models import Category, Product, ProductImage, ProductSize, SizeGuide, Sport
+from .models import Category, Product, ProductImage, ProductSize, SizeGuide, Sport, validate_size_guide_table
+
+MAX_SIZES_PER_PRODUCT = 30
 
 
 class ProductSizeSerializer(serializers.ModelSerializer):
@@ -246,6 +252,66 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return obj.get_description(lang)
 
 
+class ProductSizeAdminSerializer(serializers.ModelSerializer):
+    """A size as staff edit it. Sent as a list on the product; an id updates, no id creates."""
+
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = ProductSize
+        fields = ["id", "label", "sku", "stock", "sort_order", "is_active"]
+        # Uniqueness is checked across the whole list in ProductCreateSerializer.validate_sizes.
+        validators = []
+
+    def validate_label(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Enter a size name.")
+        return value
+
+    def validate_sku(self, value):
+        return value.strip()
+
+
+class JSONOrTextField(serializers.JSONField):
+    """JSON from a JSON body, or JSON text from a multipart form (so a diagram can be sent with it)."""
+
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except ValueError:
+                raise serializers.ValidationError("Value must be valid JSON.")
+        return super().to_internal_value(data)
+
+
+class SizeGuideAdminSerializer(serializers.ModelSerializer):
+    columns = JSONOrTextField()
+    rows = JSONOrTextField()
+    image = serializers.ImageField(required=False, allow_null=True)
+    product_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SizeGuide
+        fields = [
+            "id", "name", "title_fa", "title_en", "how_to_measure_fa", "how_to_measure_en", "image",
+            "columns", "rows", "product_count", "updated_at",
+        ]
+        read_only_fields = ["id", "updated_at"]
+
+    def get_product_count(self, obj):
+        return obj.products.count()
+
+    def validate(self, attrs):
+        columns = attrs.get("columns", getattr(self.instance, "columns", None))
+        rows = attrs.get("rows", getattr(self.instance, "rows", None))
+        try:
+            validate_size_guide_table(columns, rows)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+        return attrs
+
+
 class ProductAdminSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     category_name_fa = serializers.CharField(source="category.name_fa", read_only=True)
@@ -273,6 +339,9 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "discount_price",
             "discount_price_irr",
             "stock",
+            "sizes",
+            "size_guide",
+            "size_guide_name",
             "injury_type",
             "brand",
             "color",
@@ -293,6 +362,8 @@ class ProductAdminSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at", "in_stock"]
 
     images = serializers.SerializerMethodField()
+    sizes = ProductSizeAdminSerializer(many=True, read_only=True)
+    size_guide_name = serializers.CharField(source="size_guide.name", read_only=True, default=None)
 
     def _sorted_images(self, obj):
         return sorted(obj.images.all(), key=lambda i: (not i.is_primary, -i.created_at.timestamp()))
@@ -320,6 +391,9 @@ class ProductAdminSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
+    # Omit `sizes` to leave them as they are; send [] to sell the product without sizes.
+    sizes = ProductSizeAdminSerializer(many=True, required=False)
+
     class Meta:
         model = Product
         fields = [
@@ -338,6 +412,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "discount_price",
             "discount_price_irr",
             "stock",
+            "sizes",
+            "size_guide",
             "injury_type",
             "brand",
             "color",
@@ -350,3 +426,67 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         ]
         # The slug is generated from the name on create and used as the lookup key.
         read_only_fields = ["id", "slug"]
+
+    def validate_sizes(self, sizes):
+        if len(sizes) > MAX_SIZES_PER_PRODUCT:
+            raise serializers.ValidationError(f"A product can have at most {MAX_SIZES_PER_PRODUCT} sizes.")
+        labels = [s["label"].lower() for s in sizes]
+        dupes = {label for label in labels if labels.count(label) > 1}
+        if dupes:
+            raise serializers.ValidationError(f"Each size can appear once: {', '.join(sorted(dupes))}.")
+        own_ids = set(self.instance.sizes.values_list("id", flat=True)) if self.instance else set()
+        if any(s.get("id") and s["id"] not in own_ids for s in sizes):
+            raise serializers.ValidationError("A size does not belong to this product.")
+        skus = [s["sku"] for s in sizes if s.get("sku")]
+        if len(skus) != len(set(skus)):
+            raise serializers.ValidationError("Each SKU can be used once.")
+        taken = ProductSize.objects.filter(sku__in=skus)
+        if self.instance:
+            taken = taken.exclude(product=self.instance)
+        if taken.exists():
+            raise serializers.ValidationError(f"SKU already used by another product: {taken.first().sku}.")
+        return sizes
+
+    @transaction.atomic
+    def create(self, validated_data):
+        sizes = validated_data.pop("sizes", None)
+        product = super().create(validated_data)
+        if sizes:
+            save_sizes(product, sizes)
+        return product
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        sizes = validated_data.pop("sizes", None)
+        product = super().update(instance, validated_data)
+        if sizes is not None:
+            save_sizes(product, sizes)
+            if not sizes and "stock" in validated_data:  # back to one size: the typed stock counts
+                Product.objects.filter(pk=product.pk).update(stock=validated_data["stock"])
+        product.refresh_from_db(fields=["stock"])
+        return product
+
+
+def save_sizes(product, sizes):
+    """Make the product's sizes match `sizes`: update by id, create without id, delete the rest.
+
+    Deleting a size keeps past orders (order_items keeps its label) and removes it from carts.
+    """
+    existing = {s.id: s for s in product.sizes.all()}
+    keep = {s["id"] for s in sizes if s.get("id")}
+    ProductSize.objects.filter(product=product).exclude(id__in=keep).delete()
+    # Park renamed labels first, so swapping two labels (S <-> M) never breaks the unique rule.
+    for data in sizes:
+        size = existing.get(data.get("id"))
+        if size and size.label.lower() != data["label"].lower():
+            ProductSize.objects.filter(pk=size.pk).update(label=f"~{size.pk}")
+    for order, data in enumerate(sizes):
+        fields = {
+            "label": data["label"], "sku": data.get("sku", ""), "stock": data.get("stock", 0),
+            "sort_order": data.get("sort_order", order), "is_active": data.get("is_active", True),
+        }
+        if data.get("id"):
+            ProductSize.objects.filter(pk=data["id"]).update(**fields)
+        else:
+            ProductSize.objects.create(product=product, **fields)
+    product.refresh_stock()  # .update() skips the sync signal

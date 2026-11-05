@@ -257,7 +257,8 @@ def test_product_list_shows_size_labels_without_extra_queries(sized, client, dja
     from django.urls import reverse
 
     for i in range(5):
-        p = Product.objects.create(category=sized["product"].category, name=f"P{i}", slug=f"p{i}", description="d", price=1)
+        cat = sized["product"].category
+        p = Product.objects.create(category=cat, name=f"P{i}", slug=f"p{i}", description="d", price=1)
         ProductSize.objects.create(product=p, label="M", stock=1)
     with django_assert_max_num_queries(6):
         res = client.get(reverse("products:product-list"))
@@ -271,3 +272,136 @@ def test_product_list_filters_by_size(sized, client):
     Product.objects.create(category=sized["product"].category, name="Plain", slug="plain", description="d", price=1)
     res = client.get(reverse("products:product-list"), {"size": "m"})
     assert [p["slug"] for p in res.data["results"]] == ["sleeve"]
+
+
+# --- Admin API ----------------------------------------------------------------------------
+
+
+@pytest.fixture
+def owner(db):
+    from django.contrib.auth import get_user_model
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(get_user_model().objects.create_superuser(phone="09120009999", password="securepass123"))
+    return client
+
+
+def admin_url(slug=None):
+    from django.urls import reverse
+
+    if slug:
+        return reverse("products:admin-product-detail", kwargs={"slug": slug})
+    return reverse("products:admin-product-list")
+
+
+def test_admin_creates_a_product_with_sizes(product, owner):
+    res = owner.post(admin_url(), {
+        "name": "Ankle", "description": "d", "price": 50, "stock": 99, "category": product.category_id,
+        "sizes": [{"label": "S", "stock": 3}, {"label": "M", "stock": 4, "sku": "HZ-A-M"}],
+    }, format="json")
+    assert res.status_code == 201, res.data
+    assert [(s["label"], s["stock"], s["sort_order"]) for s in res.data["sizes"]] == [("S", 3, 0), ("M", 4, 1)]
+    assert res.data["stock"] == 7  # the sizes' total, not the 99 that was typed
+
+
+def test_admin_updates_renames_swaps_and_removes_sizes(sized, owner):
+    s, m = sized["S"], sized["M"]
+    res = owner.patch(admin_url("sleeve"), {"sizes": [
+        {"id": s.id, "label": "M", "stock": 2},  # swap S <-> M
+        {"id": m.id, "label": "S", "stock": 6},
+        {"label": "XL", "stock": 1},
+    ]}, format="json")
+    assert res.status_code == 200, res.data
+    assert [(x["id"], x["label"]) for x in res.data["sizes"][:2]] == [(s.id, "M"), (m.id, "S")]
+    assert res.data["stock"] == 9
+
+    res = owner.patch(admin_url("sleeve"), {"sizes": [{"id": s.id, "label": "M", "stock": 2}]}, format="json")
+    assert [x["label"] for x in res.data["sizes"]] == ["M"] and res.data["stock"] == 2
+
+
+def test_admin_can_go_back_to_no_sizes(sized, owner):
+    res = owner.patch(admin_url("sleeve"), {"sizes": [], "stock": 11}, format="json")
+    assert res.data["sizes"] == [] and res.data["stock"] == 11
+
+
+def test_admin_leaves_sizes_alone_when_not_sent(sized, owner):
+    res = owner.patch(admin_url("sleeve"), {"price": 120}, format="json")
+    assert len(res.data["sizes"]) == 2 and res.data["stock"] == 7
+
+
+@pytest.mark.parametrize("sizes", [
+    [{"label": "M"}, {"label": "m"}],  # duplicate label
+    [{"label": " "}],  # empty label
+    [{"label": "S", "sku": "X1"}, {"label": "M", "sku": "X1"}],  # duplicate SKU
+    [{"label": "S", "stock": -1}],  # negative stock
+    [{"label": f"S{i}"} for i in range(31)],  # too many
+])
+def test_admin_rejects_invalid_sizes(sized, owner, sizes):
+    assert owner.patch(admin_url("sleeve"), {"sizes": sizes}, format="json").status_code == 400
+    assert ProductSize.objects.filter(product=sized["product"]).count() == 2  # nothing half-saved
+
+
+def test_admin_rejects_a_size_id_from_another_product(sized, owner):
+    other = Product.objects.create(category=sized["product"].category, name="B", slug="b", description="d", price=1)
+    foreign = ProductSize.objects.create(product=other, label="L")
+    res = owner.patch(admin_url("sleeve"), {"sizes": [{"id": foreign.id, "label": "L"}]}, format="json")
+    assert res.status_code == 400
+
+
+def test_admin_rejects_a_sku_used_by_another_product(sized, owner):
+    other = Product.objects.create(category=sized["product"].category, name="B", slug="b", description="d", price=1)
+    ProductSize.objects.create(product=other, label="L", sku="TAKEN")
+    res = owner.patch(admin_url("sleeve"), {"sizes": [{"label": "L", "sku": "TAKEN"}]}, format="json")
+    assert res.status_code == 400
+
+
+def test_size_guide_crud_and_assignment(sized, owner):
+    from django.urls import reverse
+
+    url = reverse("products:admin-size-guide-list")
+    res = owner.post(url, {"name": "Knee", "title_fa": "راهنما", "columns": COLUMNS, "rows": ROWS}, format="json")
+    assert res.status_code == 201, res.data
+    guide_id = res.data["id"]
+    assert owner.post(url, {"name": "Bad", "columns": COLUMNS, "rows": [{"size": "S", "values": ["1"]}]},
+                      format="json").status_code == 400
+
+    res = owner.patch(admin_url("sleeve"), {"size_guide": guide_id}, format="json")
+    assert res.data["size_guide"] == guide_id and res.data["size_guide_name"] == "Knee"
+    assert owner.get(url).data[0]["product_count"] == 1
+
+
+def test_size_guide_accepts_the_table_as_json_text_in_a_multipart_form(owner, db):
+    import json
+
+    from django.urls import reverse
+
+    res = owner.post(reverse("products:admin-size-guide-list"), {
+        "name": "Wrist", "columns": json.dumps(COLUMNS), "rows": json.dumps(ROWS),
+    }, format="multipart")
+    assert res.status_code == 201, res.data
+    assert res.data["rows"] == ROWS
+
+
+def test_product_editor_manages_sizes_and_guides_but_cannot_delete_guides(sized, db):
+    import io
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+    from django.core.management import call_command
+    from django.urls import reverse
+    from rest_framework.test import APIClient
+
+    call_command("setup_roles", stdout=io.StringIO())
+    user = get_user_model().objects.create_user(phone="09125556666", password="securepass123", is_staff=True)
+    user.groups.add(Group.objects.get(name="Product editors"))
+    client = APIClient()
+    client.force_authenticate(get_user_model().objects.get(pk=user.pk))
+
+    res = client.patch(admin_url("sleeve"), {"sizes": [{"id": sized["S"].id, "label": "S", "stock": 8}]}, format="json")
+    assert res.status_code == 200 and res.data["stock"] == 8
+    res = client.post(reverse("products:admin-size-guide-list"), {"name": "K", "columns": COLUMNS, "rows": ROWS},
+                      format="json")
+    assert res.status_code == 201
+    detail = reverse("products:admin-size-guide-detail", kwargs={"pk": res.data["id"]})
+    assert client.delete(detail).status_code == 403
