@@ -438,3 +438,8 @@ def test_demo_store_gets_sizes_and_size_guides(db, settings, tmp_path):
     assert knee.size_guide.name == "Knee supports"
     one_size = Product.objects.filter(sizes__isnull=True)
     assert one_size.exists() and not one_size.filter(size_guide__isnull=False).exists()
+
+
+def test_admin_typed_stock_cannot_override_the_sizes_total(sized, owner):
+    res = owner.patch(admin_url("sleeve"), {"stock": 500}, format="json")
+    assert res.status_code == 200 and res.data["stock"] == 7

@@ -463,6 +463,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             save_sizes(product, sizes)
             if not sizes and "stock" in validated_data:  # back to one size: the typed stock counts
                 Product.objects.filter(pk=product.pk).update(stock=validated_data["stock"])
+        product.refresh_stock()  # with sizes, a typed stock never overrides their total
         product.refresh_from_db(fields=["stock"])
         return product
 
