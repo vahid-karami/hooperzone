@@ -645,8 +645,10 @@ tr.is-open .row-toggle .icon { transform: rotate(180deg); }
 }
 
 @media (max-width: 960px) {
-  .account-layout { grid-template-columns: 1fr; }
-  .account-nav { position: static; }
+  /* minmax(0, …): a plain 1fr track grows to the nav's max-content link row and the
+     whole account page scrolls sideways on phones. */
+  .account-layout { grid-template-columns: minmax(0, 1fr); }
+  .account-nav { position: static; min-width: 0; }
   .account-nav nav { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; scrollbar-width: none; }
 
   .admin-shell { grid-template-columns: minmax(0, 1fr); }

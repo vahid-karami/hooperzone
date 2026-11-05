@@ -11,12 +11,14 @@ import { BODY_PARTS } from '../utils/bodyParts';
 import { useShopInfo, telHref } from '../utils/shopInfo';
 import { usePageMeta } from '../utils/seo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
+import { toPersianNumber } from '../hooks/useLanguage';
 
 const imageOf = (product) => product?.primary_image?.thumbnail || product?.primary_image?.image;
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
+  const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   const [products, setProducts] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,8 +88,8 @@ export default function Home() {
     key: c.slug,
     to: `/products?category=${c.slug}`,
     title: (lang === 'fa' && c.name_fa) || c.name,
-    subtitle: t('products.productsCount', { count: c.product_count }),
-    image: c.image || imageOf(byCategoryName[c.name]),
+    subtitle: t('products.productsCount', { count: num(c.product_count) }),
+    image: c.thumbnail || c.image || imageOf(byCategoryName[c.name]),
     showOnHome: !!c.show_on_home,
   }));
 
@@ -97,8 +99,8 @@ export default function Home() {
       key: s.slug,
       to: `/products?sport=${s.slug}`,
       title: sportName(s, lang),
-      subtitle: t('products.productsCount', { count: s.product_count }),
-      image: s.cover_image,
+      subtitle: t('products.productsCount', { count: num(s.product_count) }),
+      image: s.cover_thumbnail || s.cover_image,
     }));
 
   const guides = [

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageMeta } from '../utils/seo';
+import { afterLoginPath } from '../utils/authRedirect';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
@@ -10,6 +11,7 @@ export default function Register() {
   const { t } = useTranslation();
   usePageMeta({ title: t('common.register', 'ثبت‌نام'), noindex: true });
   const navigate = useNavigate();
+  const location = useLocation();
   const { sendOTP, verifyOTP, register } = useAuth();
   const { success, error: showError } = useToast();
 
@@ -76,7 +78,7 @@ export default function Register() {
         last_name: formData.last_name.trim(),
       });
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
-      navigate('/');
+      navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
       const respData = err.response?.data;
       let message = 'ثبت‌نام ناموفق بود';
@@ -159,7 +161,7 @@ export default function Register() {
         last_name: otpLastName.trim(),
       });
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
-      navigate('/');
+      navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
       const message = err.response?.data?.error || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
       setError(message);
@@ -400,7 +402,7 @@ export default function Register() {
           <div className="auth-footer">
             <p>
               {t('auth.alreadyHaveAccount', 'قبلاً حساب کاربری دارید؟')}{' '}
-              <Link to="/login">{t('common.login', 'ورود')}</Link>
+              <Link to="/login" state={location.state}>{t('common.login', 'ورود')}</Link>
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -7,10 +7,12 @@ import AuthLayout from '../components/AuthLayout';
 import { toEnglishDigits } from '../utils/digits';
 import { validateIranianPhone } from '../utils/iranianPhone';
 import { usePageMeta } from '../utils/seo';
+import { afterLoginPath } from '../utils/authRedirect';
 
 export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { sendOTP, verifyOTP, loginWithPassword } = useAuth();
   const { success, error: showError } = useToast();
 
@@ -68,7 +70,7 @@ export default function Login() {
     try {
       await verifyOTP(toEnglishDigits(phone).trim(), digits, 'login');
       success(t('auth.loginSuccess', 'ورود موفقیت‌آمیز!'));
-      navigate('/');
+      navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
       const message = err.response?.data?.error || t('auth.invalidOtp', 'کد تایید نامعتبر');
       setError(message);
@@ -95,7 +97,7 @@ export default function Login() {
     try {
       await loginWithPassword(identifier, password);
       success(t('auth.loginSuccess', 'ورود موفقیت‌آمیز!'));
-      navigate('/');
+      navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
       const message =
         err.response?.data?.error ||
@@ -117,7 +119,7 @@ export default function Login() {
       footer={
         <>
           {t('auth.dontHaveAccount', 'حساب کاربری ندارید؟')}{' '}
-          <Link to="/register">{t('auth.registerLink', 'ثبت‌نام کنید')}</Link>
+          <Link to="/register" state={location.state}>{t('auth.registerLink', 'ثبت‌نام کنید')}</Link>
         </>
       }
     >

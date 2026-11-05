@@ -229,3 +229,34 @@ def test_uploaded_image_gets_webp_thumbnail(shop, media):
     import os
 
     assert not any(os.path.exists(p) for p in paths)  # files are cleaned up with the row
+
+
+def test_category_image_gets_thumbnail_for_storefront(shop, media):
+    import os
+
+    detail = reverse("products:admin-category-detail", kwargs={"slug": "knee"})
+    assert shop["client"].patch(detail, {"image": _png()}, format="multipart").status_code == status.HTTP_200_OK
+    cat = Category.objects.get(slug="knee")
+    assert cat.thumbnail.name.endswith("-thumb.webp")
+    first_thumb = cat.thumbnail.path
+
+    # A new photo replaces the old thumbnail instead of leaving it behind.
+    shop["client"].patch(detail, {"image": _png()}, format="multipart")
+    cat.refresh_from_db()
+    assert os.path.exists(cat.thumbnail.path)
+    assert first_thumb == cat.thumbnail.path or not os.path.exists(first_thumb)
+
+    public = APIClient().get(reverse("products:category-list")).data
+    rows = public["results"] if isinstance(public, dict) else public
+    assert rows[0]["thumbnail"].endswith("-thumb.webp")
+
+
+def test_sport_cover_thumbnail(db, media):
+    from products.models import Sport
+
+    sport = Sport.objects.create(name="Running", slug="running", image=_png())
+    assert sport.thumbnail.name.endswith("-thumb.webp")
+    data = APIClient().get(reverse("products:sport-list")).data
+    rows = data["results"] if isinstance(data, dict) else data
+    assert rows[0]["cover_thumbnail"].endswith("-thumb.webp")
+    assert not rows[0]["cover_image"].endswith(".webp")  # the full photo is still offered
