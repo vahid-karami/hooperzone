@@ -1,18 +1,20 @@
-import { Link, NavLink, Navigate, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumbs from './Breadcrumbs';
 import Icon from './Icon';
 import LoadingSpinner from './LoadingSpinner';
+import { loginState } from '../utils/authRedirect';
 
 // "My account" shell: side navigation + page content. Redirects guests to login.
 export default function AccountLayout({ title, actions, children }) {
   const { t } = useTranslation();
   const { user, isAuthenticated, loading, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
 
   if (loading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace state={loginState(location)} />;
 
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || user?.phone;
   const initial = (user?.first_name || user?.username || '؟').trim().charAt(0).toUpperCase();

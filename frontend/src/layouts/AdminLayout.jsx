@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { DJANGO_ADMIN_URL } from '../api/endpoints';
 import Icon from '../components/Icon';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { loginState } from '../utils/authRedirect';
 
 // Sections that need shop access (orders, customers, stats, settings); the rest is the catalog.
 const SHOP_PATHS = ['/admin-portal/orders', '/admin-portal/customers', '/admin-portal/settings'];
@@ -15,6 +16,7 @@ export default function AdminLayout() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const { user, isAuthenticated, loading, refreshUser } = useAuth();
+  const location = useLocation();
 
   // Staff access can change after login (the owner adds someone to a group), so re-read it.
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function AdminLayout() {
   }, [isAuthenticated, refreshUser]);
 
   if (loading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace state={loginState(location)} />;
 
   // The API enforces the same permissions (hooperzone/permissions.py); this only shapes the UI.
   const access = user?.admin_access || { catalog: !!user?.is_staff, shop: !!user?.is_staff };

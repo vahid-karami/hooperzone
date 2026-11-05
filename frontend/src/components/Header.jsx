@@ -59,7 +59,13 @@ export default function Header() {
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (!drawerOpen) return undefined;
+    const onKey = (e) => e.key === 'Escape' && setDrawerOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKey);
+    };
   }, [drawerOpen]);
 
   const handleSearchSubmit = (e) => {

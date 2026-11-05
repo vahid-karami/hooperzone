@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
@@ -16,6 +16,7 @@ import { toEnglishDigits } from '../utils/digits';
 import { GATEWAYS, startPayment } from '../utils/payment';
 import { toPersianNumber } from '../hooks/useLanguage';
 import { usePageMeta } from '../utils/seo';
+import { loginState } from '../utils/authRedirect';
 
 function Steps({ current }) {
   const { t } = useTranslation();
@@ -39,6 +40,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { cart, loading: cartLoading, refreshCart } = useCart();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const location = useLocation();
   const { error: showError } = useToast();
 
   usePageMeta({ title: t('checkout.title'), noindex: true });
@@ -126,7 +128,7 @@ export default function Checkout() {
   };
 
   if (authLoading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace state={loginState(location)} />;
   if (cartLoading || cart.id === undefined) return <LoadingSpinner />;
   if (!cart.items || cart.items.length === 0) return <Navigate to="/cart" replace />;
 

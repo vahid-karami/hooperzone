@@ -50,7 +50,7 @@ export default function Categories() {
               : categories.map((c) => (
                   <Link key={c.id} to={`/products?category=${c.slug}`} className="category-card">
                     <div className="category-card-img">
-                      {c.image ? <img src={c.image} alt="" loading="lazy" /> : <Icon name="box" size={48} strokeWidth={1.2} />}
+                      {c.image ? <img src={c.thumbnail || c.image} alt="" loading="lazy" decoding="async" /> : <Icon name="box" size={48} strokeWidth={1.2} />}
                     </div>
                     <div className="category-card-body">
                       <h3>{localizedName(c)}</h3>
@@ -87,7 +87,7 @@ export default function Categories() {
               {sports.map((s) => (
                 <Link key={s.slug} to={`/products?sport=${s.slug}`} className="sport-tile">
                   <div className="sport-tile-img">
-                    {s.cover_image ? <img src={s.cover_image} alt="" loading="lazy" /> : <Icon name="box" size={36} strokeWidth={1.2} />}
+                    {s.cover_image ? <img src={s.cover_thumbnail || s.cover_image} alt="" loading="lazy" decoding="async" /> : <Icon name="box" size={36} strokeWidth={1.2} />}
                   </div>
                   <strong>{sportName(s, lang)}</strong>
                   <span>{t('products.productsCount', { count: num(s.product_count) })}</span>
