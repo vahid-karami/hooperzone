@@ -66,6 +66,7 @@ def setup_backend():
     run([VENV_PY, "manage.py", "seed_category_images"])  # only fills categories with no image
     run([VENV_PY, "manage.py", "seed_sports"])  # sports + their photos; never replaces admin uploads
     run([VENV_PY, "manage.py", "setup_roles"])  # the "Product editors" staff group
+    run([VENV_PY, "manage.py", "seed_size_guides"])  # starter size guides (created once)
 
 
 def setup_frontend():

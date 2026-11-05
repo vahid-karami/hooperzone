@@ -18,5 +18,6 @@ class Command(BaseCommand):
         for command in ("seed_persian_products", "seed_product_images", "seed_category_images", "seed_sports"):
             self.stdout.write(f"Running {command}...")
             call_command(command, stdout=self.stdout)
+        call_command("seed_size_guides", attach=True, stdout=self.stdout)
 
         self.stdout.write(self.style.SUCCESS("Demo store ready."))

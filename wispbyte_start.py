@@ -196,6 +196,7 @@ def prepare():
     call_command("cancel_unpaid_orders")  # release stock held by abandoned checkouts
     call_command("backup_db")  # daily copy of the SQLite database, keeps the last 7
     call_command("setup_roles")  # the "Product editors" staff group
+    call_command("seed_size_guides")  # starter size guides to pick from (created once, never overwritten)
     create_admin()
 
 

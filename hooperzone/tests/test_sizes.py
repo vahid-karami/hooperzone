@@ -405,3 +405,36 @@ def test_product_editor_manages_sizes_and_guides_but_cannot_delete_guides(sized,
     assert res.status_code == 201
     detail = reverse("products:admin-size-guide-detail", kwargs={"pk": res.data["id"]})
     assert client.delete(detail).status_code == 403
+
+
+# --- Seeds --------------------------------------------------------------------------------
+
+
+def test_seed_size_guides_is_idempotent_and_never_overwrites(db):
+    import io
+
+    from django.core.management import call_command
+
+    call_command("seed_size_guides", stdout=io.StringIO())
+    knee = SizeGuide.objects.get(name="Knee supports")
+    knee.title_fa = "ویرایش شده"
+    knee.save()
+    out = io.StringIO()
+    call_command("seed_size_guides", stdout=out)
+    assert "0 created" in out.getvalue()
+    assert SizeGuide.objects.get(name="Knee supports").title_fa == "ویرایش شده"
+
+
+def test_demo_store_gets_sizes_and_size_guides(db, settings, tmp_path):
+    import io
+
+    from django.core.management import call_command
+
+    settings.MEDIA_ROOT = tmp_path
+    call_command("seed_demo_store", stdout=io.StringIO())
+    knee = Product.objects.get(slug="premium-knee-brace")
+    assert [s.label for s in knee.sizes.all()] == ["S", "M", "L", "XL"]
+    assert knee.stock == sum(s.stock for s in knee.sizes.all()) == 50
+    assert knee.size_guide.name == "Knee supports"
+    one_size = Product.objects.filter(sizes__isnull=True)
+    assert one_size.exists() and not one_size.filter(size_guide__isnull=False).exists()
