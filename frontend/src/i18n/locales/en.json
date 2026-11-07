@@ -718,7 +718,9 @@
     "addRow": "Add row",
     "addColumn": "Add column",
     "rowsFromSizes": "Rows for the product's sizes",
-    "saveGuide": "Save guide"
+    "saveGuide": "Save guide",
+    "severalSizesInOne": "“{{label}}” is several sizes; each size must be separate so customers can choose one.",
+    "splitSizes": "Split into {{sizes}}"
   },
   "info": {
     "nav": {

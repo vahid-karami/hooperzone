@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import Icon from '../Icon';
 import { SizeGuideTable } from '../SizeGuideTable';
 import { toEnglishDigits } from '../../utils/digits';
-import { sizesTotal } from '../../utils/productSizes';
+import { sizeLabelParts, sizesTotal, splitSizeRow } from '../../utils/productSizes';
 import { toPersianNumber } from '../../hooks/useLanguage';
 
 const PRESETS = [
@@ -32,6 +32,8 @@ export function SizesFieldset({ rows, onChange }) {
   };
   const labels = rows.map((r) => r.label.trim().toLowerCase()).filter(Boolean);
   const duplicates = new Set(labels.filter((l, i) => labels.indexOf(l) !== i));
+  // Rows like "M L" hold several sizes; each must be its own row (its own button in the shop).
+  const multi = rows.map((r, i) => ({ i, parts: sizeLabelParts(r.label) })).filter((m) => m.parts.length > 1);
 
   return (
     <fieldset className="sizes-fieldset">
@@ -52,7 +54,7 @@ export function SizesFieldset({ rows, onChange }) {
           {rows.map((r, i) => (
             <div className={`sizes-row ${r.is_active ? '' : 'is-muted'}`} role="row" key={r.id || `new-${i}`}>
               <input
-                className={`form-input ${duplicates.has(r.label.trim().toLowerCase()) ? 'is-invalid' : ''}`}
+                className={`form-input ${duplicates.has(r.label.trim().toLowerCase()) || sizeLabelParts(r.label).length > 1 ? 'is-invalid' : ''}`}
                 value={r.label}
                 maxLength={20}
                 dir="ltr"
@@ -94,6 +96,14 @@ export function SizesFieldset({ rows, onChange }) {
         </div>
       )}
       {duplicates.size > 0 && <p className="field-error">{t('admin.duplicateSize', 'هر سایز فقط یک بار می‌تواند بیاید.')}</p>}
+      {multi.map(({ i, parts }) => (
+        <p className="field-error size-split-note" key={`split-${i}`} role="alert">
+          {t('admin.severalSizesInOne', '«{{label}}» چند سایز است؛ هر سایز باید جدا باشد تا مشتری بتواند یکی را انتخاب کند.', { label: rows[i].label.trim() })}
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => onChange(splitSizeRow(rows, i))}>
+            {t('admin.splitSizes', 'جدا کردن به {{sizes}}', { sizes: parts.join('، ') })}
+          </button>
+        </p>
+      ))}
 
       <div className="sizes-actions">
         <button type="button" className="btn btn-outline btn-sm" onClick={() => onChange([...rows, { label: '', stock: '0', sku: '', is_active: true }])}>

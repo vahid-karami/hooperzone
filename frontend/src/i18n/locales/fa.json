@@ -718,7 +718,9 @@
     "addRow": "افزودن ردیف",
     "addColumn": "افزودن ستون",
     "rowsFromSizes": "ردیف برای سایزهای محصول",
-    "saveGuide": "ذخیره راهنما"
+    "saveGuide": "ذخیره راهنما",
+    "severalSizesInOne": "«{{label}}» چند سایز است؛ هر سایز باید جدا باشد تا مشتری بتواند یکی را انتخاب کند.",
+    "splitSizes": "جدا کردن به {{sizes}}"
   },
   "info": {
     "nav": {

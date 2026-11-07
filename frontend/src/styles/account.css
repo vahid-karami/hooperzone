@@ -432,6 +432,7 @@ tr.is-open .row-toggle .icon { transform: rotate(180deg); }
 .sizes-actions .chip { font: inherit; font-size: var(--font-size-xs); cursor: pointer; padding: 6px 12px; }
 .sizes-total { margin-inline-start: auto; font-weight: var(--font-weight-bold); color: var(--color-primary); }
 .form-input.is-invalid { border-color: var(--color-error); }
+.size-split-note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); margin-bottom: var(--spacing-3); }
 .size-stock-list { font-size: var(--font-size-xs); white-space: nowrap; }
 
 .size-guide-pick { display: flex; flex-wrap: wrap; gap: var(--spacing-2); align-items: center; }
