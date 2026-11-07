@@ -520,3 +520,11 @@ def test_admin_asks_to_add_each_size_separately(sized, owner):
     assert res.status_code == 400
     assert "separately" in str(res.data["sizes"])
     assert ProductSize.objects.filter(product=sized["product"]).count() == 2
+
+
+def test_django_admin_form_explains_a_label_with_several_sizes(product):
+    size = ProductSize(product=product, label="M L")
+    with pytest.raises(ValidationError) as err:
+        size.full_clean()
+    assert "separately" in str(err.value.message_dict["label"])
+    ProductSize(product=product, label="M").full_clean()

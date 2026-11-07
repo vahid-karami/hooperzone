@@ -4,7 +4,16 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Category, Product, ProductImage, ProductSize, SizeGuide, Sport, validate_size_guide_table
+from .models import (
+    Category,
+    Product,
+    ProductImage,
+    ProductSize,
+    SizeGuide,
+    Sport,
+    size_label_error,
+    validate_size_guide_table,
+)
 
 MAX_SIZES_PER_PRODUCT = 30
 
@@ -279,13 +288,10 @@ class ProductSizeAdminSerializer(serializers.ModelSerializer):
         validators = []
 
     def validate_label(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Enter a size name.")
-        if any(sep in value for sep in (" ", ",", "،", "/")):
-            # The database refuses these too (size_label_is_one_size).
-            raise serializers.ValidationError(f"Add each size separately instead of '{value}'.")
-        return value
+        error = size_label_error(value)
+        if error:
+            raise serializers.ValidationError(error)
+        return value.strip()
 
     def validate_sku(self, value):
         return value.strip()

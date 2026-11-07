@@ -302,6 +302,18 @@ class Product(models.Model):
         Product.objects.filter(pk=self.pk).update(stock=self.stock)
 
 
+SIZE_LABEL_SEPARATORS = (" ", ",", "،", "/")  # also refused by the size_label_is_one_size constraint
+
+
+def size_label_error(label):
+    """Why `label` can't be one size's name, or None."""
+    if not label.strip():
+        return "Enter a size name."
+    if any(sep in label.strip() for sep in SIZE_LABEL_SEPARATORS):
+        return f"Add each size separately instead of '{label.strip()}'."
+    return None
+
+
 class ProductSize(models.Model):
     """One size of a product that customers can buy, with its own stock."""
 
@@ -331,6 +343,12 @@ class ProductSize(models.Model):
 
     def __str__(self):
         return f"{self.product.name} – {self.label}"
+
+    def clean(self):
+        # Django admin shows this as a form error instead of failing on the database constraint.
+        error = size_label_error(self.label)
+        if error:
+            raise ValidationError({"label": error})
 
 
 @receiver([post_save, post_delete], sender=ProductSize)
