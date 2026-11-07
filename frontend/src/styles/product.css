@@ -261,6 +261,14 @@
   text-align: center;
 }
 
+/* About + specifications inside the info column (white background) */
+.pdp-info-details { margin-top: var(--spacing-4); border-top: 1px solid var(--color-line); }
+.pdp-info-details .accordion h2 button { padding: 16px 2px; font-size: var(--font-size-base); }
+.pdp-info-details .accordion-panel { padding: 0 2px var(--spacing-5); }
+.pdp-info-details .pdp-description { font-size: var(--font-size-sm); }
+.pdp-info-details .spec-table div { grid-template-columns: minmax(96px, 35%) 1fr; padding: 10px 12px; }
+.pdp-info-details .spec-table div:nth-child(odd) { background: var(--color-surface-sky); }
+
 /* Details ------------------------------------------------------------ */
 .pdp-details {
   margin-top: clamp(40px, 6vw, 80px);

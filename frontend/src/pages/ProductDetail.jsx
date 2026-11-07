@@ -401,6 +401,31 @@ export default function ProductDetail() {
               )}
             </dl>
 
+            {/* About and specifications sit right under the buy box, before the perks. */}
+            <div className="pdp-info-details">
+              <Accordion
+                id="about"
+                title={t('product.aboutProduct', 'درباره {{name}}', { name })}
+                open={openSection.about}
+                onToggle={() => setOpenSection((s) => ({ ...s, about: !s.about }))}
+              >
+                <p className="pdp-description">{description}</p>
+              </Accordion>
+
+              <Accordion
+                id="specs"
+                title={t('product.specifications')}
+                open={openSection.specs}
+                onToggle={() => setOpenSection((s) => ({ ...s, specs: !s.specs }))}
+              >
+                <dl className="spec-table">
+                  {specs.map((s) => (
+                    <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>
+                  ))}
+                </dl>
+              </Accordion>
+            </div>
+
             <div className="pdp-perks">
               <div><Icon name="truck" size={22} /> {t('home.trustShipText', 'ارسال به سراسر کشور با پست و تیپاکس')}</div>
               <div><Icon name="returns" size={22} /> {t('home.trustReturnText', '۷ روز ضمانت بازگشت کالا')}</div>
@@ -412,28 +437,6 @@ export default function ProductDetail() {
 
       <div className="pdp-details">
         <div className="container narrow-wide">
-          <Accordion
-            id="about"
-            title={t('product.aboutProduct', 'درباره {{name}}', { name })}
-            open={openSection.about}
-            onToggle={() => setOpenSection((s) => ({ ...s, about: !s.about }))}
-          >
-            <p className="pdp-description">{description}</p>
-          </Accordion>
-
-          <Accordion
-            id="specs"
-            title={t('product.specifications')}
-            open={openSection.specs}
-            onToggle={() => setOpenSection((s) => ({ ...s, specs: !s.specs }))}
-          >
-            <dl className="spec-table">
-              {specs.map((s) => (
-                <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>
-              ))}
-            </dl>
-          </Accordion>
-
           <Accordion
             id="reviews"
             title={`${t('product.customerReviews')} (${num(reviews.length)})`}
