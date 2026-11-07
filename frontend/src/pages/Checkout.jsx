@@ -20,14 +20,15 @@ import { usePageMeta } from '../utils/seo';
 import { loginState } from '../utils/authRedirect';
 
 function Steps({ current }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const num = (n) => (i18n.language === 'fa' ? toPersianNumber(n) : String(n));
   const steps = [t('checkout.stepCart', 'سبد خرید'), t('checkout.stepShipping', 'اطلاعات ارسال'), t('checkout.stepPayment', 'پرداخت')];
   return (
     <ol className="checkout-steps">
       {steps.map((label, i) => (
         <li key={label} className={i < current ? 'done' : i === current ? 'current' : ''} aria-current={i === current ? 'step' : undefined}>
-          <span className="step-dot">{i < current ? <Icon name="check" size={14} strokeWidth={2.4} /> : i + 1}</span>
-          {label}
+          <span className="step-dot">{i < current ? <Icon name="check" size={14} strokeWidth={2.4} /> : num(i + 1)}</span>
+          <span className="step-label">{label}</span>
         </li>
       ))}
     </ol>

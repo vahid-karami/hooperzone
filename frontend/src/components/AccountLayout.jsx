@@ -5,10 +5,11 @@ import Breadcrumbs from './Breadcrumbs';
 import Icon from './Icon';
 import LoadingSpinner from './LoadingSpinner';
 import { loginState } from '../utils/authRedirect';
+import { toPersianNumber } from '../hooks/useLanguage';
 
 // "My account" shell: side navigation + page content. Redirects guests to login.
 export default function AccountLayout({ title, actions, children }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -16,7 +17,8 @@ export default function AccountLayout({ title, actions, children }) {
   if (loading) return <LoadingSpinner />;
   if (!isAuthenticated) return <Navigate to="/login" replace state={loginState(location)} />;
 
-  const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || user?.phone;
+  const phone = user?.phone && i18n.language === 'fa' ? toPersianNumber(user.phone) : user?.phone;
+  const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || phone;
   const initial = (user?.first_name || user?.username || '؟').trim().charAt(0).toUpperCase();
 
   const links = [
@@ -36,7 +38,7 @@ export default function AccountLayout({ title, actions, children }) {
               <span className="account-avatar" aria-hidden="true">{initial}</span>
               <div>
                 <strong>{displayName}</strong>
-                {user?.phone && <span dir="ltr">{user.phone}</span>}
+                {phone && <span dir="ltr">{phone}</span>}
               </div>
             </div>
             <nav aria-label={t('header.myAccount')}>

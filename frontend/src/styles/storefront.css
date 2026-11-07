@@ -535,7 +535,7 @@ body {
   :root { --header-height: 64px; }
   .hide-sm { display: none !important; }
   .brand-logo { height: 32px; }
-  .icon-btn { width: 38px; height: 38px; }
+  .icon-btn { width: 40px; height: 40px; }
   .header-search input { height: 50px; padding-inline: 46px 96px; }
   .header-search > .icon { inset-inline-start: 16px; }
   .header-search .btn { height: 40px; padding-inline: 16px; }
@@ -543,4 +543,9 @@ body {
   .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--spacing-8); }
   .footer-brand { grid-column: span 2; }
   .footer-bottom-inner { flex-direction: column; text-align: center; }
+  /* Finger-sized tap targets (about 40px) without changing how things look. */
+  .footer-col ul { gap: 0; }
+  .footer-col a { display: inline-flex; align-items: center; min-height: 40px; }
+  .chip { min-height: 40px; }
+  .link-arrow { padding-block: 8px; margin-block: -8px; }
 }

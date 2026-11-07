@@ -249,5 +249,21 @@
   .form-card { padding: var(--spacing-5); }
   .checkout-steps, .order-timeline { overflow-x: auto; scrollbar-width: none; }
   .checkout-steps li, .order-timeline li { white-space: nowrap; }
+  /* All three steps fit on one line on phones. */
+  .checkout-steps { gap: var(--spacing-2); font-size: var(--font-size-xs); }
+  .checkout-steps li { gap: 6px; }
+  .checkout-steps li + li::before { width: 12px; margin-inline-end: 2px; }
   .pay-banner-actions, .pay-banner-actions .btn { width: 100%; }
+}
+
+/* Very narrow phones: only the current step keeps a visible label (screen readers still read all). */
+@media (max-width: 380px) {
+  .checkout-steps li:not(.current) .step-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
