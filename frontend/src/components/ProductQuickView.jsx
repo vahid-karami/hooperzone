@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Price from './Price';
 import Icon from './Icon';
+import { loginState } from '../utils/authRedirect';
 
 export default function ProductQuickView({ slug, onClose }) {
   const { t, i18n } = useTranslation();
@@ -16,6 +17,7 @@ export default function ProductQuickView({ slug, onClose }) {
   const { isAuthenticated } = useAuth();
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -45,7 +47,7 @@ export default function ProductQuickView({ slug, onClose }) {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: loginState(location) });
       return;
     }
     if (product.sizes?.length && !sizeId) {

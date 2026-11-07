@@ -37,13 +37,49 @@ def make_thumbnail(image_field):
     return ContentFile(buf.getvalue(), name=name)
 
 
-class Category(models.Model):
+class ThumbnailMixin(models.Model):
+    """Keeps `thumbnail` (a small WebP copy of `image`) in step with the uploaded photo."""
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        image_changed = self._state.adding or bool(self.image) != bool(self.thumbnail) or (
+            self.pk and type(self).objects.filter(pk=self.pk).exclude(image=self.image.name or "").exists()
+        )
+        super().save(*args, **kwargs)
+        if image_changed:
+            self.refresh_thumbnail()
+
+    def refresh_thumbnail(self):
+        old = self.thumbnail.name if self.thumbnail else ""
+        thumb = make_thumbnail(self.image) if self.image else None
+        if thumb is None and self.image:
+            return  # unreadable photo: keep whatever thumbnail there was
+        if old:
+            self.thumbnail.storage.delete(old)
+        if thumb is None:
+            self.thumbnail = None
+        else:
+            self.thumbnail.save(thumb.name, thumb, save=False)
+        type(self).objects.filter(pk=self.pk).update(thumbnail=self.thumbnail.name if self.thumbnail else "")
+
+    @property
+    def thumbnail_url(self):
+        """The thumbnail, else the full photo until a thumbnail exists."""
+        field = self.thumbnail or self.image
+        return field.url if field else None
+
+
+class Category(ThumbnailMixin):
     name = models.CharField(max_length=100)
     name_fa = models.CharField(max_length=100, blank=True, verbose_name="Name (Persian)")
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
     description_fa = models.TextField(blank=True, verbose_name="Description (Persian)")
     image = models.ImageField(upload_to="categories/", blank=True, null=True)
+    # Small WebP copy for the home page circles and category cards; generated on save.
+    thumbnail = models.ImageField(upload_to="categories/thumbs/", blank=True, editable=False)
     show_on_home = models.BooleanField(
         default=False, help_text="Show as a highlighted circle on the home page"
     )
@@ -71,13 +107,14 @@ class Category(models.Model):
         return self.description
 
 
-class Sport(models.Model):
+class Sport(ThumbnailMixin):
     """An activity customers shop by (running, football, ...)."""
 
     name = models.CharField(max_length=100)
     name_fa = models.CharField(max_length=100, blank=True, verbose_name="Name (Persian)")
     slug = models.SlugField(unique=True)
     image = models.ImageField(upload_to="sports/", blank=True, null=True)
+    thumbnail = models.ImageField(upload_to="sports/thumbs/", blank=True, editable=False)
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -343,3 +380,10 @@ def delete_product_image_files(sender, instance, **kwargs):
     for field in (instance.image, instance.thumbnail):
         if field:
             field.delete(save=False)
+
+
+@receiver(post_delete, sender=Category)
+@receiver(post_delete, sender=Sport)
+def delete_thumbnail_file(sender, instance, **kwargs):
+    if instance.thumbnail:
+        instance.thumbnail.delete(save=False)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api/client';
 import { ENDPOINTS } from '../api/endpoints';
@@ -17,6 +17,7 @@ import SizeGuideModal from '../components/SizeGuideTable';
 import { bodyPartLabel } from '../utils/bodyParts';
 import { toPersianNumber } from '../hooks/useLanguage';
 import { formatDate } from '../utils/persianDate';
+import { loginState } from '../utils/authRedirect';
 
 function Stars({ value, size = 16 }) {
   return (
@@ -50,6 +51,7 @@ export default function ProductDetail() {
   const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { toggleFavorite, isInFavorites } = useFavorites();
@@ -113,7 +115,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: loginState(location) });
       return;
     }
     if (product.sizes?.length && !sizeId) {
@@ -135,7 +137,7 @@ export default function ProductDetail() {
 
   const handleFavorite = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: loginState(location) });
       return;
     }
     await toggleFavorite(product.id);

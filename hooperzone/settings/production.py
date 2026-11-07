@@ -42,6 +42,21 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = PROJECT_ROOT / "media"
 SERVE_MEDIA = True
 
+# collectstatic writes .gz copies, so WhiteNoise sends the 340 KB main bundle as ~105 KB.
+# No manifest storage: Vite already puts a content hash in every file name under assets/.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
+
+def _vite_hashed(path, url):
+    """Vite bundles (assets/name-<hash>.ext) never change, so browsers and Cloudflare may keep them a year."""
+    return url.startswith(STATIC_URL + "assets/")
+
+
+WHITENOISE_IMMUTABLE_FILE_TEST = _vite_hashed
+
 # Security headers. Turn on HSTS (e.g. SECURE_HSTS_SECONDS=31536000) only once
 # https://hooperzone.ir works everywhere (Cloudflare "Always Use HTTPS" on): browsers
 # then refuse plain http for that long.

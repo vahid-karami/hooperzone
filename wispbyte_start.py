@@ -79,7 +79,7 @@ def auto_deploy_settings():
     enabled = mode == "true" or (mode == "auto" and "P_SERVER_UUID" in os.environ)
     if not enabled or (ROOT / ".git").exists():
         return None
-    repo = os.environ.get("AUTO_DEPLOY_REPO", "vahid-karami/drfecommerce")
+    repo = os.environ.get("AUTO_DEPLOY_REPO", "vahid-karami/hooperzone")
     branch = os.environ.get("AUTO_DEPLOY_BRANCH", "deploy")
     return repo, branch, int(os.environ.get("AUTO_DEPLOY_INTERVAL", "300"))
 

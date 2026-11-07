@@ -155,7 +155,7 @@ Settings in `.env` (all optional):
 | --- | --- | --- |
 | `AUTO_DEPLOY` | `auto` | `auto` = on only on the Wispbyte server, `False` = off |
 | `AUTO_DEPLOY_INTERVAL` | `300` | Seconds between checks; `0` = only check when the server starts |
-| `AUTO_DEPLOY_REPO`, `AUTO_DEPLOY_BRANCH` | `vahid-karami/drfecommerce`, `deploy` | Where releases come from |
+| `AUTO_DEPLOY_REPO`, `AUTO_DEPLOY_BRANCH` | `vahid-karami/hooperzone`, `deploy` | Where releases come from |
 
 **Rolling back:** revert the bad commit on `master` (`git revert <id>` and push). CI publishes
 the reverted code like any other change. If a release breaks the start-up so the site won't come

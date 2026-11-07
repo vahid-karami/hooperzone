@@ -33,6 +33,7 @@ def active_sizes(product):
 
 class CategorySerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
+    thumbnail = serializers.CharField(source="thumbnail_url", read_only=True)
     name_localized = serializers.SerializerMethodField()
     description_localized = serializers.SerializerMethodField()
 
@@ -46,6 +47,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "description",
             "description_fa",
             "image",
+            "thumbnail",
             "show_on_home",
             "product_count",
             "name_localized",
@@ -70,10 +72,11 @@ class SportSerializer(serializers.ModelSerializer):
     name_localized = serializers.SerializerMethodField()
     product_count = serializers.SerializerMethodField()
     cover_image = serializers.SerializerMethodField()
+    cover_thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Sport
-        fields = ["id", "name", "name_fa", "slug", "name_localized", "product_count", "cover_image"]
+        fields = ["id", "name", "name_fa", "slug", "name_localized", "product_count", "cover_image", "cover_thumbnail"]
 
     def get_name_localized(self, obj):
         return obj.get_name(self.context.get("lang", "en"))
@@ -81,16 +84,28 @@ class SportSerializer(serializers.ModelSerializer):
     def get_product_count(self, obj):
         return obj.products.filter(is_active=True).count()
 
-    def get_cover_image(self, obj):
-        """The sport's own image, else a photo of one of its products."""
-        if obj.image:
-            return obj.image.url
-        image = (
+    @staticmethod
+    def _product_photo(obj):
+        """A photo of one of the sport's products, for sports without their own image."""
+        return (
             ProductImage.objects.filter(product__sports=obj, product__is_active=True)
             .order_by("-is_primary", "product__created_at")
             .first()
         )
+
+    def get_cover_image(self, obj):
+        """The sport's own image, else a photo of one of its products."""
+        if obj.image:
+            return obj.image.url
+        image = self._product_photo(obj)
         return image.image.url if image else None
+
+    def get_cover_thumbnail(self, obj):
+        """A small copy of the cover image for cards (cover_image is the full photo)."""
+        if obj.image:
+            return obj.thumbnail_url
+        image = self._product_photo(obj)
+        return (image.thumbnail or image.image).url if image else None
 
 
 class ProductImageSerializer(serializers.ModelSerializer):

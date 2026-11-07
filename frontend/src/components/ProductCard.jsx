@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useFavorites } from '../context/FavoritesContext';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,8 @@ import ProductQuickView from './ProductQuickView';
 import Price from './Price';
 import Icon from './Icon';
 import { bodyPartLabel } from '../utils/bodyParts';
+import { toPersianNumber } from '../hooks/useLanguage';
+import { loginState } from '../utils/authRedirect';
 
 export default function ProductCard({ product }) {
   const { t, i18n } = useTranslation();
@@ -14,6 +16,7 @@ export default function ProductCard({ product }) {
   const { isAuthenticated } = useAuth();
   const { toggleFavorite, isInFavorites } = useFavorites();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showQuickView, setShowQuickView] = useState(false);
 
   const price = Number(product.price);
@@ -26,7 +29,7 @@ export default function ProductCard({ product }) {
 
   const handleFavoriteClick = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: loginState(location) });
       return;
     }
     await toggleFavorite(product.id);
@@ -52,7 +55,7 @@ export default function ProductCard({ product }) {
           </Link>
 
           <div className="product-card-badges">
-            {hasDiscount && <span className="badge-sale">{t('product.discountBadge', '{{percent}}٪ تخفیف', { percent: discountPercent })}</span>}
+            {hasDiscount && <span className="badge-sale">{t('product.discountBadge', '{{percent}}٪ تخفیف', { percent: lang === 'fa' ? toPersianNumber(discountPercent) : discountPercent })}</span>}
             {product.is_featured && <span className="badge-soft">{t('product.bestseller', 'پرفروش')}</span>}
           </div>
 

@@ -45,6 +45,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('react-router-dom', () => ({
   Link: ({ children, to, className }) => <a href={to} className={className}>{children}</a>,
   useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: '/products', search: '' }),
 }));
 
 const mockProduct = {
