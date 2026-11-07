@@ -173,7 +173,8 @@ class SizeGuide(models.Model):
     JSON (columns + rows). Sellable sizes and their stock live in ProductSize instead.
     """
 
-    name = models.CharField(max_length=100, unique=True, help_text="Internal name, e.g. 'Knee sleeves'")
+    # Not unique: staff may give several guides the same name (they are told apart by id).
+    name = models.CharField(max_length=100, help_text="Internal name, e.g. 'Knee sleeves'")
     title_fa = models.CharField(max_length=150, blank=True, verbose_name="Title (Persian)")
     title_en = models.CharField(max_length=150, blank=True, verbose_name="Title (English)")
     how_to_measure_fa = models.TextField(blank=True, verbose_name="How to measure (Persian)")

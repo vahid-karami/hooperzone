@@ -528,3 +528,14 @@ def test_django_admin_form_explains_a_label_with_several_sizes(product):
         size.full_clean()
     assert "separately" in str(err.value.message_dict["label"])
     ProductSize(product=product, label="M").full_clean()
+
+
+def test_size_guides_may_share_a_name(owner, db):
+    from django.urls import reverse
+
+    url = reverse("products:admin-size-guide-list")
+    body = {"name": "راهنمای انتخاب سایز", "columns": COLUMNS, "rows": ROWS}
+    assert owner.post(url, body, format="json").status_code == 201
+    res = owner.post(url, body, format="json")
+    assert res.status_code == 201, res.data
+    assert SizeGuide.objects.filter(name="راهنمای انتخاب سایز").count() == 2
