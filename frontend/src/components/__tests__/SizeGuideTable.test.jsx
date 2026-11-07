@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SizeGuideTable } from '../SizeGuideTable';
-import { sizesFromProduct, sizesPayload, sizesTotal } from '../../utils/productSizes';
+import { sizeLabelParts, sizesFromProduct, sizesPayload, sizesTotal, splitSizeRow } from '../../utils/productSizes';
 
 let language = 'fa';
 vi.mock('react-i18next', () => ({
@@ -60,5 +60,31 @@ describe('product size form helpers', () => {
     expect(sizesFromProduct({ sizes: [{ id: 2, label: 'XL', stock: 0, sku: null, is_active: true }] })).toEqual([
       { id: 2, label: 'XL', stock: '0', sku: '', is_active: true },
     ]);
+  });
+});
+
+describe('splitting a label that holds several sizes', () => {
+  it('finds the sizes in "M L", "M, L", "M/L" and "M، L", but keeps a range whole', () => {
+    expect(sizeLabelParts('M L')).toEqual(['M', 'L']);
+    expect(sizeLabelParts(' M,  L ')).toEqual(['M', 'L']);
+    expect(sizeLabelParts('M/L/XL')).toEqual(['M', 'L', 'XL']);
+    expect(sizeLabelParts('M، L')).toEqual(['M', 'L']);
+    expect(sizeLabelParts('39-41')).toEqual(['39-41']);
+  });
+
+  it('replaces the row with one row per size, keeping the id and splitting the stock', () => {
+    const rows = [
+      { id: 7, label: 'M L', stock: '۵', sku: 'X', is_active: true },
+      { id: 8, label: 'XL', stock: '2', sku: '', is_active: true },
+    ];
+    const out = splitSizeRow(rows, 0);
+    expect(out.map((r) => [r.id, r.label, r.stock])).toEqual([[7, 'M', '3'], [undefined, 'L', '2'], [8, 'XL', '2']]);
+    expect(out[1].sku).toBe('');
+  });
+
+  it('skips sizes the product already has and leaves single sizes alone', () => {
+    const rows = [{ label: 'M XL', stock: '4', sku: '', is_active: true }, { label: 'XL', stock: '1', sku: '', is_active: true }];
+    expect(splitSizeRow(rows, 0).map((r) => [r.label, r.stock])).toEqual([['M', '4'], ['XL', '1']]); // XL exists
+    expect(splitSizeRow(rows, 1)).toBe(rows);
   });
 });
