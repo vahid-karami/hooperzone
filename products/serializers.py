@@ -282,6 +282,9 @@ class ProductSizeAdminSerializer(serializers.ModelSerializer):
         value = value.strip()
         if not value:
             raise serializers.ValidationError("Enter a size name.")
+        if any(sep in value for sep in (" ", ",", "،", "/")):
+            # The database refuses these too (size_label_is_one_size).
+            raise serializers.ValidationError(f"Add each size separately instead of '{value}'.")
         return value
 
     def validate_sku(self, value):

@@ -513,3 +513,10 @@ def test_database_rejects_a_label_with_several_sizes(product):
         with pytest.raises(IntegrityError), transaction.atomic():
             ProductSize.objects.create(product=product, label=label)
     ProductSize.objects.create(product=product, label="39-41")  # a range is fine
+
+
+def test_admin_asks_to_add_each_size_separately(sized, owner):
+    res = owner.patch(admin_url("sleeve"), {"sizes": [{"label": "M L", "stock": 4}]}, format="json")
+    assert res.status_code == 400
+    assert "separately" in str(res.data["sizes"])
+    assert ProductSize.objects.filter(product=sized["product"]).count() == 2
