@@ -470,3 +470,38 @@ def test_size_guide_diagram_can_be_uploaded_and_removed(owner, settings, tmp_pat
     import os
 
     assert not os.path.exists(path)
+
+
+# --- Migration 0012: split "M L" labels --------------------------------------------------
+
+
+def test_migration_splits_a_label_holding_several_sizes(transactional_db):
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+
+    before, after = [("products", "0011_merge_20261107_1005")], [("products", "0012_split_multi_size_labels")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(before)
+    old = executor.loader.project_state(before).apps
+    cat = old.get_model("products", "Category").objects.create(name="Ankle", slug="ankle")
+    product = old.get_model("products", "Product").objects.create(
+        category=cat, name="Stabilizer", slug="stab", description="d", price=1, stock=5
+    )
+    Size = old.get_model("products", "ProductSize")
+    both = Size.objects.create(product=product, label="M L", stock=5, sort_order=0)
+    Size.objects.create(product=product, label="XL", stock=2, sort_order=1)
+    other = old.get_model("products", "Product").objects.create(
+        category=cat, name="Other", slug="other", description="d", price=1
+    )
+    Size.objects.create(product=other, label="39-41", stock=3)  # a range is one size: left alone
+
+    executor = MigrationExecutor(connection)
+    executor.migrate(after)
+    new = executor.loader.project_state(after).apps
+    sizes = new.get_model("products", "ProductSize").objects.filter(product_id=product.pk).order_by("sort_order")
+    assert [(s.label, s.stock) for s in sizes] == [("M", 3), ("L", 2), ("XL", 2)]
+    assert sizes[0].pk == both.pk  # carts and orders keep pointing at the first part
+    assert new.get_model("products", "Product").objects.get(pk=product.pk).stock == 7
+    others = new.get_model("products", "ProductSize").objects.filter(product_id=other.pk)
+    assert list(others.values_list("label", flat=True)) == ["39-41"]
+    MigrationExecutor(connection).migrate(MigrationExecutor(connection).loader.graph.leaf_nodes())
