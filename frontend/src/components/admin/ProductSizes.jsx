@@ -128,6 +128,13 @@ const EMPTY_GUIDE = {
   rows: [],
 };
 
+// Names may repeat, so the picker shows name and title, plus the guide's number when two look alike.
+const guideBaseLabel = (g) => [g.name, g.title_fa && g.title_fa !== g.name ? g.title_fa : null].filter(Boolean).join(' — ');
+function guideOptionLabel(guide, guides) {
+  const label = guideBaseLabel(guide);
+  return guides.filter((g) => guideBaseLabel(g) === label).length > 1 ? `${label} #${guide.id}` : label;
+}
+
 /** راهنمای سایز: pick a shared size guide for the product, or create / edit one. */
 export function SizeGuideFieldset({ guides, value, onChange, onGuideSaved, sizeLabels }) {
   const { t, i18n } = useTranslation();
@@ -144,7 +151,8 @@ export function SizeGuideFieldset({ guides, value, onChange, onGuideSaved, sizeL
           <option value="">{t('admin.noSizeGuide', 'بدون راهنمای سایز')}</option>
           {guides.map((g) => (
             <option key={g.id} value={g.id}>
-              {g.title_fa || g.name} {g.product_count ? `(${t('admin.usedBy', '{{count}} محصول', { count: num(g.product_count) })})` : ''}
+              {guideOptionLabel(g, guides)}{' '}
+              {g.product_count ? `(${t('admin.usedBy', '{{count}} محصول', { count: num(g.product_count) })})` : ''}
             </option>
           ))}
         </select>
