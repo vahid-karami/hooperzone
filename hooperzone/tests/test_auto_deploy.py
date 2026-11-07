@@ -6,7 +6,7 @@ import pytest
 import wispbyte_start
 
 
-def release_zip(files, prefix="drfecommerce-deploy/"):
+def release_zip(files, prefix="hooperzone-deploy/"):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as zf:
         zf.writestr(prefix, "")
@@ -61,7 +61,7 @@ def test_auto_deploy_only_runs_on_the_wispbyte_server(monkeypatch, tmp_path):
     assert wispbyte_start.auto_deploy_settings() is None  # a PC
 
     monkeypatch.setenv("P_SERVER_UUID", "867ae234")
-    assert wispbyte_start.auto_deploy_settings() == ("vahid-karami/drfecommerce", "deploy", 300)
+    assert wispbyte_start.auto_deploy_settings() == ("vahid-karami/hooperzone", "deploy", 300)
 
     monkeypatch.setenv("AUTO_DEPLOY", "False")
     assert wispbyte_start.auto_deploy_settings() is None  # switched off in .env
