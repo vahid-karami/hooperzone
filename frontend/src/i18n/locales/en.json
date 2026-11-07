@@ -703,7 +703,7 @@
     "guideSaved": "Size guide saved",
     "guideShared": "This guide is used by {{count}} products; changes show on all of them.",
     "guideTitleFa": "Title (Persian)",
-    "guideName": "Internal name (unique)",
+    "guideName": "Internal name",
     "howToMeasureFa": "How to measure (Persian)",
     "howToMeasureEn": "How to measure (English)",
     "guideImage": "Measuring diagram (optional)",
@@ -720,7 +720,8 @@
     "rowsFromSizes": "Rows for the product's sizes",
     "saveGuide": "Save guide",
     "severalSizesInOne": "“{{label}}” is several sizes; each size must be separate so customers can choose one.",
-    "splitSizes": "Split into {{sizes}}"
+    "splitSizes": "Split into {{sizes}}",
+    "guideNameHint": "Only shown in the admin; repeating a name is fine. Leave empty to use the title."
   },
   "info": {
     "nav": {

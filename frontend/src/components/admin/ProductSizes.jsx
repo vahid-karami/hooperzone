@@ -213,6 +213,8 @@ function SizeGuideEditor({ guide, sizeLabels, onClose, onSaved }) {
 
   const cleaned = () => ({
     ...form,
+    // An empty internal name falls back to the Persian title (names may repeat).
+    name: (form.name.trim() || form.title_fa.trim() || form.title_en.trim() || t('product.sizeGuide')).slice(0, 100),
     columns: form.columns.map((c) => ({ label_fa: c.label_fa.trim(), label_en: c.label_en.trim(), unit: c.unit.trim() })),
     rows: form.rows
       .filter((r) => r.size.trim())
@@ -269,12 +271,13 @@ function SizeGuideEditor({ guide, sizeLabels, onClose, onSaved }) {
           )}
           <div className="form-grid two">
             <div className="form-group">
-              <label className="form-label" htmlFor="g-title-fa">{t('admin.guideTitleFa', 'عنوان (فارسی)')}</label>
-              <input id="g-title-fa" className="form-input" value={form.title_fa} placeholder="راهنمای سایز زانوبند" onChange={(e) => set({ title_fa: e.target.value })} />
+              <label className="form-label" htmlFor="g-name">{t('admin.guideName', 'نام داخلی')}</label>
+              <input id="g-name" className="form-input" value={form.name} maxLength={100} placeholder={form.title_fa || 'راهنمای انتخاب سایز'} onChange={(e) => set({ name: e.target.value })} />
+              <p className="field-hint">{t('admin.guideNameHint', 'فقط در پنل دیده می‌شود؛ تکراری بودن اشکالی ندارد. خالی بماند، عنوان استفاده می‌شود.')}</p>
             </div>
             <div className="form-group">
-              <label className="form-label" htmlFor="g-name">{t('admin.guideName', 'نام داخلی (یکتا)')}</label>
-              <input id="g-name" className="form-input" value={form.name} required maxLength={100} onChange={(e) => set({ name: e.target.value })} />
+              <label className="form-label" htmlFor="g-title-fa">{t('admin.guideTitleFa', 'عنوان (فارسی)')}</label>
+              <input id="g-title-fa" className="form-input" value={form.title_fa} placeholder="راهنمای سایز زانوبند" onChange={(e) => set({ title_fa: e.target.value })} />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="g-how-fa">{t('admin.howToMeasureFa', 'نحوه اندازه‌گیری (فارسی)')}</label>
