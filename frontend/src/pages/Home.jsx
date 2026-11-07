@@ -134,7 +134,8 @@ export default function Home() {
     {
       key: 'move',
       theme: 'photo',
-      image: `${import.meta.env.BASE_URL}images/home/hero.jpg`,
+      image: `${import.meta.env.BASE_URL}images/home/hero.webp`,
+      srcSet: `${import.meta.env.BASE_URL}images/home/hero-800.webp 800w, ${import.meta.env.BASE_URL}images/home/hero.webp 1600w`,
       eyebrow: t('home.slide1Eyebrow', 'هوپرزون'),
       title: t('home.slide1Title', 'بهتر حرکت کن. قوی‌تر برگرد.'),
       text: t('home.slide1Text', 'زانوبند، مچ‌بند و کمربند طبی مناسب هر عضو و هر ورزش.'),

@@ -82,6 +82,8 @@ export default function HeroSlider({ slides }) {
                 {s.image && (
                   <img
                     src={s.image}
+                    srcSet={s.srcSet}
+                    sizes={s.srcSet ? '(max-width: 1240px) 100vw, 1200px' : undefined}
                     alt=""
                     decoding="async"
                     fetchPriority={i === 0 ? 'high' : 'auto'}

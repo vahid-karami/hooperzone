@@ -312,6 +312,9 @@
 }
 
 @media (max-width: 600px) {
+  .breadcrumbs a { display: inline-block; padding-block: 9px; margin-block: -9px; }
+  .clear-link { padding-block: 8px; margin-block: -8px; }
+  .sort-select { font-size: 16px; }
   .cart-row {
     grid-template-columns: 84px minmax(0, 1fr) auto;
     grid-template-areas:
