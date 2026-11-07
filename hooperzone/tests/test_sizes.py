@@ -464,7 +464,8 @@ def test_size_guide_diagram_can_be_uploaded_and_removed(owner, settings, tmp_pat
     guide = SizeGuide.objects.get(pk=res.data["id"])
     path = guide.image.path
     detail = reverse("products:admin-size-guide-detail", kwargs={"pk": guide.pk})
-    res = owner.patch(detail, {"image": "", "columns": json.dumps(COLUMNS), "rows": json.dumps(ROWS)}, format="multipart")
+    table = {"columns": json.dumps(COLUMNS), "rows": json.dumps(ROWS)}
+    res = owner.patch(detail, {"image": "", **table}, format="multipart")
     assert res.status_code == 200, res.data
     assert res.data["image"] is None
     import os
@@ -505,3 +506,10 @@ def test_migration_splits_a_label_holding_several_sizes(transactional_db):
     others = new.get_model("products", "ProductSize").objects.filter(product_id=other.pk)
     assert list(others.values_list("label", flat=True)) == ["39-41"]
     MigrationExecutor(connection).migrate(MigrationExecutor(connection).loader.graph.leaf_nodes())
+
+
+def test_database_rejects_a_label_with_several_sizes(product):
+    for label in ("M L", "M,L", "M،L", "M/L"):
+        with pytest.raises(IntegrityError), transaction.atomic():
+            ProductSize.objects.create(product=product, label=label)
+    ProductSize.objects.create(product=product, label="39-41")  # a range is fine

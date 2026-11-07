@@ -320,6 +320,12 @@ class ProductSize(models.Model):
             models.UniqueConstraint(Lower("label"), "product", name="unique_size_label_per_product"),
             models.UniqueConstraint(fields=["sku"], condition=~Q(sku=""), name="unique_size_sku"),
             models.CheckConstraint(condition=~Q(label=""), name="size_label_not_empty"),
+            # One size per row: "M L" or "M, L" must be two rows, or the shop shows one "M L" button.
+            models.CheckConstraint(
+                condition=~Q(label__contains=" ") & ~Q(label__contains=",") & ~Q(label__contains="،")
+                & ~Q(label__contains="/"),
+                name="size_label_is_one_size",
+            ),
         ]
         indexes = [models.Index(fields=["product", "is_active"])]
 
