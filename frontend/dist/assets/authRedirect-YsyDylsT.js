@@ -1,0 +1,1 @@
+function e(e){return{from:`${e.pathname}${e.search}`}}function t(e){let t=e.state?.from;return typeof t!=`string`||!t.startsWith(`/`)||t.startsWith(`//`)||/^\/(login|register)(\/|\?|$)/.test(t)?`/`:t}export{e as n,t};

@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-B11DXaQX.js";var t=e();function n({message:e}){return(0,t.jsx)(`div`,{className:`loading`,children:(0,t.jsxs)(`div`,{className:`spinner-container`,children:[(0,t.jsx)(`div`,{className:`spinner`}),e&&(0,t.jsx)(`p`,{className:`loading-message`,children:e})]})})}export{n as t};
