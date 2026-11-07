@@ -9,10 +9,12 @@ import { useShopInfo, baleHref } from '../utils/shopInfo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
 import Icon from './Icon';
 import Logo from './Logo';
+import { toPersianNumber } from '../hooks/useLanguage';
 
 export default function Header() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
+  const num = (n) => (lang === 'fa' ? toPersianNumber(n) : String(n));
   const { isAuthenticated, logout, user } = useAuth();
   const { cart } = useCart();
   const { favorites } = useFavorites();
@@ -221,7 +223,7 @@ export default function Header() {
             <Link to="/favorites" className="tool hide-sm">
               <span className="tool-icon">
                 <Icon name="heart" />
-                {favorites.total_items > 0 && <span className="count-badge">{favorites.total_items}</span>}
+                {favorites.total_items > 0 && <span className="count-badge">{num(favorites.total_items)}</span>}
               </span>
               <span className="tool-label">{t('header.favoritesShort', 'علاقه‌مندی')}</span>
             </Link>
@@ -256,7 +258,7 @@ export default function Header() {
             <Link to="/cart" className="tool">
               <span className="tool-icon">
                 <Icon name="bag" />
-                {cart.total_items > 0 && <span className="count-badge">{cart.total_items}</span>}
+                {cart.total_items > 0 && <span className="count-badge">{num(cart.total_items)}</span>}
               </span>
               <span className="tool-label">{t('common.cart')}</span>
             </Link>
