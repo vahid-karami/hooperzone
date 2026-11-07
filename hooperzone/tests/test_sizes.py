@@ -539,3 +539,15 @@ def test_size_guides_may_share_a_name(owner, db):
     res = owner.post(url, body, format="json")
     assert res.status_code == 201, res.data
     assert SizeGuide.objects.filter(name="راهنمای انتخاب سایز").count() == 2
+
+
+def test_seed_size_guides_copes_with_a_reused_name(db):
+    import io
+
+    from django.core.management import call_command
+
+    call_command("seed_size_guides", stdout=io.StringIO())
+    SizeGuide.objects.create(name="Knee supports", columns=COLUMNS, rows=ROWS)  # staff reused the name
+    out = io.StringIO()
+    call_command("seed_size_guides", stdout=out)  # must not crash on boot
+    assert "0 created" in out.getvalue()

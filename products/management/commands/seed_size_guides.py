@@ -129,8 +129,11 @@ class Command(BaseCommand):
             categories = data["categories"]
             fields = {k: v for k, v in data.items() if k not in ("name", "categories")}
             validate_size_guide_table(fields["columns"], fields["rows"])
-            guide, was_created = SizeGuide.objects.get_or_create(name=data["name"], defaults=fields)
-            created += was_created
+            # Names aren't unique (staff may reuse one), so use the oldest guide with this name if any.
+            guide = SizeGuide.objects.filter(name=data["name"]).order_by("id").first()
+            if guide is None:
+                guide = SizeGuide.objects.create(name=data["name"], **fields)
+                created += 1
             if attach:
                 attached += Product.objects.filter(
                     category__slug__in=categories, size_guide__isnull=True, sizes__isnull=False
