@@ -41,6 +41,9 @@ cd frontend && npm run build:django               # production build served by D
 - Cart lines and order lines point at the size (`cart_items.size`, `order_items.size` + `size_label` copy). Adding a sized product needs `size_id`; checkout locks size rows and takes stock from the size; cancelling restocks it.
 - `size_guides` (SizeGuide) are reusable charts (راهنمای سایز) linked by `products.size_guide`; their `name` is internal and may repeat (look guides up by id, never by name); the table is validated JSON (`validate_size_guide_table`). Edited in the admin portal product form (`components/admin/ProductSizes.jsx`), shown by `components/SizeGuideTable.jsx`. `seed_size_guides` creates the starter guides once.
 
+## Logo on product photos
+Photos uploaded in the admin portal get the shop logo automatically (`products/watermark.py`: small, 70% opaque, bottom-right; white logo on dark photos; logo files in `products/assets/watermark/`). The clean upload is kept in `product_images.original` under a random name; `original` set means `image` is the logo copy, empty means `image` is clean. Never hand out `original` in an API. `ShopSettings.watermark_product_images` (admin Settings page) switches it; changing it updates every photo. `manage.py watermark_product_images` brings existing photos in line (runs on boot; `--force` re-renders after a logo change, `--remove` takes the logo off).
+
 ## Payments
 `utils/payment.js` `startPayment()` → `POST /api/orders/<number>/pay/` with a callback URL of `/payment/result`. The backend validates the callback host. In sandbox mode it redirects straight back, and `PaymentResult` verifies the payment.
 

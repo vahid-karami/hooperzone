@@ -1,8 +1,10 @@
 import io
 import logging
+import uuid
 from pathlib import Path
 
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models import Q, Sum
@@ -368,6 +370,9 @@ def sync_product_stock(sender, instance, **kwargs):
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="products/")
+    # The clean upload, kept while `image` is a copy with the shop logo on it (see watermark.py).
+    # Empty = `image` is the clean photo. Stored under a random name so it can't be guessed.
+    original = models.ImageField(upload_to="products/originals/", blank=True, editable=False)
     # Small WebP copy for product cards and lists; generated on save.
     thumbnail = models.ImageField(upload_to="products/thumbs/", blank=True, editable=False)
     alt_text = models.CharField(max_length=200, blank=True)
@@ -391,6 +396,48 @@ class ProductImage(models.Model):
         self.thumbnail.save(thumb.name, thumb, save=False)
         ProductImage.objects.filter(pk=self.pk).update(thumbnail=self.thumbnail.name)
 
+    @property
+    def has_watermark(self):
+        return bool(self.original)
+
+    def apply_watermark(self, force=False):
+        """Put the shop logo on the photo, keeping the clean upload in `original`.
+
+        Does nothing if the photo already has the logo, unless `force` (re-render from the
+        original, e.g. after the logo file changed). Returns True if the photo changed.
+        """
+        from .watermark import render_watermarked
+
+        if not self.image or (self.original and not force):
+            return False
+        rendered = render_watermarked(self.original or self.image)
+        if rendered is None:
+            return False  # too small or unreadable: stays clean
+        shown = self.image.name
+        if not self.original:
+            with self.image.storage.open(shown) as clean:
+                self.original.save(f"{uuid.uuid4().hex}{Path(shown).suffix}", File(clean), save=False)
+        self._replace_image(rendered, shown)
+        return True
+
+    def remove_watermark(self):
+        """Show the clean upload again. Returns True if the photo changed."""
+        if not self.original:
+            return False
+        shown, kept = self.image.name, self.original.name
+        with self.original.storage.open(kept) as clean:
+            self.original = ""
+            self._replace_image(File(clean, name=kept), shown)
+        self.image.storage.delete(kept)
+        return True
+
+    def _replace_image(self, content, old_name):
+        """Save `content` as the shown photo under a new name (a new URL, so caches can't serve the old one)."""
+        self.image.save(f"{Path(old_name).stem}{Path(content.name).suffix}", content, save=False)
+        self.image.storage.delete(old_name)
+        ProductImage.objects.filter(pk=self.pk).update(image=self.image.name, original=self.original.name or "")
+        self.refresh_thumbnail()
+
     class Meta:
         db_table = "product_images"
         ordering = ["-is_primary", "-created_at"]
@@ -401,8 +448,8 @@ class ProductImage(models.Model):
 
 @receiver(post_delete, sender=ProductImage)
 def delete_product_image_files(sender, instance, **kwargs):
-    """Remove the photo and its thumbnail from disk, also when a whole product is deleted."""
-    for field in (instance.image, instance.thumbnail):
+    """Remove the photo, its original and its thumbnail from disk, also when a whole product is deleted."""
+    for field in (instance.image, instance.original, instance.thumbnail):
         if field:
             field.delete(save=False)
 

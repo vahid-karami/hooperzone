@@ -90,6 +90,23 @@ export default function AdminSettings() {
 
         <section className="admin-card">
           <fieldset>
+            <legend>{t('admin.productPhotos', 'تصاویر محصول')}</legend>
+            <label className="check-inline">
+              <input
+                type="checkbox"
+                checked={!!form.watermark_product_images}
+                onChange={(e) => setField('watermark_product_images', e.target.checked)}
+              />
+              {t('admin.watermarkPhotos', 'افزودن خودکار لوگوی فروشگاه به تصاویر محصول')}
+            </label>
+            <p className="field-hint">
+              {t('admin.watermarkPhotosHint', 'لوگو کوچک و نیمه‌شفاف در گوشه پایین تصویر قرار می‌گیرد و نسخه بدون لوگو نگه داشته می‌شود. با تغییر این گزینه، لوگو روی همه تصاویر فعلی اضافه یا از آن‌ها برداشته می‌شود. توجه: گوگل شاپینگ تصاویر لوگودار را نمی‌پذیرد.')}
+            </p>
+          </fieldset>
+        </section>
+
+        <section className="admin-card">
+          <fieldset>
             <legend>{t('admin.contactInfo', 'اطلاعات تماس فروشگاه')}</legend>
             <div className="form-grid two">
               {field('store_phone', t('admin.storePhone', 'تلفن'), { dir: 'ltr', inputMode: 'tel' })}
