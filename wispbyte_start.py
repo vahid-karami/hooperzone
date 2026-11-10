@@ -193,6 +193,7 @@ def prepare():
     call_command("seed_category_images")  # fills missing category photos only
     call_command("seed_sports")  # never replaces photos uploaded in the admin
     call_command("build_thumbnails")  # small WebP copies for images that don't have one yet
+    call_command("watermark_product_images")  # shop logo on product photos that don't have it yet
     call_command("cancel_unpaid_orders")  # release stock held by abandoned checkouts
     call_command("backup_db")  # daily copy of the SQLite database, keeps the last 7
     call_command("setup_roles")  # the "Product editors" staff group
