@@ -24,6 +24,7 @@ from .serializers import (
     ProductDetailSerializer,
     ProductListSerializer,
 )
+from .watermark import watermarks_enabled
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -262,7 +263,9 @@ class ProductAdminViewSet(viewsets.ModelViewSet):
             with transaction.atomic():
                 if make_primary:
                     existing.update(is_primary=False)
-                serializer.save(product=product, is_primary=make_primary)
+                image = serializer.save(product=product, is_primary=make_primary)
+            if watermarks_enabled():
+                image.apply_watermark()  # the clean upload is kept in image.original
             Product.objects.filter(pk=product.pk).update(updated_at=timezone.now())
         return Response(self._image_list(product))
 

@@ -165,3 +165,54 @@ def test_logo_setting_is_on_by_default_and_staff_only(db):
     assert "watermark_product_images" not in client.get(reverse("orders:shop-info")).data  # not public
     client.force_authenticate(get_user_model().objects.create_superuser(phone="09129990000", password="securepass123"))
     assert client.get(reverse("orders:admin-settings")).data["watermark_product_images"] is True
+
+
+@pytest.fixture
+def staff_client(db):
+    from django.contrib.auth import get_user_model
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    client.force_authenticate(get_user_model().objects.create_superuser(phone="09129990000", password="securepass123"))
+    return client
+
+
+def upload_photo(client, **photo_kwargs):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.urls import reverse
+
+    data = photo(**photo_kwargs).read()
+    res = client.post(
+        reverse("products:admin-product-images", kwargs={"slug": "brace"}),
+        {"image": SimpleUploadedFile("knee.jpg", data, content_type="image/jpeg")},
+        format="multipart",
+    )
+    assert res.status_code == 200, res.data
+    return data, res.data
+
+
+def test_uploaded_product_photo_gets_the_logo(product, media, staff_client):
+    from products.models import ProductImage
+
+    clean_bytes, rows = upload_photo(staff_client)
+    image = ProductImage.objects.get()
+    assert image.has_watermark and image.original.read() == clean_bytes
+    # The API hands out the logo copy and its thumbnail, never the clean original.
+    assert rows[0]["image"].endswith(image.image.url) and "originals" not in str(rows)
+    assert "original" not in rows[0]
+    left, top, w, h = logo_box(1000, 800)
+    with Image.open(image.image.path) as shown:
+        assert shown.convert("RGB").crop((left, top, left + w, top + h)).getextrema()[0][0] < 150
+    with Image.open(image.thumbnail.path) as thumb:  # built from the logo copy
+        assert thumb.format == "WEBP"
+        assert thumb.convert("RGB").crop((480, 440, 590, 470)).getextrema()[0][0] < 200
+
+
+def test_upload_stays_clean_when_the_logo_is_switched_off(product, media, staff_client):
+    from orders.models import ShopSettings
+    from products.models import ProductImage
+
+    ShopSettings.objects.update_or_create(pk=1, defaults={"watermark_product_images": False})
+    clean_bytes, _ = upload_photo(staff_client)
+    image = ProductImage.objects.get()
+    assert not image.has_watermark and image.image.read() == clean_bytes
