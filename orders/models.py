@@ -13,6 +13,9 @@ class ShopSettings(models.Model):
         default=60, help_text="Unpaid orders older than this are cancelled and their stock released. 0 = never."
     )
     low_stock_threshold = models.PositiveIntegerField(default=5)
+    watermark_product_images = models.BooleanField(
+        default=True, help_text="Put the shop logo on product photos (the clean uploads are kept)."
+    )
 
     store_phone = models.CharField(max_length=30, blank=True)
     store_email = models.EmailField(blank=True)

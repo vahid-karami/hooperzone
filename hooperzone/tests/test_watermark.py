@@ -154,3 +154,14 @@ def test_deleting_an_image_removes_its_original(product, media):
     image.apply_watermark()
     image.delete()
     assert files_in(media) == []
+
+
+def test_logo_setting_is_on_by_default_and_staff_only(db):
+    from django.contrib.auth import get_user_model
+    from django.urls import reverse
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    assert "watermark_product_images" not in client.get(reverse("orders:shop-info")).data  # not public
+    client.force_authenticate(get_user_model().objects.create_superuser(phone="09129990000", password="securepass123"))
+    assert client.get(reverse("orders:admin-settings")).data["watermark_product_images"] is True
