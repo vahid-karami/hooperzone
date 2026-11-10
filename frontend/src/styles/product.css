@@ -300,7 +300,8 @@
 .accordion h2 .icon { transition: transform var(--transition-fast); }
 .accordion.open h2 .icon { transform: rotate(180deg); }
 .accordion-panel { padding: 0 4px var(--spacing-8); }
-.pdp-description { line-height: 2.1; color: var(--color-neutral-700); max-width: 60em; }
+/* pre-line keeps the paragraphs and line breaks staff type in the admin (lists, "ویژگی ها:" headings). */
+.pdp-description { line-height: 2.1; color: var(--color-neutral-700); max-width: 60em; white-space: pre-line; }
 
 .spec-table { margin: 0; display: grid; }
 
