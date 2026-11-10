@@ -216,3 +216,42 @@ def test_upload_stays_clean_when_the_logo_is_switched_off(product, media, staff_
     clean_bytes, _ = upload_photo(staff_client)
     image = ProductImage.objects.get()
     assert not image.has_watermark and image.image.read() == clean_bytes
+
+
+def run_command(*args):
+    from django.core.management import call_command
+
+    out = io.StringIO()
+    call_command("watermark_product_images", *args, stdout=out)
+    return out.getvalue()
+
+
+def test_command_adds_the_logo_to_existing_photos_once(product, media):
+    from products.models import ProductImage
+
+    for _ in range(2):
+        ProductImage.objects.create(product=product, image=photo())
+    ProductImage.objects.create(product=product, image="products/missing.jpg")  # file lost: skipped, no crash
+
+    assert "2 product photo" in run_command()
+    assert ProductImage.objects.exclude(original="").count() == 2
+    before = files_in(media)
+    assert "0 product photo" in run_command()  # second run changes nothing
+    assert files_in(media) == before
+    assert "2 product photo" in run_command("--force")
+    assert len(files_in(media)) == len(before)
+
+
+def test_command_removes_the_logo(product, media):
+    from orders.models import ShopSettings
+    from products.models import ProductImage
+
+    ProductImage.objects.create(product=product, image=photo()).apply_watermark()
+    assert "Removed the logo from 1" in run_command("--remove")
+    assert not ProductImage.objects.get().has_watermark
+
+    run_command()
+    assert ProductImage.objects.get().has_watermark
+    ShopSettings.objects.update_or_create(pk=1, defaults={"watermark_product_images": False})
+    run_command()  # follows the shop setting
+    assert not ProductImage.objects.get().has_watermark

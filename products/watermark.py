@@ -86,3 +86,29 @@ def render_watermarked(image_field):
     finally:
         image_field.close()
     return ContentFile(buf.getvalue(), name=f"photo.{ext}")
+
+
+def watermarks_enabled():
+    from orders.models import ShopSettings
+
+    return ShopSettings.load().watermark_product_images
+
+
+def sync_watermarks(enabled=None, force=False):
+    """Give every product photo the logo, or take it off, to match the shop setting.
+
+    Safe to run again: photos already in the right state are skipped, unless `force`, which
+    renders the logo again from the clean originals (after the logo file changed).
+    Returns how many photos changed.
+    """
+    from .models import ProductImage
+
+    if enabled is None:
+        enabled = watermarks_enabled()
+    changed = 0
+    for image in ProductImage.objects.exclude(image="").iterator():
+        if enabled:
+            changed += image.apply_watermark(force=force)
+        else:
+            changed += image.remove_watermark()
+    return changed
