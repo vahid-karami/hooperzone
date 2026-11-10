@@ -294,8 +294,6 @@ export default function ProductDetail() {
               </span>
             </button>
 
-            <p className="pdp-lead">{description}</p>
-
             {product.sports?.length > 0 && (
               <div className="pdp-sports">
                 <span>{t('product.suitableFor', 'مناسب برای')}:</span>
