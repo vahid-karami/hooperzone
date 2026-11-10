@@ -415,6 +415,13 @@
 .quick-view-info { display: grid; gap: var(--spacing-3); }
 .quick-view-info h2 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-black); }
 .quick-view-info p { color: var(--color-neutral-700); font-size: var(--font-size-sm); line-height: 1.9; }
+.quick-view-desc {
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .quick-view-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-3); margin-top: var(--spacing-2); }
 
 /* Responsive --------------------------------------------------------- */

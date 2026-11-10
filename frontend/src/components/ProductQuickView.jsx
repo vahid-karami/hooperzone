@@ -92,7 +92,8 @@ export default function ProductQuickView({ slug, onClose }) {
                 <span className="price-now"><Price amount={product.effective_price} /></span>
                 {hasDiscount && <span className="price-was"><Price amount={product.price} showSymbol={false} /></span>}
               </div>
-              <p>{description}</p>
+              {/* A preview: the first paragraph only; the product page has the rest. */}
+              <p className="quick-view-desc">{description.split(/\n\s*\n/)[0]}</p>
               <span className={`stock-pill ${product.in_stock ? 'ok' : 'out'}`}>
                 <span className="dot" />
                 {product.in_stock ? t('product.available', 'موجود') : t('common.outOfStock')}
