@@ -65,3 +65,92 @@ def test_transparent_photos_stay_png():
 ])
 def test_photos_that_cannot_take_a_logo_are_left_alone(file):
     assert render_watermarked(file) is None
+
+
+@pytest.fixture
+def media(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    return tmp_path
+
+
+@pytest.fixture
+def product(db):
+    from products.models import Category, Product
+
+    cat = Category.objects.create(name="Knee", slug="knee")
+    return Product.objects.create(category=cat, name="Brace", slug="brace", description="d", price=100)
+
+
+def files_in(media):
+    return sorted(str(p.relative_to(media)) for p in media.rglob("*") if p.is_file())
+
+
+def test_apply_watermark_keeps_the_clean_upload(product, media):
+    from products.models import ProductImage
+
+    upload = photo()
+    clean_bytes = upload.read()
+    image = ProductImage.objects.create(product=product, image=upload)
+    first_url = image.image.name
+
+    assert image.apply_watermark() is True
+    image.refresh_from_db()
+    assert image.has_watermark
+    assert image.image.name != first_url and image.thumbnail.name  # new URLs: caches can't show the old photo
+    assert image.original.read() == clean_bytes
+    assert "brace" not in image.original.name and "p." not in image.original.name  # not guessable
+    assert image.image.read() != clean_bytes
+    # Exactly the shown photo, the original and one thumbnail are on disk.
+    assert files_in(media) == sorted([image.image.name, image.original.name, image.thumbnail.name])
+
+    assert image.apply_watermark() is False  # already has the logo
+
+
+def test_apply_watermark_force_renders_again_from_the_original(product, media):
+    from products.models import ProductImage
+
+    image = ProductImage.objects.create(product=product, image=photo())
+    image.apply_watermark()
+    original, shown = image.original.name, image.image.name
+    with Image.open(image.image.path) as once:
+        once = once.copy()
+
+    assert image.apply_watermark(force=True) is True
+    image.refresh_from_db()
+    assert image.original.name == original and image.image.name != shown
+    with Image.open(image.image.path) as twice:
+        assert list(twice.tobytes()) == list(once.tobytes())  # the logo isn't stacked on itself
+    assert len(files_in(media)) == 3
+
+
+def test_remove_watermark_restores_the_clean_upload(product, media):
+    from products.models import ProductImage
+
+    upload = photo()
+    clean_bytes = upload.read()
+    image = ProductImage.objects.create(product=product, image=upload)
+    assert image.remove_watermark() is False  # nothing to remove
+    image.apply_watermark()
+
+    assert image.remove_watermark() is True
+    image.refresh_from_db()
+    assert not image.has_watermark and image.image.read() == clean_bytes
+    assert files_in(media) == sorted([image.image.name, image.thumbnail.name])
+
+
+def test_small_photo_is_stored_without_logo(product, media):
+    from products.models import ProductImage
+
+    image = ProductImage.objects.create(product=product, image=photo(size=(50, 50)))
+    assert image.apply_watermark() is False
+    image.refresh_from_db()
+    assert not image.has_watermark and len(files_in(media)) == 2
+
+
+def test_deleting_an_image_removes_its_original(product, media):
+    from products.models import ProductImage
+
+    image = ProductImage.objects.create(product=product, image=photo())
+    image.apply_watermark()
+    image.delete()
+    assert files_in(media) == []
