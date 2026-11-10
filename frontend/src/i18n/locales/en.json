@@ -721,7 +721,11 @@
     "saveGuide": "Save guide",
     "severalSizesInOne": "“{{label}}” is several sizes; each size must be separate so customers can choose one.",
     "splitSizes": "Split into {{sizes}}",
-    "guideNameHint": "Only shown in the admin; repeating a name is fine. Leave empty to use the title."
+    "guideNameHint": "Only shown in the admin; repeating a name is fine. Leave empty to use the title.",
+    "productPhotos": "Product photos",
+    "watermarkPhotos": "Add the shop logo to product photos automatically",
+    "watermarkPhotosHint": "The logo sits small and semi-transparent in the bottom corner, and the clean photo is kept. Changing this adds the logo to, or removes it from, every current photo. Note: Google Shopping rejects photos with an added logo.",
+    "logoAddedHint": "The shop logo is added to photos automatically."
   },
   "info": {
     "nav": {
