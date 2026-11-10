@@ -255,3 +255,18 @@ def test_command_removes_the_logo(product, media):
     ShopSettings.objects.update_or_create(pk=1, defaults={"watermark_product_images": False})
     run_command()  # follows the shop setting
     assert not ProductImage.objects.get().has_watermark
+
+
+def test_switching_the_setting_updates_existing_photos(product, media, staff_client):
+    from django.urls import reverse
+
+    from products.models import ProductImage
+
+    upload_photo(staff_client)
+    url = reverse("orders:admin-settings")
+    assert staff_client.patch(url, {"watermark_product_images": False}, format="json").status_code == 200
+    assert not ProductImage.objects.get().has_watermark
+    staff_client.patch(url, {"store_phone": "021"}, format="json")  # other settings leave photos alone
+    assert not ProductImage.objects.get().has_watermark
+    staff_client.patch(url, {"watermark_product_images": True}, format="json")
+    assert ProductImage.objects.get().has_watermark
