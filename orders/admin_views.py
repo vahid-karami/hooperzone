@@ -279,5 +279,10 @@ def admin_shop_settings(request):
     if request.method == "PATCH":
         serializer = ShopSettingsSerializer(shop, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        had_logo = shop.watermark_product_images
         serializer.save()
+        if shop.watermark_product_images != had_logo:
+            from products.watermark import sync_watermarks
+
+            sync_watermarks()  # add the logo to every product photo, or take it off again
     return Response(ShopSettingsSerializer(shop).data)

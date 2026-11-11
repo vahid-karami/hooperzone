@@ -31,6 +31,15 @@ function ImageManager({ product, onChange }) {
   const [images, setImages] = useState(product.images || []);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [addsLogo, setAddsLogo] = useState(false);
+
+  useEffect(() => {
+    // Only shop managers can read the settings; for others the hint just stays hidden.
+    apiClient
+      .get(ENDPOINTS.adminSettings)
+      .then((res) => setAddsLogo(!!res.data.watermark_product_images))
+      .catch(() => {});
+  }, []);
 
   const apply = (list) => {
     setImages(list);
@@ -125,6 +134,7 @@ function ImageManager({ product, onChange }) {
           <input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => upload(e.target.files)} />
         </label>
       </div>
+      {addsLogo && <p className="field-hint">{t('admin.logoAddedHint', 'لوگوی فروشگاه به‌طور خودکار روی تصاویر قرار می‌گیرد.')}</p>}
     </fieldset>
   );
 }
