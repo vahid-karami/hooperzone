@@ -1,0 +1,997 @@
+[33mcommit 5144a0a8d8f227398b7212eb10fc319113d55958[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Nov 7 10:06:52 2026 +0330
+
+    Merge migration for the size tables and category/sport thumbnails
+    
+    origin/master added products 0008_category_sport_thumbnail while this branch added 0008-0010 for sizes; 0011 joins the two so migrate runs cleanly on the live server.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 976a9b7048009ba5499aed31baeb1325765cfc11[m
+Merge: 8818748 a37f390
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Nov 7 10:04:53 2026 +0330
+
+    Merge remote-tracking branch 'origin/master'
+
+[33mcommit a37f39086243b641be853eee33645200a411decd[m
+Merge: 3b48caa 900978f
+Author: Vahid Karami <99403171+vahid-karami@users.noreply.github.com>
+Date:   Sat Nov 7 09:53:57 2026 +0330
+
+    Merge pull request #4 from vahid-karami/claude/relaxed-sagan-8uala0
+    
+    Fix auto-deploy repo name (drfecommerce -> hooperzone)
+
+[33mcommit 900978f1cb1d8cb7e4ad5a4461df9ceb3253058a[m[33m ([m[1;31morigin/claude/relaxed-sagan-8uala0[m[33m)[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Nov 7 06:23:26 2026 +0000
+
+    Fix auto-deploy repo name (drfecommerce -> hooperzone)
+    
+    The server looked for releases in vahid-karami/drfecommerce by default; the repository is vahid-karami/hooperzone.
+
+[33mcommit 881874805f0ddfe199142eb26e49ad694f00d922[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:16:21 2026 +0330
+
+    Document product sizes and size guides in CLAUDE.md
+    
+    Explains the tables, the stock rule, how carts and orders use sizes and where the admin UI lives. Also wraps a long line in seed_size_guides.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 79a5ec8cca806b848548cf613d9d0caa88b92420[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:14:32 2026 +0330
+
+    Frontend tests: size guide table and size form helpers
+    
+    Covers Persian/English texts and digits in the size guide, the highlighted size, and building the sizes payload (trimming, Persian digits, order, ids, totals).
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit bcb49fd9c9108aefe7abac1a7b4e441239fd269a[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:14:01 2026 +0330
+
+    Admin product form: sizes with stock and a راهنمای سایز section
+    
+    Sizes: one row per size with stock, optional SKU and active flag; reorder, remove, add one or a preset (S-XL, XS-XXL, 1-7); duplicate labels are flagged and the total stock is shown (the stock field becomes read-only). The list shows per-size stock instead of the quick stock box.
+    راهنمای سایز: pick a shared guide, preview it as customers see it, or create / edit one in a table editor (columns with Persian and English names and a unit, size rows prefilled from the product's sizes, how-to-measure text and an optional diagram).
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit d34773d1d060e742dff7b1cd473a0d6deb147f24[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:10:12 2026 +0330
+
+    Size guides: remove or replace the diagram from a form
+    
+    An empty image value in a multipart form now clears the diagram (DRF rejected it), and a replaced or removed diagram's file is deleted from disk.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 38a058c8f1ca8b1a72661bbd223b717ed7db34f6[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:08:30 2026 +0330
+
+    Admin API: a typed stock can't override a sized product's total
+    
+    PATCH {stock} on a product with sizes (e.g. the list's quick stock field) used to save the typed number; the total is now recomputed from the sizes after every update.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 8d05276f64e1510011d3b9f40e6ffeaba9bb45ff[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:07:50 2026 +0330
+
+    Show the size on cart, checkout, order and invoice lines
+    
+    A SizeTag ('سایز: M') appears next to items in the cart, checkout summary, order history and detail, the staff order list and the printed invoice.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 1247ebe1358378a7fcb575754b25c31f4d26283f[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:07:08 2026 +0330
+
+    SEO cache: key on the frontend build so new builds never get stale HTML
+    
+    Rendered pages were cached by URL only, so for up to 5 minutes after a new build (without a restart) visitors got HTML pointing at asset files the build had removed, which left the page blank. The key now includes a CRC of index.html.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 9222b7ea53c4ea30f7c884684206e004b1f171ae[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:04:31 2026 +0330
+
+    Quick view: choose a size before adding to the cart
+    
+    Shows the same size chips as the product page (single size preselected) and passes the size to the cart.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit f2ff0ec863e286a92d2630a99795ebe1e47917c2[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:04:10 2026 +0330
+
+    Product page: pick a size and read its size guide
+    
+    Size chips come from the product's sizes (sold-out sizes disabled and crossed out, single size preselected); adding to the cart without a size highlights the picker. Quantity is limited by the chosen size's stock, with a few-left note. The size guide modal (SizeGuideTable) shows the product's guide with how-to-measure text, diagram and table, and highlights the chosen size; it replaces the old hard-coded S-XL table.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 34dad6c49da93b36c2f9d9ce6900b1035f27f419[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:00:22 2026 +0330
+
+    Frontend: send the chosen size to the cart; size guide endpoints
+    
+    addToCart(productId, quantity, sizeId) passes size_id for products with sizes. Adds the admin size guide endpoints.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit beaafd704d97202bfe37de8548de761f5cec5d02[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 16:00:03 2026 +0330
+
+    Seed starter size guides
+    
+    seed_size_guides creates six guides (knee, ankle, back, shoulder, wrist/elbow, compression) with our own measurement tables and how-to-measure text in Persian and English. Created once by name and never overwritten; runs on every boot. A fresh demo store also links them to its sized products (--attach).
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 3b48caab7ca0fc355b0f56954416860e796813a7[m
+Merge: 3b52080 b9061a8
+Author: Vahid Karami <99403171+vahid-karami@users.noreply.github.com>
+Date:   Thu Nov 5 15:58:18 2026 +0330
+
+    Merge pull request #3 from vahid-karami/claude/relaxed-sagan-8uala0
+    
+    Speed up storefront and fix mobile account layout
+
+[33mcommit bbf2fefcffc1f3823175c24fbfc6655ac4afea49[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 15:57:51 2026 +0330
+
+    Admin API: edit product sizes and size guides
+    
+    Products accept a sizes list (id updates, no id creates, missing ones are deleted; renames are parked first so label swaps don't hit the unique rule) and a size_guide id. Validation: unique labels, unique non-empty SKUs across the shop, ids from this product, at most 30 sizes. New /api/products/admin/size-guides/ endpoint (JSON, or multipart with the table as JSON text and a diagram). Product editors may manage sizes and guides but not delete guides.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit b9061a80a2a7b036a0f751afa2e20c26a9584ea8[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Nov 5 12:23:54 2026 +0000
+
+    Speed up storefront and fix mobile account layout
+    
+    - WebP thumbnails for category and sport images (home page 6 MB -> 1.5 MB)
+    - Gzip static files and cache hashed Vite assets for a year
+    - Fix profile/orders pages overflowing sideways on phones
+    - Return to the original page after login or registration
+    - Close the mobile menu with Escape; Persian digits in badges and counts
+
+[33mcommit 753436b157ead84bf74950dd894f0ad69e2ecea4[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:21:23 2026 +0330
+
+    Shop API: product sizes and size guide on product pages
+    
+    Product detail returns its active sizes (id, label, stock) and the size guide (titles, how to measure, diagram, table); lists return size_labels so cards know a size must be chosen. Sizes and guides are prefetched (no query per product).
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 778d941bfd62e4ba2fc5b1e3f9c31898150cce34[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:19:08 2026 +0330
+
+    Orders: record the size and take stock from it at checkout
+    
+    order_items gets size (SET_NULL) and size_label, a copy of the label so old orders keep showing it. Checkout locks the size rows, refuses lines of sized products without a size, and decrements the size's stock (its signal updates the product total). Cancelling restocks the size. The order CSV lists sizes.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit de4a2844a8e8128e628a94d9f7132482243168f0[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:15:58 2026 +0330
+
+    Cart: one line per product size, stock checked per size
+    
+    cart_items.size (CASCADE) with two unique constraints: per cart+product+size, and one size-less line per cart+product (SQLite never treats NULLs as equal). The migration gives existing lines their product's only size. Adding a sized product needs one of its active sizes; stock checks use the size's stock. Cart responses include the size.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit a8c94743d6fe41a1be22f208329de62c1966a150[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:14:39 2026 +0330
+
+    Sync product stock from sizes; edit sizes and size guides in Django admin
+    
+    A post_save/post_delete signal on ProductSize keeps products.stock equal to the total of the active sizes. Django admin gets a sizes inline on products, a size guide picker and a SizeGuide admin; stock is no longer list-editable because sizes own it. Tests cover the table constraints, stock sync and size guide validation.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 9de0e171c66038d3c8b6b9579264c4d044ed61c0[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:13:54 2026 +0330
+
+    Move product sizes from free text to product_sizes rows
+    
+    Data migration 0009 turns each real size (M, L) into a ProductSize holding the product's stock; 'one size' values stay size-less. 0010 drops products.size so sizes have one source of truth. The size filter, CSV export, Django admin and seed commands use product_sizes (demo products get S, M, L, XL).
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 65e1035367670b78c841f32752fc2e321c770108[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:11:28 2026 +0330
+
+    Add size guide and product size tables
+    
+    size_guides: reusable measurement charts (columns and rows as validated JSON, how-to-measure text, optional diagram), linked from products.size_guide (SET_NULL).
+    product_sizes: one row per sellable size with its own stock, optional unique SKU and sort order. Constraints: label unique per product (case-insensitive), non-empty SKU unique, label not empty. Product.refresh_stock keeps products.stock as the total of active sizes.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 783ba85b7795555b886830db744c821ef648c8ea[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 23:10:51 2026 +0330
+
+    CLAUDE.md: commit in 10+ focused commits per prompt, never push unasked
+    
+    Pushing master deploys to production, so pushes need the owner's go-ahead. Also record how database changes are designed and checked.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 3b52080150f0f57fdc3f2971482e25b46f0728f1[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Nov 4 22:46:09 2026 +0330
+
+    Add CI/CD: test every push, auto-deploy master to Wispbyte
+    
+    CI runs backend and frontend tests, lint and the build on every push and PR to master. Passing pushes are published to the deploy branch, and wispbyte_start.py installs new releases on the server (checks every 5 minutes), keeping .env, database, media and logs. Fix the workflow branch (master, not main) and stop the payment test from calling ZarinPal.
+
+[33mcommit c87da4d8fe40fd5d60bf1b6e8578ed65cbc7db57[m
+Author: Claude <noreply@anthropic.com>
+Date:   Wed Nov 4 08:52:25 2026 +0330
+
+    Home: slogan slider, category circles, big search, labelled shortcuts; Bale instead of WhatsApp; plain Persian wording
+    
+    - Header: always-visible large search box; header shortcuts show a text label
+      under each icon (shop, Bale, favourites, account, cart). On phones only the
+      shortcut row stays pinned while scrolling.
+    - Home: the hero photo + product card is replaced by a slogan slider (brand
+      messages, not categories) and a row of highlighted category circles.
+    - Categories get a show_on_home flag (admin portal checkbox) that picks the
+      circles; all categories show while none is flagged.
+    - Shop settings: whatsapp field renamed to bale (Bale messenger username,
+      links to ble.ir/<username>), used in the header and contact page.
+    - Persian copy: drop the loanwords ساپورت/بریس/اسلیو/ریکاوری/سایز in favour of
+      بند طبی، محافظ، زانوبند مفصل‌دار، بهبودی، اندازه (wording follows Iranian
+      orthopaedic makers such as Teb-o-Sanat). Also SEO titles, manifest and seed data.
+    - Remove the dead CSS of the old hero carousel (its class names clashed).
+    
+    Migrations: products 0007_category_show_on_home, orders 0004_shopsettings_bale.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_013mt7YVJcEDbrydBo856oW1
+
+[33mcommit 07183a455c27c492a34260c75f8265917399a6f5[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Nov 3 14:26:27 2026 +0330
+
+    Add Product editors staff role and fix photo file-handle leak
+    
+    Split the staff portal into catalog and shop sections (hooperzone/permissions.py). A Product editors group from setup_roles can manage products, photos, categories and prices but not orders, customers or settings, and can't delete products. Close photo files after making thumbnails. Redirect /admin to /admin/.
+
+[33mcommit 3e2ca83bb7a118ef0bdd84cdc15a6a3fdda300ae[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Oct 31 14:53:26 2026 +0330
+
+    changed the logo.
+
+[33mcommit d55f5d6faff4f6c2a328a6bee7deac74bfa61460[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Oct 31 14:53:05 2026 +0330
+
+    edited seo file.
+
+[33mcommit d339c0cf8b7b0a25ceb63f3873e596a8d78a8c7c[m
+Merge: e705923 472b29a
+Author: Vahid Karami <99403171+vahid-karami@users.noreply.github.com>
+Date:   Tue Oct 27 17:21:32 2026 +0330
+
+    Merge pull request #2 from vahid-karami/claude/festive-hawking-svcb2p
+    
+    README: step-by-step installation and first-run guide
+
+[33mcommit 472b29ac10f9c4c7dad36f561f9780097ae2213b[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 13:45:47 2026 +0000
+
+    README: step-by-step installation and first-run guide
+    
+    Prerequisites (Python 3.12+, Node 20.19+/22.12+), cloning, the one-command
+    setup with scripts/dev.py, manual setup for Windows and macOS/Linux
+    including frontend/.env.local, creating an admin user, local URLs,
+    troubleshooting, tests and the production build.
+
+[33mcommit e7059231e33f959e3f6d76b0f4801ec209d0aca4[m
+Merge: f12ebf3 b9dda33
+Author: Vahid Karami <99403171+vahid-karami@users.noreply.github.com>
+Date:   Tue Oct 27 17:10:14 2026 +0330
+
+    Merge pull request #1 from vahid-karami/claude/festive-hawking-svcb2p
+    
+    Claude/festive hawking svcb2p
+
+[33mcommit b9dda33ca553c4ffbfaed7a1ec30f730d1f57aec[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 13:18:51 2026 +0000
+
+    Launch docs: ZarinPal, SMS.ir and Enamad setup, checklist, README
+    
+    - DEPLOY_WISPBYTE.md: new .env variables, setup steps for ZarinPal,
+      SMS.ir verify templates and Enamad, a launch checklist (store settings,
+      replacing demo products, Search Console and sitemap), and the automatic
+      daily backups and unpaid-order cleanup.
+    - README rewritten for the current features, commands and configuration
+      (it still described OTP-only login and US-style setup).
+    - Production refuses to claim an SMS was sent when SMS.ir isn't
+      configured.
+    - Correct the HSTS guidance: Wispbyte only serves plain HTTP, so
+      Cloudflare stays on Flexible.
+    - Ignore logs/ and keep it out of the deploy zip. Update CLAUDE.md for
+      the new admin endpoints and SEO module.
+
+[33mcommit e317b86abab03be80df2dee577dfc547b598e66f[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 13:15:50 2026 +0000
+
+    SEO: server-rendered meta, JSON-LD, sitemap, robots, real 404s
+    
+    - Django renders each URL's title, description, canonical link, Open
+      Graph and Twitter tags and JSON-LD into index.html (hooperzone/seo.py),
+      so Google and link previews (Telegram, WhatsApp) see real content:
+      Product with price, availability, brand and rating plus BreadcrumbList,
+      category listings, info pages, and OnlineStore/WebSite with a search
+      action on the home page.
+    - Unknown URLs and missing or hidden products return HTTP 404. Cart,
+      checkout, account and admin pages are noindex.
+    - robots.txt and sitemap.xml (pages, products with image entries,
+      categories, sports).
+    - Optional SEO title and description on products and categories,
+      editable in the admin portal.
+    - Client-side usePageMeta adds canonical, og:locale and og:site_name,
+      clears stale share images between pages, and supports noindex.
+      Breadcrumb JSON-LD on product pages.
+    - Brand favicon and PNG app icons (the Vite default logo was still in
+      use), an apple-touch-icon, a default 1200x630 share image, and Persian
+      keywords. Remove unused Vite template assets.
+
+[33mcommit 49dc4e983382c046d095cdbe55138149a0d64c90[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 13:09:19 2026 +0000
+
+    Smoother storefront: route transitions, thumbnails, mobile fixes
+    
+    - Pages start at the top on navigation (back/forward keeps position). A
+      slim top loading bar replaces the full-page spinner, pages fade in
+      briefly (off with reduced motion), and the catalog, product and cart
+      chunks prefetch when the browser is idle.
+    - Product photos get 600px WebP thumbnails on upload (260 KB instead of
+      5.5 MB for the demo catalog). Cards, cart and checkout use them, and
+      a build_thumbnails command backfills existing images. Photo files and
+      thumbnails are deleted with their rows.
+    - The product list no longer runs one image query per product.
+    - Images get alt text from the product, fixed dimensions, async decoding,
+      and high fetch priority for the main product photo.
+    - Fix horizontal scrolling on phones (home rows and product page) with
+      a shared --page-gutter token.
+    - Touch polish (no tap flash, no double-tap delay), 100dvh, and a
+      4-column footer on tablets.
+    - Remove 300+ lines of unused legacy rules from main.css and a duplicate
+      shimmer keyframe.
+
+[33mcommit ea925ba79c5d50c3b741e6d501ed6956cf8984f5[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 13:03:04 2026 +0000
+
+    Add legal and info pages, real footer contacts, 404 and shipment details
+    
+    - About, Contact, FAQ, Shipping, Returns, Terms and Privacy pages (Persian
+      and English), which Enamad requires before a store can be listed. Contact
+      and Shipping read live store details and fees from shop settings.
+    - Footer: contact details from shop settings instead of the placeholder
+      phone, links to the info pages, Enamad/Samandehi badges, and social
+      links. The newsletter form, which did nothing, is removed.
+    - Catch-all 404 page.
+    - The customer order page shows the shipping method, parcel tracking code
+      with a link to the carrier, and the payment reference.
+    - Remove the "free shipping" claims, since shipping is now always paid.
+      Checkout offers ZarinPal only.
+
+[33mcommit 9b8a4fceaa080588808d0a6d7eee1e0f4f390bee[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 12:58:58 2026 +0000
+
+    Admin portal: orders workflow, invoices, images, categories, customers, settings
+    
+    - Orders: server pagination, date/shipping/payment filters, select and
+      bulk status change, tracking code entry (marks paid orders shipped),
+      status menu limited to forward moves, and CSV export.
+    - Printable invoice with a cut-off shipping label for each order.
+    - Products: server-side paginated search, bulk activate/feature/delete,
+      inline stock editing, sports picker, and an image manager (drag and
+      drop upload, primary image, alt text, delete), so Django admin is no
+      longer needed for photos.
+    - Categories: create, edit, hide and delete with image upload.
+    - New Customers page (search, sort, CSV) and Store settings page
+      (shipping fees, unpaid-order timeout, low-stock threshold, contact info,
+      Enamad/Samandehi codes).
+    - Dashboard: 7/30/90-day range, average order value, best sellers.
+    - Fix the admin layout overflowing sideways on phones.
+    - The API client no longer breaks FormData uploads.
+
+[33mcommit 3258a62ca584e01b6b7eeac96d673dec7c57e34f[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 12:46:16 2026 +0000
+
+    Admin API: paginated orders, workflow, CSV, categories, images, customers
+    
+    - Orders: real pagination, date/shipping filters, forward-only status
+      changes, tracking code, payment status, bulk status, and CSV export.
+    - Shop settings endpoint (shipping fees, unpaid timeout, low-stock
+      threshold, store contact info and trust badges).
+    - Stats: selectable range, average order value, best sellers.
+    - Categories: full CRUD with image upload. The public product_count no
+      longer runs one query per category.
+    - Product images: upload, set primary, alt text and delete from the
+      portal. The product list is paginated server-side. Adds bulk
+      activate/feature/delete and CSV export, and bulk_price_update uses
+      bulk_update.
+    - Customers: searchable list with order count and total spent, plus
+      CSV export.
+
+[33mcommit 440c5b95d11275925ecb9c0dbccb5e08bdb0be60[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 12:40:45 2026 +0000
+
+    Harden production settings and first-boot .env
+    
+    Production always hides OTP codes and disables mock payments, whatever
+    an old .env says. It also adds security headers, opt-in HSTS and file
+    logging. New .env files start in live payment mode with ZarinPal and
+    SMS.ir placeholders. The boot sequence releases stale orders and backs
+    up the database.
+
+[33mcommit 2b0d4c0d4446b852f2a90860f5575f6a4e4fc955[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 12:40:45 2026 +0000
+
+    Charge Toman amounts via ZarinPal v4 and add shipping methods
+    
+    - ZarinPal REST v4 with the merchant ID from ZARINPAL_MERCHANT_ID. Totals
+      are sent as Toman (previously divided by 10, so customers paid a tenth).
+    - The offline mock gateway only runs when PAYMENT_MOCK_FALLBACK is on.
+    - A NOK callback fails the payment without verifying. The ref id, card pan
+      and paid time are saved.
+    - Customers pick Post, Pishtaz or Tipax at checkout. Fees come from a new
+      ShopSettings row that staff edit; the leftover USD free-shipping rule is
+      removed.
+    - Unpaid orders are cancelled after a timeout and their stock released,
+      via the cancel_unpaid_orders command and a throttled sweep. A
+      backup_db command keeps daily SQLite copies.
+
+[33mcommit dc32d2249ef2880506aee372357ad9351269a90a[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Oct 27 12:40:35 2026 +0000
+
+    Send OTP codes through SMS.ir and throttle password login
+    
+    OTP codes go out through the SMS.ir verify API. Password login and
+    registration get a per-IP rate limit that reads Cloudflare's
+    CF-Connecting-IP, so one attacker can't lock out a whole edge. Direct
+    password registration no longer marks the phone as verified.
+
+[33mcommit f12ebf3c077473a3e23b51696d3f147def715840[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat Oct 24 08:55:28 2026 +0330
+
+    added server and renamed the project.
+
+[33mcommit 15a16d9779cd94f8d84b0a322c82bfa9294b8408[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Fri Oct 2 16:17:13 2026 +0330
+
+    Redesign home page with photo hero, sport cards and mobile layout2
+
+[33mcommit 50c19964adf842663ece47d658aef385d0b12f7e[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Fri Oct 2 15:25:13 2026 +0330
+
+    improvements in login page.
+
+[33mcommit c2c3a77a627be8e0c1b7a4409b50ef82f9679a30[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Sep 30 21:05:48 2026 +0330
+
+    Ship sport photos with the repo and seed them on setup.
+
+[33mcommit a8b26a33c7f70343e5252be370baff5d77d2e91a[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Sep 30 20:59:26 2026 +0330
+
+    Fix dev setup parsing Django shell banner.
+
+[33mcommit ecbba657ea5d58f76f26e6eecfca4db1cdfbac2b[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Sep 30 20:56:31 2026 +0330
+
+    Make dev setup seed demo photos on fresh clones.
+
+[33mcommit bda8cf5e12210b6eaae6ef14b73a86be0851a9c6[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Sep 30 20:49:06 2026 +0330
+
+    added sample oenv file.
+
+[33mcommit 295318e144ff1dbb9c7e205f067ecc8f46d766a7[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Wed Sep 30 20:38:34 2026 +0330
+
+    Add portable dev runner and debug configs.
+
+[33mcommit 0b570c96492255c773535d0ddeab8dd8da4846ac[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Sep 29 22:49:41 2026 +0330
+
+    fixed mobile sized pages bugs.
+
+[33mcommit b27af93de64215c6baf96d39404ffdbd7f979788[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Sep 29 22:38:00 2026 +0330
+
+    added a subagent.
+
+[33mcommit 9d54d9786a9e91bcdb04f6d2dac3cc432b8170fb[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 17:08:56 2026 +0330
+
+    changed profile pages.
+
+[33mcommit 84e382e9dfc6142bc8e42f0dd1251d61f46e9699[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 16:51:25 2026 +0330
+
+    redesigned category page.
+
+[33mcommit 33e5924901eca758f2e5bfc2667675a8ee8526de[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 16:31:42 2026 +0330
+
+    edited cartrail.
+
+[33mcommit 413fe311d6403b4ca63bda9f9268199982427784[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 15:41:33 2026 +0330
+
+    redesigned the cart.
+
+[33mcommit 4bc63bfaf95467a7d5efe3add06311310fe1010a[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 15:31:13 2026 +0330
+
+    changes for front and etc.
+
+[33mcommit c9fc799fa732d369aa4cf6ef102f6a115c5d1e40[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 09:55:06 2026 +0330
+
+    Add Liara deployment: production settings, Django serves the React build, pre-start hook.
+
+[33mcommit b4465b75af7f6d99b6b394ebcaa9d22fdb59d31d[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Mon Sep 28 09:30:15 2026 +0330
+
+    added web test for others.
+
+[33mcommit 1456ae50bbbb9cfd8385e9d508f8adf976ea22e7[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Mon Sep 28 09:22:46 2026 +0330
+
+    changed the cart design.
+
+[33mcommit 394ec3078b7145368c45fc19ad46c483fe3ef4a0[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:53:42 2026 +0330
+
+    added shop by sport to the home page.
+
+[33mcommit 8ec1eb1e79d9cb027618293180c283a93b735811[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:47:53 2026 +0330
+
+    Add all missing Persian and English translation keys
+    
+    145 keys used by the code had no entry in fa.json/en.json (new storefront
+    strings plus older auth, checkout, orders and profile ones), so the UI
+    showed raw keys such as "common.home" or fell back to Persian text in
+    English mode. Both locale files now cover every key; the login subtitle
+    uses the SportMed brand name.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 6caf794a895661eefae05941a1fca0c2f82a472f[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:37:22 2026 +0330
+
+    Redesign product detail page and quick view
+    
+    - Gallery with thumbnail rail and arrows, discount badge.
+    - Info column: brand, title, rating summary (jumps to reviews), lead
+      text, highlight checklist built from real product fields, price with
+      strike-through, availability pill, size + size-guide modal, quantity
+      stepper, add-to-cart pill, favorite toggle, SKU/category meta, perks.
+    - Accordions for description, specification table and reviews (summary,
+      Persian dates, verified badge, star-rating form hidden once reviewed).
+    - Related products from the same body part; sticky add-to-cart bar on
+      phones.
+    - Quick view rebuilt to match (localized, Escape to close, toast on add,
+      link to full page), and the modal/size-table styles that were missing
+      entirely are added.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit d181fdbec55e194768e07b4651402f5e40ed5d7a[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:33:28 2026 +0330
+
+    Redesign product listing page
+    
+    Category/body-part listing in the style of the new storefront:
+    breadcrumbs, a title banner that reflects the current filter (body part,
+    category, search, offers), filter pills with popovers (body part,
+    category, price range, stock/on-sale), sort select, removable active
+    filter chips, numbered pagination kept in the URL (?page=), and a proper
+    empty state. Header nav links now highlight based on the query string.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 25e8f5500d9bf3b55c05d3b6ee73c8399285b364[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:31:13 2026 +0330
+
+    Redesign storefront shell, home page and product card
+    
+    Bauerfeind-inspired, Persian-first (RTL) look for the SportMed brand:
+    
+    - Design tokens: light clinical palette (deep navy + pale sky surfaces),
+      Vazirmatn, pill buttons, rounded image cards. Drop the automatic
+      prefers-color-scheme dark theme that inverted the whole shop.
+    - Header: announcement bar, centered logo, "shop" mega-menu by body part
+      and product category, search panel, account/favorites/cart icons, and
+      a slide-in drawer on mobile.
+    - Footer: brand/contact, body-part and service links, newsletter, payment
+      badges, Solar Hijri year.
+    - Home: hero carousel, "shop by body part" and "shop by product type"
+      rails, guide cards, top sellers, advice banner, trust bar.
+    - Product card: soft image tile, discount/bestseller badges, favorite and
+      quick-view buttons; whole card clickable via the title link.
+    - index.html defaults to lang="fa" dir="rtl" with Persian title/meta.
+    - Remove the legacy Digikala-style header/home/card CSS and the unused
+      Header.css / ProductCard.css files.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 87f8fa7a107c2b120824b85f50e1357d11f36f08[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:31:04 2026 +0330
+
+    Frontend: talk to the API through a relative /api with a Vite proxy
+    
+    The API base URL was hardcoded to http://localhost:8000, so the app broke
+    whenever Django ran on another port or host, needed CORS in development,
+    and relative media URLs (/media/...) returned by list endpoints pointed at
+    the Vite server. Use VITE_API_BASE_URL (default "/api") and proxy /api and
+    /media to VITE_BACKEND_URL (default http://localhost:8000) in dev.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 15d1fa080aeae6960b41979b9cc6a8ca07615ede[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:24:34 2026 +0330
+
+    Add on_sale/is_featured product filters and expose is_staff on profile
+    
+    The storefront links to discounted and featured products; the public
+    product list had no way to filter for either (the home page's
+    ?is_featured=true was silently ignored). Also return a read-only
+    is_staff on the profile so the UI can show the admin panel link.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit c6fc8dd7ac0d5c0d7a8bc2039c369c2f46b80258[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sun Sep 27 22:16:13 2026 +0330
+
+    Fix seed_product_images to use the photos shipped in the repo
+    
+    The command read images from a hardcoded path on one developer's machine
+    (/Users/vahid/.gemini/...), so on any other machine every product was
+    skipped and the shop showed no images. Use the per-slug photos already
+    committed under drfecommerce/frontend/public/images/products, with a
+    fallback per injury type.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 50c71d0b1616dbff515867a4cb0ba9e947f080d9[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:07:11 2026 +0330
+
+    CI: actually run the test suite
+    
+    The workflow ran `python manage.py test`, but all tests are pytest-style
+    functions in drfecommerce/tests/, so Django's runner reported "Found 0
+    test(s)" and the job always passed. Run pytest (plus a missing-migration
+    check), run the frontend vitest suite, and stop swallowing lint failures.
+    Drop the Postgres service: nothing read DATABASE_URL and psycopg isn't a
+    dependency, so tests were on SQLite anyway.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 0fe9ee7b66eedd951e2e89cebab540ca776bbb06[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:06:48 2026 +0330
+
+    Return the favorites list when a product is already a favorite
+    
+    favorite_add answered {"message": ...} for duplicates while every other
+    favorites endpoint returns the list. FavoritesContext stores the response
+    as the list, so a double click (or two tabs) wiped `items` and the
+    favorites page/heart icons broke until reload.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit c95640115d3aa15fc9a6be7262bbc1f5c46b4134[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:06:13 2026 +0330
+
+    Fix checkout/cart totals and render-time navigation
+    
+    - DRF serializes cart.total_price as a string, so `subtotal + shipping`
+      concatenated ("49.99" + 9.99 -> "49.999.99") and the Place Order button
+      and summary showed a garbage total. Convert to a number first.
+    - Checkout called navigate('/cart') during render (a React warning and
+      unreliable), and it did so on every hard reload before the cart had been
+      fetched. Render <Navigate> instead and wait for the cart to load.
+    - After placing an order the page called clearCart(), an extra DELETE for
+      a cart the server had already emptied; the resulting empty-cart render
+      raced the redirect to the order page. Navigate first, then resync.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 78e19755d990046491348fedc233e61ce8c9d0ff[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:05:21 2026 +0330
+
+    Fix admin pages: missing showToast, paginated lists, broken edit
+    
+    - AdminProducts/AdminCategories/AdminPriceDeclaration called
+      `showToast`, which ToastContext doesn't provide (AdminProducts didn't
+      even call useToast). After a *successful* create/update the resulting
+      ReferenceError was caught and "Failed to save product" was shown; other
+      error paths crashed. Map it to addToast(message, type).
+    - Categories and admin products are paginated ({count, results}) but were
+      stored as arrays, so `.map`/`.find` threw and the pages were blank.
+    - AdminCategories fetched the relative '/products/categories/', which hits
+      the Vite dev server instead of the API.
+    - Editing a product read `product.category.id`, but the admin serializer
+      returns the id directly, so every edit sent category=null (400).
+    - ProductAdminSerializer omitted name_fa/description_fa, so saving the edit
+      form blanked the Persian name and description. Also show DRF field errors.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit d70d4e439abcbe7cd8e2eb083b4f706120b238c2[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:03:13 2026 +0330
+
+    Validate bulk price update input and avoid zeroing prices
+    
+    - percentage <= -100 produced zero/negative prices; "nan" was accepted by
+      float() and wrote NaN; list/dict JSON values raised TypeError (500).
+    - Prices were computed with float and rounded to the nearest 1000, which
+      turned any price below 500 (e.g. the 49.99 demo data) into 0. Use
+      Decimal and fall back to 2-decimal rounding when the result would be 0;
+      the admin preview mirrors this.
+    - Run the update in a transaction with row locks so a failure can't leave
+      a category half re-priced.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 63bd3051b7d9b133982863242ef94131d6a8d3ed[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:02:07 2026 +0330
+
+    Stop exposing reviewers' personal data on public review lists
+    
+    GET /api/reviews/product/<slug>/ is AllowAny and nested the full
+    UserProfileSerializer, publishing every reviewer's phone number, email,
+    street address, province, city and postal code. Use a minimal author
+    serializer (id, first_name, display_name) and show display_name in the UI
+    instead of falling back to the phone number.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 9a1f53ce49c692a06f77c559971cb1da07d5ed57[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 18:01:05 2026 +0330
+
+    Generate product slugs on admin create
+    
+    ProductCreateSerializer doesn't expose `slug`, so products created through
+    /api/products/admin/products/ were saved with slug="". The first worked
+    (but was unreachable by slug), every following one failed with an
+    IntegrityError on the unique constraint. Product.save() now derives a
+    unique ASCII slug from the name (falling back to "product-N" for
+    Persian-only names, since the reviews URLs use the <slug:> converter),
+    and the create/update response includes id and slug.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 4d983305bb5376f0eb3cf63d04ca6d98088d19f3[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:59:48 2026 +0330
+
+    Validate cart quantities and ids instead of crashing
+    
+    - cart add/update called int() on user input, so a non-numeric quantity
+      raised ValueError (500).
+    - Negative quantities passed the stock check; adding -3 to an item reduced
+      its quantity or hit the PositiveIntegerField CHECK constraint (500).
+      Adding now requires quantity >= 1.
+    - Non-numeric product_id / item_id in cart and favorites endpoints raised
+      ValueError (500); return 404 instead.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 805f8dddaa4c0b9790c54ca0308c7343075514ef[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:58:32 2026 +0330
+
+    Lock stock during checkout and make order cancellation atomic
+    
+    - order_create checked stock and then decremented it without locking the
+      product rows; two concurrent checkouts could both pass the check and
+      oversell (or crash on the PositiveIntegerField constraint). Products are
+      now locked with select_for_update for the duration of the transaction.
+    - Products deactivated after being added to a cart could still be ordered.
+    - order_cancel wasn't atomic: a double submit could restock twice. Lock the
+      order row and restock with an F() expression.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 6db5b2343e967f6e1d0771fed8271cbfb6a27231[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:57:34 2026 +0330
+
+    Fix payment verification: forged payments, IDPay crash, amount mismatch
+    
+    - /api/orders/payment/verify/ is public and accepted any authority. Mock
+      authorities ("ZP-MOCK-..."/"IDP-MOCK-...") always verify, so anyone could
+      mark any order as paid with a single request. The authority/id returned
+      by the gateway is now stored on the order at initiation and must match;
+      the gateway is taken from the order, not the query string.
+    - IDPayGateway.verify_payment(payment_id, order_id) was called with
+      `amount=` and crashed with TypeError; unify the signature to
+      verify_payment(order, authority).
+    - ZarinPal verification sent order.total while the request sent the
+      converted Toman amount, so real verifications always failed.
+    - Cancelled orders could be paid (and flipped back to "confirmed").
+    - Mock fallback only in sandbox (PAYMENT_SANDBOX, defaults to DEBUG);
+      in production a gateway failure returns 502 instead of a fake payment.
+    - Row-lock the order during verification to avoid double processing.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 6ed3bc1755a0a505dfc552c79ddc5b11c6a0bd09[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:55:28 2026 +0330
+
+    Fix OTP registration flow and unverified-phone takeover
+    
+    - send_otp created placeholder users via get_or_create with password=''.
+      Django treats '' as a *usable* password, so after verifying the OTP the
+      register endpoint always answered "already registered": phone/OTP sign-up
+      could never succeed. Placeholders now get an unusable password.
+    - Re-requesting a register OTP failed because any row with that phone
+      counted as an existing account; only accounts with a password count now.
+    - Requesting a reset_password OTP for an unknown phone silently created a
+      user; it now returns 404 like login.
+    - register() let anyone set the password on a placeholder phone account
+      without having verified the OTP; require is_verified first.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit fe15ab9961806bc4a266c06cbde098754b66f3a7[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:54:37 2026 +0330
+
+    Stop leaking OTP codes, use a CSPRNG and throttle OTP endpoints
+    
+    - /api/auth/otp/send/ returned the OTP in the response body. Combined with
+      otp_type=login this let anyone obtain a JWT for any phone number. The code
+      is now only included when OTP_RETURN_IN_RESPONSE is enabled (defaults to
+      DEBUG) until an SMS provider is wired up.
+    - OTP codes were generated with `random`; use `secrets`.
+    - Add a per-IP throttle to send/verify/reset so 6-digit codes can't be
+      brute-forced within their 5-minute lifetime.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 3162759d244b162b0036dc083ad48c5082d0059b[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Sep 26 17:53:30 2026 +0330
+
+    Fix settings: DATABASES missing for wsgi/asgi, unsafe production config
+    
+    - wsgi.py/asgi.py load `drfecommerce.settings`, which only imports base.py
+      and had no DATABASES, so the deployed app failed with ImproperlyConfigured.
+      Move the sqlite config into base.py.
+    - Add STATIC_ROOT so `collectstatic` (run by the deploy job) works.
+    - production.py set ALLOWED_HOSTS=['*'] and inherited DEBUG=True by default;
+      default DEBUG to False, honour ALLOWED_HOSTS env, refuse the insecure key.
+    - requirements.txt was UTF-16 encoded; re-save as UTF-8.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+[33mcommit 304608d277e788c5e26013cd4b8ddc368479006c[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Thu Sep 17 18:59:46 2026 +0330
+
+    necessary changes.
+
+[33mcommit 59192374bfffe2bc005e4479492351673ccd2d51[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Sep 1 17:06:18 2026 +0330
+
+    translated to persian.
+
+[33mcommit d81ef67f06aafdaf513cd82aa1c012987f9a346a[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Sep 1 16:47:41 2026 +0330
+
+    added frontend and apps, home page.
+
+[33mcommit 8c94a553baf412c649ecf4ebc8246d7c8636effb[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Tue Sep 1 14:58:17 2026 +0330
+
+    added necessary files.
+
+[33mcommit 70085b8d4962489f2512ea533a7b2bfa0ad41956[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat May 9 18:34:02 2026 +0330
+
+    changed the Readme file.
+
+[33mcommit 07905402c466ab15eed0f73d31e6c9c2ec89ac14[m
+Author: Vahid Karami <vahidkarami1380@gmail.com>
+Date:   Sat May 9 18:29:38 2026 +0330
+
+    added a readme file to the project.
+
+[33mcommit 6c57191fcda41bad5d290f24ff44ba40d44e9350[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Feb 21 16:53:27 2026 +0330
+
+    added flake8 and black, linting options.
+
+[33mcommit 6014628d40b50a3819e99c3eaa2a0fb90933e3fc[m
+Author: Karami <v.karami@rahpoo.ir>
+Date:   Sat Feb 14 14:56:34 2026 +0330
+
+    first commit.
