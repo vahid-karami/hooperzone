@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import include, path, re_path
 from django.views.decorators.cache import cache_page
 from django.views.static import serve
@@ -27,6 +27,19 @@ def api_root(request):
     })
 
 
+# Files that must live at the site root, e.g. ownership checks from Enamad (enamad.ir) that ask
+# for https://hooperzone.ir/<number>.txt. Drop the file in hooperzone/site_root/ and deploy.
+SITE_ROOT_DIR = settings.BASE_DIR / "site_root"
+SITE_ROOT_TYPES = {".txt": "text/plain; charset=utf-8", ".html": "text/html; charset=utf-8"}
+
+
+def site_root_file(request, name):
+    file = SITE_ROOT_DIR / name
+    if not file.is_file():
+        return frontend_app(request)  # unknown name: the shop's normal 404 page
+    return HttpResponse(file.read_bytes(), content_type=SITE_ROOT_TYPES[file.suffix])
+
+
 def frontend_app(request):
     """Serve the built React app for every non-API URL (client-side routing).
 
@@ -47,6 +60,8 @@ urlpatterns = [
         {"sitemaps": seo.SITEMAPS, "template_name": "sitemap.xml"},
         name="sitemap",
     ),
+    # Only plain names (letters, digits, - and _) so nothing outside site_root can be reached.
+    re_path(r"^(?P<name>[A-Za-z0-9_-]+\.(?:txt|html))$", site_root_file, name="site-root-file"),
     path("api/", api_root, name="api-root"),
     path("admin/", admin.site.urls),
     path("api/auth/", include("accounts.urls")),

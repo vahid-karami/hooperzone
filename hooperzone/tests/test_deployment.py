@@ -62,3 +62,23 @@ def test_seed_demo_store_skips_when_products_exist():
     call_command("seed_demo_store", stdout=out)
     assert "skipping" in out.getvalue()
     assert Product.objects.count() == 1
+
+
+def test_enamad_verification_file_is_served_from_the_site_root():
+    res = APIClient().get("/41146483.txt")
+    assert res.status_code == 200
+    assert res.content == b""
+    assert res["Content-Type"].startswith("text/plain")
+
+
+@pytest.mark.django_db
+def test_unknown_root_txt_files_get_the_normal_404(built_frontend):
+    assert APIClient().get("/nope-123.txt").status_code == 404
+
+
+def test_site_root_files_cannot_reach_outside_their_folder():
+    client = APIClient()
+    for url in ["/..%2Fsettings.py.txt", "/../manage.py.txt", "/settings/base.py"]:
+        res = client.get(url)
+        assert res.status_code != 200 or b"SECRET_KEY" not in res.content
+    assert client.get("/robots.txt").status_code == 200  # still the SEO robots.txt
