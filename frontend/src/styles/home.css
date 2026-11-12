@@ -525,17 +525,17 @@
   .home2-type-img { width: 72px; height: 72px; }
 }
 
-/* ---- Sport ticker: an orange marquee band of sport names under the hero ---- */
+/* ---- Sport ticker: a navy marquee band of sport names under the hero ---- */
 .sport-ticker {
   --ticker-shift: 100%;
   display: flex;
   overflow: hidden;
   margin-block: clamp(28px, 4vw, 48px) 0;
   padding-block: 14px;
-  background: var(--color-energy);
-  color: var(--color-energy-ink);
+  background: var(--color-primary);
+  color: #fff;
   transform: rotate(-1.2deg);
-  box-shadow: var(--shadow-energy);
+  box-shadow: var(--shadow-navy-glow);
   /* The tilted band is wider than the screen so its ends never show. */
   margin-inline: -2vw;
 }
@@ -554,8 +554,8 @@
   font-weight: var(--font-weight-black);
   color: inherit;
 }
-.sport-ticker-track a:hover { color: #fff; }
-.sport-ticker-star { padding-inline: clamp(18px, 2.5vw, 32px); font-size: 0.9rem; opacity: 0.7; }
+.sport-ticker-track a:hover { color: #8fe0ea; }
+.sport-ticker-star { padding-inline: clamp(18px, 2.5vw, 32px); font-size: 0.9rem; color: var(--color-accent); }
 @media (prefers-reduced-motion: no-preference) {
   .sport-ticker-track { animation: ticker-run 32s linear infinite; }
   .sport-ticker:hover .sport-ticker-track,
@@ -563,11 +563,11 @@
 }
 @keyframes ticker-run { to { transform: translateX(var(--ticker-shift)); } }
 
-/* ---- Energy layer for the home sections ---- */
+/* ---- Motion layer for the home sections ---- */
 /* The tilted ticker is wider than the page; clip it without breaking position: sticky. */
 .home { overflow-x: clip; }
 
-/* Section titles get a short orange stroke that grows in with the reveal. */
+/* Section titles get a short teal stroke that grows in with the reveal. */
 .home2-head .section-title { position: relative; padding-bottom: 10px; }
 .home2-head .section-title::after {
   content: "";
@@ -577,7 +577,7 @@
   width: 56px;
   height: 4px;
   border-radius: 4px;
-  background: var(--color-energy);
+  background: var(--color-accent);
   transform-origin: var(--grow-origin);
   transition: transform 700ms var(--ease-spring) 200ms;
 }
@@ -585,13 +585,13 @@
   .home2-head[data-reveal]:not(.in) .section-title::after { transform: scaleX(0); }
 }
 
-/* Category circles: orange ring on hover, a bouncy lift, label turns orange. */
+/* Category circles: bouncy lift and tilt on hover. */
 .home-circle-img {
-  background-image: linear-gradient(#fff, #fff), conic-gradient(from 0deg, var(--color-energy), var(--color-primary), var(--color-energy));
+  background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, var(--color-accent), var(--color-primary));
   transition: transform 360ms var(--ease-spring), box-shadow 260ms ease;
 }
-.home-circle:hover .home-circle-img { transform: translateY(-6px) rotate(-4deg); box-shadow: var(--shadow-energy); }
-.home-circle:hover .home-circle-label { color: var(--color-energy-dark); }
+.home-circle:hover .home-circle-img { transform: translateY(-6px) rotate(-4deg); box-shadow: var(--shadow-navy-glow); }
+.home-circle:hover .home-circle-label { color: var(--color-primary); }
 .home-circle-label { transition: color 180ms ease; }
 @media (prefers-reduced-motion: no-preference) {
   .home-circle { animation: circle-in 560ms var(--ease-spring) both; }
@@ -604,17 +604,17 @@
 }
 @keyframes circle-in { from { opacity: 0; transform: translateY(16px) scale(0.85); } }
 
-/* Body-part pills light up orange. */
-.home2-pill:hover { background: var(--color-energy); border-color: var(--color-energy); color: var(--color-energy-ink); transform: translateY(-2px); }
+/* Body-part pills lift on hover. */
+.home2-pill:hover { transform: translateY(-2px); }
 
-/* Sport photo cards: tilt-lift, orange wash from the bottom, label slides up. */
+/* Sport photo cards: tilt-lift, teal wash from the bottom, label slides up. */
 .home2-sport { transition: opacity 0.6s ease, transform 420ms var(--ease-spring), box-shadow 300ms ease; }
 .home2-sport::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(to top, rgb(255 107 26 / 0.75) 0%, rgb(255 107 26 / 0) 55%);
+  background: linear-gradient(to top, rgb(18 135 150 / 0.7) 0%, rgb(18 135 150 / 0) 55%);
   opacity: 0;
   transition: opacity 300ms ease;
 }
@@ -630,6 +630,6 @@
 .home2-type { transition: opacity 0.6s ease, transform 360ms var(--ease-spring); }
 @media (hover: hover) { .home2-type:hover { transform: translateY(-5px); } }
 
-/* Guides: orange edge on hover. */
+/* Guides: lift on hover. */
 .home2-guide { transition: opacity 0.6s ease, transform 420ms var(--ease-spring), box-shadow 300ms ease; }
-@media (hover: hover) { .home2-guide:hover { transform: translateY(-6px); box-shadow: 0 24px 44px -22px rgb(255 107 26 / 0.6); } }
+@media (hover: hover) { .home2-guide:hover { transform: translateY(-6px); box-shadow: 0 24px 44px -22px rgb(18 52 143 / 0.5); } }
