@@ -561,3 +561,74 @@
   .sport-ticker:focus-within .sport-ticker-track { animation-play-state: paused; }
 }
 @keyframes ticker-run { to { transform: translateX(var(--ticker-shift)); } }
+
+/* ---- Energy layer for the home sections ---- */
+/* The tilted ticker is wider than the page; clip it without breaking position: sticky. */
+.home { overflow-x: clip; }
+
+/* Section titles get a short orange stroke that grows in with the reveal. */
+.home2-head .section-title { position: relative; padding-bottom: 10px; }
+.home2-head .section-title::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 56px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--color-energy);
+  transform-origin: var(--dot-origin, right);
+  transition: transform 700ms var(--ease-spring) 200ms;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .home2-head[data-reveal]:not(.in) .section-title::after { transform: scaleX(0); }
+}
+
+/* Category circles: orange ring on hover, a bouncy lift, label turns orange. */
+.home-circle-img {
+  background-image: linear-gradient(#fff, #fff), conic-gradient(from 0deg, var(--color-energy), var(--color-primary), var(--color-energy));
+  transition: transform 360ms var(--ease-spring), box-shadow 260ms ease;
+}
+.home-circle:hover .home-circle-img { transform: translateY(-6px) rotate(-4deg); box-shadow: var(--shadow-energy); }
+.home-circle:hover .home-circle-label { color: var(--color-energy-dark); }
+.home-circle-label { transition: color 180ms ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .home-circle { animation: circle-in 560ms var(--ease-spring) both; }
+  .home-circle:nth-child(2) { animation-delay: 50ms; }
+  .home-circle:nth-child(3) { animation-delay: 100ms; }
+  .home-circle:nth-child(4) { animation-delay: 150ms; }
+  .home-circle:nth-child(5) { animation-delay: 200ms; }
+  .home-circle:nth-child(6) { animation-delay: 250ms; }
+  .home-circle:nth-child(n + 7) { animation-delay: 300ms; }
+}
+@keyframes circle-in { from { opacity: 0; transform: translateY(16px) scale(0.85); } }
+
+/* Body-part pills light up orange. */
+.home2-pill:hover { background: var(--color-energy); border-color: var(--color-energy); color: var(--color-energy-ink); transform: translateY(-2px); }
+
+/* Sport photo cards: tilt-lift, orange wash from the bottom, label slides up. */
+.home2-sport { transition: transform 420ms var(--ease-spring), box-shadow 300ms ease; }
+.home2-sport::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgb(255 107 26 / 0.75) 0%, rgb(255 107 26 / 0) 55%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.home2-sport-label { transition: transform 420ms var(--ease-spring); }
+@media (hover: hover) {
+  .home2-sport:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 26px 44px -20px rgb(10 24 56 / 0.55); }
+  .home2-sport:hover::before { opacity: 1; }
+  .home2-sport:hover .home2-sport-label { transform: translateY(-6px); }
+  .home2-sport:hover img { transform: scale(1.1); }
+}
+
+/* Category type tiles: icon bounce. */
+.home2-type { transition: transform 360ms var(--ease-spring); }
+@media (hover: hover) { .home2-type:hover { transform: translateY(-5px); } }
+
+/* Guides: orange edge on hover. */
+.home2-guide { transition: transform 420ms var(--ease-spring), box-shadow 300ms ease; }
+@media (hover: hover) { .home2-guide:hover { transform: translateY(-6px); box-shadow: 0 24px 44px -22px rgb(255 107 26 / 0.6); } }
