@@ -399,3 +399,6 @@
   transition: transform 360ms var(--ease-spring), background 200ms ease, color 200ms ease;
 }
 .trust-item:hover > .icon { transform: translateY(-4px) rotate(-6deg); background: var(--color-energy); color: var(--color-energy-ink); }
+
+.quick-view-btn { transition: opacity var(--transition-fast), transform 320ms var(--ease-spring), background 180ms ease, color 180ms ease; }
+.quick-view-btn:hover { background: var(--color-energy); color: var(--color-energy-ink); }
