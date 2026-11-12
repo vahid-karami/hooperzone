@@ -354,3 +354,48 @@
 }
 @keyframes card-in { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
 @keyframes heart-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* ---- Energy: advice banner, trust bar ---- */
+.advice-banner {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(60% 140% at 0% 100%, rgb(255 107 26 / 0.55) 0%, rgb(255 107 26 / 0) 60%),
+    linear-gradient(120deg, var(--color-night) 0%, var(--color-primary) 65%, var(--color-primary-light) 100%);
+}
+/* Court-line rings that slowly turn behind the text. */
+.advice-banner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -60%;
+  inset-inline-end: -8%;
+  width: 360px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px dashed rgb(255 255 255 / 0.18);
+  box-shadow: 0 0 0 40px rgb(255 255 255 / 0.04), 0 0 0 90px rgb(255 255 255 / 0.03);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .advice-banner::before { animation: ring-spin 40s linear infinite; }
+  .advice-banner .btn-energy { animation: cta-breathe 2.6s ease-in-out infinite; }
+  .advice-banner .btn-energy:hover { animation: none; }
+}
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+@keyframes cta-breathe {
+  0%, 100% { box-shadow: var(--shadow-energy), 0 0 0 0 rgb(255 107 26 / 0.5); }
+  50% { box-shadow: var(--shadow-energy), 0 0 0 12px rgb(255 107 26 / 0); }
+}
+
+.trust-item > .icon {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-energy-50);
+  color: var(--color-energy-dark);
+  transition: transform 360ms var(--ease-spring), background 200ms ease, color 200ms ease;
+}
+.trust-item:hover > .icon { transform: translateY(-4px) rotate(-6deg); background: var(--color-energy); color: var(--color-energy-ink); }
