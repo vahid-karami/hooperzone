@@ -29,6 +29,8 @@ cd frontend && npm run build:django               # production build served by D
 ## Frontend conventions
 - RTL first: use logical CSS properties (`margin-inline-start`, `inset-inline-end`) and never mirror icons with `scaleX(-1)`.
 - Design tokens are in `styles/design-tokens.css`: navy `#12348f` primary, sky `#e8eef7` surfaces, Vazirmatn font, pill buttons.
+- Energy theme (Figma board "HooperZone – Energy redesign"): basketball orange `--color-energy` `#ff6b1a` with navy ink text for main calls to action (`.btn-energy`: hero, add to cart, cart/checkout) and highlights; night navy `--color-night` for bold dark sections. Keep navy as the brand colour and use orange as the one accent.
+- Motion: springy easing tokens (`--ease-spring`, `--ease-out-expo`). Scroll reveal is `hooks/useReveal.js` + `data-reveal` on elements. Every animation sits under `prefers-reduced-motion: no-preference` (or is turned off under `reduce`); animate only `transform` and `opacity`. Bars that grow in use `--grow-origin` so they start at the reading start in fa and en.
 - Stylesheets by area: `storefront.css` (header/home), `catalog.css`, `pages.css`, `product.css`, `checkout.css`, `account.css` (profile/orders/admin), `rtl.css`. `main.css` is legacy; don't add to it, and prune dead rules when you replace markup.
 - Every UI string uses `t('key', 'Persian default')`, and the key must exist in both `i18n/locales/fa.json` and `en.json`.
 - Persian digits: normalize input with `utils/digits.js` `toEnglishDigits`; display numbers with `toPersianNumber` (`hooks/useLanguage.js`). The backend also accepts Persian digits (`hooperzone/fields.py` `DigitsCharField`).
