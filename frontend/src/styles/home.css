@@ -52,8 +52,27 @@
     linear-gradient(0deg, rgba(8, 22, 64, 0.92) 0%, rgba(8, 22, 64, 0.66) 50%, rgba(8, 22, 64, 0.2) 100%);
 }
 
-.hero-slide.theme-navy { background: radial-gradient(120% 140% at 100% 0%, #2a56c9 0%, #12348f 48%, #0b2266 100%); }
-.hero-slide.theme-teal { background: radial-gradient(120% 140% at 0% 0%, #2cc3d3 0%, #128796 50%, #0c5f6b 100%); }
+.hero-slide.theme-navy { background: radial-gradient(120% 140% at 100% 0%, #2a56c9 0%, #12348f 48%, var(--color-night) 100%); }
+/* Night-to-orange: the energy slide. */
+.hero-slide.theme-teal {
+  background:
+    radial-gradient(90% 120% at 0% 100%, rgb(255 107 26 / 0.85) 0%, rgb(255 107 26 / 0) 60%),
+    linear-gradient(135deg, var(--color-night) 0%, #12348f 70%, #1d47b8 100%);
+}
+
+/* A soft orange light that drifts behind the text. */
+.hero-slide-glow {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: -30%;
+  inset-inline-start: -10%;
+  width: min(60vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 107 26 / 0.45) 0%, rgb(255 107 26 / 0) 65%);
+  pointer-events: none;
+  filter: blur(8px);
+}
 
 /* Decorative court-line rings on the colour slides. */
 .hero-slide-shape { display: none; }
@@ -110,16 +129,16 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-.hero-slide-cta {
-  margin-top: 6px;
-  background: #fff;
-  color: var(--color-primary);
-  border-color: #fff;
-}
-.hero-slide-cta:hover { background: var(--color-primary-50); color: var(--color-primary); border-color: var(--color-primary-50); }
+.hero-slide-cta { margin-top: 6px; }
 
 /* Slide text rises in each time its slide becomes active. */
 @media (prefers-reduced-motion: no-preference) {
+  .hero-slide-glow { animation: hero-glow-drift 9s ease-in-out infinite alternate; }
+  .hero-slide.is-active > img { animation: hero-kenburns 9s ease-out both; }
+  .hero-slide.theme-navy .hero-slide-shape,
+  .hero-slide.theme-teal .hero-slide-shape { animation: hero-ring-pulse 4s ease-in-out infinite; }
+  .hero-slide.is-active .hero-slide-content h1,
+  .hero-slide.is-active .hero-slide-content h2 { transition-duration: 0.5s, 0.8s; transition-timing-function: ease, var(--ease-spring); }
   .hero-slide-content > * { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
   .hero-slide.is-active .hero-slide-content > * { opacity: 1; transform: none; }
   .hero-slide.is-active .hero-slide-content > :nth-child(2) { transition-delay: 0.08s; }
@@ -174,10 +193,38 @@
   cursor: pointer;
   transition: width 0.3s ease, background 0.3s ease;
 }
-.hero-slider-dots button.is-active { width: 28px; background: #fff; }
+.hero-slider-dots button.is-active { width: 36px; background: rgba(255, 255, 255, 0.45); }
 /* Bigger tap target without bigger dots. */
-.hero-slider-dots button { position: relative; }
+.hero-slider-dots button { position: relative; overflow: visible; }
 .hero-slider-dots button::after { content: ""; position: absolute; inset: -17px -4px; }
+/* The active dot fills up in orange until the next slide (autoplay timer). */
+.hero-slider-dots button.is-active::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--color-energy);
+  transform-origin: var(--dot-origin, right);
+  animation: hero-dot-fill 6s linear both;
+}
+[dir="ltr"] .hero-slider-dots { --dot-origin: left; }
+.hero-slider.is-paused .hero-slider-dots button.is-active::before { animation-play-state: paused; }
+
+@keyframes hero-dot-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes hero-glow-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(12%, -18%, 0) scale(1.15); }
+}
+@keyframes hero-kenburns { from { transform: scale(1.08); } to { transform: scale(1); } }
+@keyframes hero-ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.75; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slider-dots button.is-active::before { animation: none; transform: none; }
+}
 
 /* ---- Highlighted category circles ---- */
 .home-circles {

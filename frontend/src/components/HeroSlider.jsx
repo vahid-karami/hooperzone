@@ -48,7 +48,7 @@ export default function HeroSlider({ slides }) {
 
   return (
     <section
-      className="hero-slider"
+      className={`hero-slider ${paused ? 'is-paused' : ''}`}
       aria-roledescription="carousel"
       aria-label={t('home.sliderLabel', 'شعارهای هوپرزون')}
       onMouseEnter={() => setPaused(true)}
@@ -91,15 +91,16 @@ export default function HeroSlider({ slides }) {
                   />
                 )}
                 <span className="hero-slide-shape" aria-hidden="true" />
+                <span className="hero-slide-glow" aria-hidden="true" />
                 <div className="hero-slide-content">
                   {s.eyebrow && <span className="hero-slide-eyebrow">{s.eyebrow}</span>}
                   {i === 0 ? <h1>{s.title}</h1> : <h2>{s.title}</h2>}
                   {s.text && <p>{s.text}</p>}
                   {cta &&
                     (cta.to ? (
-                      <Link to={cta.to} className="btn btn-lg hero-slide-cta">{ctaInner}</Link>
+                      <Link to={cta.to} className="btn btn-lg btn-energy hero-slide-cta">{ctaInner}</Link>
                     ) : (
-                      <a href={cta.href} className="btn btn-lg hero-slide-cta">{ctaInner}</a>
+                      <a href={cta.href} className="btn btn-lg btn-energy hero-slide-cta">{ctaInner}</a>
                     ))}
                 </div>
               </div>
