@@ -13,6 +13,16 @@
   --color-accent: #1aa3b5;
   --color-accent-dark: #128796;
 
+  /* Energy: basketball orange for calls to action and highlights (navy ink on top),
+     night navy for bold dark sections. */
+  --color-energy: #ff6b1a;
+  --color-energy-dark: #f05400;
+  --color-energy-light: #ff8a47;
+  --color-energy-50: #fff3eb;
+  --color-energy-100: #ffe1cc;
+  --color-energy-ink: #0d1a3a;
+  --color-night: #0a1838;
+
   /* Surfaces */
   --color-surface: #ffffff;
   --color-surface-sky: #e8eef7;
@@ -95,6 +105,11 @@
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 400ms ease;
+  /* Springy curves: a slight overshoot makes movement feel physical. */
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-energy: 0 12px 28px -10px rgb(255 107 26 / 0.55);
+  --shadow-navy-glow: 0 18px 40px -16px rgb(18 52 143 / 0.45);
 
   /* Layout */
   --max-width: 1320px;
@@ -237,9 +252,12 @@ button {
   border-radius: var(--radius-full);
   border: 1.5px solid transparent;
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease,
+    box-shadow 220ms ease, transform 260ms var(--ease-spring);
   white-space: nowrap;
 }
+
+.btn:active:not(:disabled) { transform: scale(0.97); }
 
 .btn:disabled {
   opacity: 0.5;
@@ -290,6 +308,39 @@ button {
 .btn-ghost:hover:not(:disabled) {
   background-color: var(--color-neutral-100);
   color: var(--color-neutral-800);
+}
+
+/* Energy CTA: orange with navy ink, a warm glow and a little lift on hover. */
+.btn-energy {
+  background-color: var(--color-energy);
+  color: var(--color-energy-ink);
+  border-color: var(--color-energy);
+  box-shadow: var(--shadow-energy);
+}
+
+.btn-energy:hover:not(:disabled) {
+  background-color: var(--color-energy-light);
+  border-color: var(--color-energy-light);
+  color: var(--color-energy-ink);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -10px rgb(255 107 26 / 0.65);
+}
+
+/* Outline for dark or photo backgrounds. */
+.btn-light-outline {
+  background-color: transparent;
+  color: #fff;
+  border-color: rgb(255 255 255 / 0.7);
+}
+
+.btn-light-outline:hover:not(:disabled) {
+  background-color: #fff;
+  border-color: #fff;
+  color: var(--color-primary);
+}
+
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-navy-glow); }
 }
 
 .btn-sm {
