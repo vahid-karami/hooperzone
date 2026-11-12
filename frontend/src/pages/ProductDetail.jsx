@@ -375,7 +375,7 @@ export default function ProductDetail() {
                       <Icon name="minus" size={18} />
                     </button>
                   </div>
-                  <button onClick={handleAddToCart} disabled={addingToCart} className={`btn btn-energy btn-lg pdp-add ${justAdded ? 'is-added' : ''}`}>
+                  <button onClick={handleAddToCart} disabled={addingToCart} className={`btn btn-primary btn-lg pdp-add ${justAdded ? 'is-added' : ''}`}>
                     <Icon name={justAdded ? 'check' : 'bag'} size={20} />
                     {addingToCart ? t('common.loading') : justAdded ? t('product.added', 'اضافه شد') : t('common.addToCart')}
                   </button>

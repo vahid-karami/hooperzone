@@ -98,9 +98,9 @@ export default function HeroSlider({ slides }) {
                   {s.text && <p>{s.text}</p>}
                   {cta &&
                     (cta.to ? (
-                      <Link to={cta.to} className="btn btn-lg btn-energy hero-slide-cta">{ctaInner}</Link>
+                      <Link to={cta.to} className="btn btn-lg hero-slide-cta">{ctaInner}</Link>
                     ) : (
-                      <a href={cta.href} className="btn btn-lg btn-energy hero-slide-cta">{ctaInner}</a>
+                      <a href={cta.href} className="btn btn-lg hero-slide-cta">{ctaInner}</a>
                     ))}
                 </div>
               </div>

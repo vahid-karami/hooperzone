@@ -301,7 +301,7 @@ export default function Home() {
               <h2>{t('home.adviceTitle', 'در انتخاب اندازه یا مدل مردد هستید؟')}</h2>
               <p>{t('home.adviceText', 'کارشناسان ما کمک می‌کنند محصولی را انتخاب کنید که دقیقاً به کار شما بیاید.')}</p>
             </div>
-            <a href={phoneHref} className="btn btn-energy btn-lg">
+            <a href={phoneHref} className="btn btn-secondary btn-lg">
               <Icon name="phone" size={18} /> {t('home.adviceCta', 'تماس با کارشناس')}
             </a>
           </div>
