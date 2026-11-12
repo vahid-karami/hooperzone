@@ -206,10 +206,10 @@
   width: 100%;
   border-radius: inherit;
   background: var(--color-energy);
-  transform-origin: var(--dot-origin, right);
+  transform-origin: var(--grow-origin);
   animation: hero-dot-fill 6s linear both;
 }
-[dir="ltr"] .hero-slider-dots { --dot-origin: left; }
+
 .hero-slider.is-paused .hero-slider-dots button.is-active::before { animation-play-state: paused; }
 
 @keyframes hero-dot-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -577,7 +577,7 @@
   height: 4px;
   border-radius: 4px;
   background: var(--color-energy);
-  transform-origin: var(--dot-origin, right);
+  transform-origin: var(--grow-origin);
   transition: transform 700ms var(--ease-spring) 200ms;
 }
 @media (prefers-reduced-motion: no-preference) {

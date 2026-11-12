@@ -116,9 +116,13 @@
   --header-height: 76px;
   /* Side padding of .container; full-bleed rows pull out by the same amount. */
   --page-gutter: var(--spacing-6);
+  /* Where growing bars start: the reading start (right in Persian, left in English). */
+  --grow-origin: right;
 
   color-scheme: light;
 }
+
+[dir="ltr"] { --grow-origin: left; }
 
 /* Base Styles */
 *,
