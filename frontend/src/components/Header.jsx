@@ -59,6 +59,16 @@ export default function Header() {
     return () => ro.disconnect();
   }, []);
 
+  // Adds a shadow once the page scrolls under the header (class toggle, no re-render).
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return undefined;
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
     if (!drawerOpen) return undefined;
@@ -223,7 +233,7 @@ export default function Header() {
             <Link to="/favorites" className="tool hide-sm">
               <span className="tool-icon">
                 <Icon name="heart" />
-                {favorites.total_items > 0 && <span className="count-badge">{num(favorites.total_items)}</span>}
+                {favorites.total_items > 0 && <span key={favorites.total_items} className="count-badge">{num(favorites.total_items)}</span>}
               </span>
               <span className="tool-label">{t('header.favoritesShort', 'علاقه‌مندی')}</span>
             </Link>
@@ -258,7 +268,7 @@ export default function Header() {
             <Link to="/cart" className="tool">
               <span className="tool-icon">
                 <Icon name="bag" />
-                {cart.total_items > 0 && <span className="count-badge">{num(cart.total_items)}</span>}
+                {cart.total_items > 0 && <span key={cart.total_items} className="count-badge">{num(cart.total_items)}</span>}
               </span>
               <span className="tool-label">{t('common.cart')}</span>
             </Link>
