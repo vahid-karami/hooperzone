@@ -12,6 +12,7 @@ import { useShopInfo, telHref } from '../utils/shopInfo';
 import { usePageMeta } from '../utils/seo';
 import { useCategories, useSports, sportName } from '../utils/catalog';
 import { toPersianNumber } from '../hooks/useLanguage';
+import useReveal from '../hooks/useReveal';
 
 const imageOf = (product) => product?.primary_image?.thumbnail || product?.primary_image?.image;
 
@@ -43,27 +44,8 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Fade-and-rise for [data-reveal] blocks as they enter the viewport (skipped for reduced motion).
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root || loading) return undefined;
-    const items = root.querySelectorAll('[data-reveal]');
-    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      items.forEach((el) => el.classList.add('in'));
-      return undefined;
-    }
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('in');
-          io.unobserve(e.target);
-        }
-      }),
-      { rootMargin: '0px 0px -8% 0px' },
-    );
-    items.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [loading, sports.length, categories.length]);
+  // Fade-and-rise for [data-reveal] blocks as they enter the viewport.
+  useReveal(rootRef, [loading, sports.length, categories.length]);
 
   // First product image per body part / category, used as the tile photo.
   const byInjury = useMemo(() => {
