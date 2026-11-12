@@ -607,12 +607,12 @@
 .home2-pill:hover { background: var(--color-energy); border-color: var(--color-energy); color: var(--color-energy-ink); transform: translateY(-2px); }
 
 /* Sport photo cards: tilt-lift, orange wash from the bottom, label slides up. */
-.home2-sport { transition: transform 420ms var(--ease-spring), box-shadow 300ms ease; }
+.home2-sport { transition: opacity 0.6s ease, transform 420ms var(--ease-spring), box-shadow 300ms ease; }
 .home2-sport::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   background: linear-gradient(to top, rgb(255 107 26 / 0.75) 0%, rgb(255 107 26 / 0) 55%);
   opacity: 0;
   transition: opacity 300ms ease;
@@ -626,9 +626,9 @@
 }
 
 /* Category type tiles: icon bounce. */
-.home2-type { transition: transform 360ms var(--ease-spring); }
+.home2-type { transition: opacity 0.6s ease, transform 360ms var(--ease-spring); }
 @media (hover: hover) { .home2-type:hover { transform: translateY(-5px); } }
 
 /* Guides: orange edge on hover. */
-.home2-guide { transition: transform 420ms var(--ease-spring), box-shadow 300ms ease; }
+.home2-guide { transition: opacity 0.6s ease, transform 420ms var(--ease-spring), box-shadow 300ms ease; }
 @media (hover: hover) { .home2-guide:hover { transform: translateY(-6px); box-shadow: 0 24px 44px -22px rgb(255 107 26 / 0.6); } }
