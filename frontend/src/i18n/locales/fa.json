@@ -129,7 +129,9 @@
     "sliderPrev": "تصویر قبلی",
     "sliderNext": "تصویر بعدی",
     "sliderGoTo": "تصویر {{n}}",
-    "circlesLabel": "دسته‌بندی‌های ویژه"
+    "circlesLabel": "دسته‌بندی‌های ویژه",
+    "tickerLabel": "ورزش‌ها",
+    "tickerSlogan": "بی‌وقفه ادامه بده"
   },
   "bodyParts": {
     "knee": "زانو",
@@ -258,7 +260,8 @@
     "howToMeasure": "نحوه اندازه‌گیری",
     "unitCm": "سانتی‌متر",
     "highlightSizes": "در سایزهای {{sizes}}",
-    "fewLeft": "فقط {{count}} عدد باقی مانده"
+    "fewLeft": "فقط {{count}} عدد باقی مانده",
+    "added": "اضافه شد"
   },
   "cart": {
     "shoppingCart": "سبد خرید",

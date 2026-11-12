@@ -465,3 +465,18 @@
   .pdp-rating, .text-btn { padding-block: 8px; margin-block: -8px; }
   .pdp-rating { margin-top: calc(var(--spacing-3) - 8px); }
 }
+
+/* ---- Add to cart: orange CTA that flashes green with a pop once the item is in the bag ---- */
+.pdp-add.is-added,
+.pdp-add.is-added:hover:not(:disabled) {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+  box-shadow: 0 12px 28px -10px rgb(31 138 91 / 0.55);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pdp-add.is-added { animation: added-pop 520ms var(--ease-spring); }
+  .pdp-add.is-added .icon { animation: added-check 520ms var(--ease-spring); }
+}
+@keyframes added-pop { 0% { transform: scale(0.94); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes added-check { from { transform: scale(0) rotate(-45deg); } to { transform: none; } }

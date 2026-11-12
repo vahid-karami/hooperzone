@@ -129,7 +129,9 @@
     "sliderPrev": "Previous slide",
     "sliderNext": "Next slide",
     "sliderGoTo": "Slide {{n}}",
-    "circlesLabel": "Featured categories"
+    "circlesLabel": "Featured categories",
+    "tickerLabel": "Sports",
+    "tickerSlogan": "Keep playing, nonstop"
   },
   "bodyParts": {
     "knee": "Knee",
@@ -258,7 +260,8 @@
     "howToMeasure": "How to measure",
     "unitCm": "cm",
     "highlightSizes": "In sizes {{sizes}}",
-    "fewLeft": "Only {{count}} left"
+    "fewLeft": "Only {{count}} left",
+    "added": "Added"
   },
   "cart": {
     "shoppingCart": "Shopping Cart",

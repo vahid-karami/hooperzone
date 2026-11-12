@@ -65,6 +65,7 @@ export default function ProductDetail() {
   const [sizeMissing, setSizeMissing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [openSection, setOpenSection] = useState({ about: true, specs: false, reviews: false });
   const [showSizeGuide, setShowSizeGuide] = useState(false);
@@ -128,6 +129,8 @@ export default function ProductDetail() {
     try {
       await addToCart(product.id, quantity, sizeId);
       success(t('cart.addedToCart'));
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 1600);
     } catch (err) {
       showError(err.response?.data?.error || t('cart.addFailed'));
     } finally {
@@ -372,9 +375,9 @@ export default function ProductDetail() {
                       <Icon name="minus" size={18} />
                     </button>
                   </div>
-                  <button onClick={handleAddToCart} disabled={addingToCart} className="btn btn-primary btn-lg pdp-add">
-                    <Icon name="bag" size={20} />
-                    {addingToCart ? t('common.loading') : t('common.addToCart')}
+                  <button onClick={handleAddToCart} disabled={addingToCart} className={`btn btn-energy btn-lg pdp-add ${justAdded ? 'is-added' : ''}`}>
+                    <Icon name={justAdded ? 'check' : 'bag'} size={20} />
+                    {addingToCart ? t('common.loading') : justAdded ? t('product.added', 'اضافه شد') : t('common.addToCart')}
                   </button>
                   <button
                     type="button"
