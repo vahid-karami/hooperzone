@@ -322,7 +322,7 @@
   inset: 0;
   z-index: 1;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 2px var(--color-energy);
+  box-shadow: inset 0 0 0 2px var(--color-primary-200);
   opacity: 0;
   transition: opacity 220ms ease;
   pointer-events: none;
@@ -330,11 +330,11 @@
 @media (hover: hover) {
   .product-card:hover .product-card-media {
     transform: translateY(-6px);
-    box-shadow: 0 22px 40px -18px rgb(255 107 26 / 0.45);
+    box-shadow: var(--shadow-navy-glow);
   }
   .product-card:hover .product-card-media::after { opacity: 1; }
   .product-card:hover .product-card-img img { transform: scale(1.07); }
-  .product-card:hover .product-card-title a { color: var(--color-energy-dark); }
+  .product-card:hover .product-card-title a { color: var(--color-primary-light); }
 }
 .product-card-title a { transition: color 180ms ease; }
 .product-card-img img { transition: transform 600ms var(--ease-out-expo); }
@@ -401,4 +401,4 @@
 .trust-item:hover > .icon { transform: translateY(-4px) rotate(-6deg); background: var(--color-energy); color: var(--color-energy-ink); }
 
 .quick-view-btn { transition: opacity var(--transition-fast), transform 320ms var(--ease-spring), background 180ms ease, color 180ms ease; }
-.quick-view-btn:hover { background: var(--color-energy); color: var(--color-energy-ink); }
+.quick-view-btn:hover { background: var(--color-primary); color: #fff; }
