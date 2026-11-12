@@ -550,15 +550,7 @@ body {
   .link-arrow { padding-block: 8px; margin-block: -8px; }
 }
 
-/* ---- Energy header: night announcement bar, orange underline on nav, badge pop, scroll shadow ---- */
-.announcement-bar {
-  background: linear-gradient(90deg, var(--color-night) 0%, #12348f 55%, var(--color-night) 100%);
-  color: #fff;
-}
-.announcement-bar a,
-.announcement-account a { color: var(--color-energy-light); }
-.announcement-text { color: #fff; }
-
+/* ---- Header motion: teal underline on nav, badge pop, scroll shadow ---- */
 .site-header { transition: box-shadow 260ms ease; }
 .site-header.is-scrolled { box-shadow: 0 10px 30px -18px rgb(10 24 56 / 0.45); }
 
@@ -570,17 +562,13 @@ body {
   bottom: 4px;
   height: 3px;
   border-radius: 3px;
-  background: var(--color-energy);
+  background: var(--color-accent);
   transform: scaleX(0);
   transition: transform 320ms var(--ease-spring);
 }
 .nav-link:hover::after, .nav-link.active::after, .nav-item.open > .nav-link::after { transform: scaleX(1); }
 
-.count-badge {
-  background: var(--color-energy);
-  color: var(--color-energy-ink);
-  box-shadow: 0 0 0 2px #fff;
-}
+.count-badge { box-shadow: 0 0 0 2px #fff; }
 @media (prefers-reduced-motion: no-preference) {
   .count-badge { animation: badge-pop 480ms var(--ease-spring); }
   .tool:hover .tool-icon { animation: tool-wiggle 420ms ease; }
