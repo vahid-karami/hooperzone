@@ -103,6 +103,11 @@ export default function Home() {
       image: s.cover_thumbnail || s.cover_image,
     }));
 
+  // The ticker repeats short sport lists so one copy is always wider than the screen.
+  const tickerItems = sportTiles.length
+    ? Array.from({ length: Math.ceil(8 / sportTiles.length) }, () => sportTiles).flat()
+    : [];
+
   const guides = [
     {
       key: 'knee',
@@ -202,6 +207,26 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {sportTiles.length > 0 && (
+        <div className="sport-ticker" aria-label={t('home.tickerLabel', 'ورزش‌ها')}>
+          {/* Two copies so the loop is seamless; the second is hidden from screen readers. */}
+          {[0, 1].map((copy) => (
+            <ul key={copy} className="sport-ticker-track" aria-hidden={copy === 1 || undefined}>
+              {tickerItems.map((s, i) => (
+                <li key={`${s.key}-${i}`}>
+                  <Link to={s.to} tabIndex={copy === 1 || i >= sportTiles.length ? -1 : undefined}>{s.title}</Link>
+                  <span className="sport-ticker-star" aria-hidden="true">✦</span>
+                </li>
+              ))}
+              <li>
+                <span>{t('home.tickerSlogan', 'بی‌وقفه ادامه بده')}</span>
+                <span className="sport-ticker-star" aria-hidden="true">✦</span>
+              </li>
+            </ul>
+          ))}
+        </div>
+      )}
 
       {sportTiles.length > 0 && (
         <section className="band" id="sports">
