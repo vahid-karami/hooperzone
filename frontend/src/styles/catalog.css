@@ -355,14 +355,11 @@
 @keyframes card-in { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
 @keyframes heart-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
-/* ---- Energy: advice banner, trust bar ---- */
+/* ---- Motion: advice banner, trust bar ---- */
 .advice-banner {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background:
-    radial-gradient(60% 140% at 0% 100%, rgb(255 107 26 / 0.55) 0%, rgb(255 107 26 / 0) 60%),
-    linear-gradient(120deg, var(--color-night) 0%, var(--color-primary) 65%, var(--color-primary-light) 100%);
 }
 /* Court-line rings that slowly turn behind the text. */
 .advice-banner::before {
@@ -379,13 +376,13 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .advice-banner::before { animation: ring-spin 40s linear infinite; }
-  .advice-banner .btn-energy { animation: cta-breathe 2.6s ease-in-out infinite; }
-  .advice-banner .btn-energy:hover { animation: none; }
+  .advice-banner .btn { animation: cta-breathe 2.6s ease-in-out infinite; }
+  .advice-banner .btn:hover { animation: none; }
 }
 @keyframes ring-spin { to { transform: rotate(360deg); } }
 @keyframes cta-breathe {
-  0%, 100% { box-shadow: var(--shadow-energy), 0 0 0 0 rgb(255 107 26 / 0.5); }
-  50% { box-shadow: var(--shadow-energy), 0 0 0 12px rgb(255 107 26 / 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.45); }
+  50% { box-shadow: 0 0 0 12px rgb(255 255 255 / 0); }
 }
 
 .trust-item > .icon {
@@ -394,11 +391,11 @@
   height: 52px;
   padding: 12px;
   border-radius: 16px;
-  background: var(--color-energy-50);
-  color: var(--color-energy-dark);
+  background: #fff;
+  color: var(--color-primary);
   transition: transform 360ms var(--ease-spring), background 200ms ease, color 200ms ease;
 }
-.trust-item:hover > .icon { transform: translateY(-4px) rotate(-6deg); background: var(--color-energy); color: var(--color-energy-ink); }
+.trust-item:hover > .icon { transform: translateY(-4px) rotate(-6deg); background: var(--color-primary); color: #fff; }
 
 .quick-view-btn { transition: opacity var(--transition-fast), transform 320ms var(--ease-spring), background 180ms ease, color 180ms ease; }
 .quick-view-btn:hover { background: var(--color-primary); color: #fff; }
