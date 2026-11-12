@@ -52,15 +52,10 @@
     linear-gradient(0deg, rgba(8, 22, 64, 0.92) 0%, rgba(8, 22, 64, 0.66) 50%, rgba(8, 22, 64, 0.2) 100%);
 }
 
-.hero-slide.theme-navy { background: radial-gradient(120% 140% at 100% 0%, #2a56c9 0%, #12348f 48%, var(--color-night) 100%); }
-/* Night-to-orange: the energy slide. */
-.hero-slide.theme-teal {
-  background:
-    radial-gradient(90% 120% at 0% 100%, rgb(255 107 26 / 0.85) 0%, rgb(255 107 26 / 0) 60%),
-    linear-gradient(135deg, var(--color-night) 0%, #12348f 70%, #1d47b8 100%);
-}
+.hero-slide.theme-navy { background: radial-gradient(120% 140% at 100% 0%, #2a56c9 0%, #12348f 48%, #0b2266 100%); }
+.hero-slide.theme-teal { background: radial-gradient(120% 140% at 0% 0%, #2cc3d3 0%, #128796 50%, #0c5f6b 100%); }
 
-/* A soft orange light that drifts behind the text. */
+/* A soft light that drifts behind the text. */
 .hero-slide-glow {
   position: absolute;
   z-index: 1;
@@ -69,7 +64,7 @@
   width: min(60vw, 520px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(255 107 26 / 0.45) 0%, rgb(255 107 26 / 0) 65%);
+  background: radial-gradient(circle, rgb(143 224 234 / 0.35) 0%, rgb(143 224 234 / 0) 65%);
   pointer-events: none;
   filter: blur(8px);
 }
@@ -203,7 +198,7 @@
 /* Bigger tap target without bigger dots. */
 .hero-slider-dots button { position: relative; overflow: visible; }
 .hero-slider-dots button::after { content: ""; position: absolute; inset: -17px -4px; }
-/* The active dot fills up in orange until the next slide (autoplay timer). */
+/* The active dot fills up until the next slide (autoplay timer). */
 .hero-slider-dots button.is-active::before {
   content: "";
   position: absolute;
@@ -211,7 +206,7 @@
   inset-inline-start: 0;
   width: 100%;
   border-radius: inherit;
-  background: var(--color-energy);
+  background: #fff;
   transform-origin: var(--grow-origin);
   animation: hero-dot-fill 6s linear both;
 }
