@@ -151,8 +151,9 @@ export default function Register() {
 
   const handleOtpRegister = async (e) => {
     e.preventDefault();
-    if (!otpPassword || otpPassword.length < 8) {
-      setError(t('auth.minChars', 'رمز عبور باید حداقل ۸ کاراکتر باشد'));
+    const passwordProblem = localPasswordProblem(otpPassword);
+    if (passwordProblem) {
+      setError(passwordRuleMessage(passwordProblem, t));
       return;
     }
     setLoading(true);
@@ -169,7 +170,8 @@ export default function Register() {
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
+      const data = err.response?.data;
+      const message = data?.error || passwordErrorMessage(data, t) || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
       setError(message);
       showError(message);
     } finally {
