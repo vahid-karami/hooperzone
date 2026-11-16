@@ -1,28 +1,19 @@
-"""Start HooperZone on Wispbyte (Pterodactyl Python egg). See DEPLOY_WISPBYTE.md.
+"""Boot HooperZone in production. ParsPack PaaS runs it through app.py; see DEPLOY_PARSPACK.md.
 
-Set the egg's "App py file" to wispbyte_start.py. On every boot this:
-1. creates .env with a random SECRET_KEY the first time (the panel has no free-form env vars),
+On every boot this:
+1. creates DATA_DIR/.env with a random SECRET_KEY the first time,
 2. runs migrations, collects static files, loads the demo catalogue once and creates the
    admin user from ADMIN_PHONE / ADMIN_PASSWORD in .env,
-3. serves the site with Waitress on the port Wispbyte assigned (SERVER_PORT).
+3. serves the site with Waitress on SERVER_PORT (8000 on ParsPack).
 
-Auto-deploy (on the Wispbyte server only): GitHub Actions publishes every tested push to master
-as a ready-to-run bundle on the `deploy` branch (.github/workflows/ci-cd.yml). This script installs
-the newest bundle on boot and checks for a new one every AUTO_DEPLOY_INTERVAL seconds, then
-restarts itself. .env, database/, media/ and logs/ are never touched.
+New versions are built by ParsPack from the `deploy` branch (GitHub webhook), so this script
+never updates itself.
 
-Works locally too: `python wispbyte_start.py` then open http://localhost:8000.
+Works locally too: `python app.py` then open http://localhost:8000.
 """
-import io
 import os
 import secrets
-import shutil
-import subprocess
 import sys
-import threading
-import time
-import urllib.request
-import zipfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -31,17 +22,14 @@ ROOT = Path(__file__).resolve().parent
 # Server data (.env, database/, media/, logs/). ParsPack PaaS sets DATA_DIR to its permanent disk.
 DATA_DIR = Path(os.environ.get("DATA_DIR") or ROOT)
 ENV_FILE = DATA_DIR / ".env"
-VERSION_FILE = ROOT / ".deployed_version"
-# Server-only data that a release never overwrites (pip packages live in .local).
-KEEP = {".env", ".deployed_version", "database", "media", "logs", "staticfiles", ".local", ".cache"}
 
 DEFAULT_ENV = """\
-# Created by wispbyte_start.py on first boot. Edit in the Wispbyte file manager, then restart.
+# Created on first boot. Settings in the ParsPack panel (environment variables) win over this file.
 SECRET_KEY={secret_key}
 DEBUG=False
 ALLOWED_HOSTS=hooperzone.ir,www.hooperzone.ir,localhost,127.0.0.1
 CSRF_TRUSTED_ORIGINS=https://hooperzone.ir,https://www.hooperzone.ir
-# False only while testing the Django admin over plain http://<ip>:<port>.
+# False only while testing the Django admin over plain http.
 SECURE_COOKIES=True
 SITE_URL=https://hooperzone.ir
 # ZarinPal: paste the merchant ID from your ZarinPal panel. While PAYMENT_SANDBOX=True,
@@ -66,121 +54,6 @@ def ensure_env_file():
         print(f"Created {ENV_FILE.name} with a new SECRET_KEY.")
     load_dotenv(ENV_FILE)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hooperzone.settings.production")
-    # Pterodactyl exposes the server's public IP; allow it so http://<ip>:<port> works for testing.
-    server_ip = os.environ.get("SERVER_IP", "")
-    if server_ip and server_ip != "0.0.0.0":
-        os.environ["ALLOWED_HOSTS"] = f"{os.environ.get('ALLOWED_HOSTS', '')},{server_ip}"
-
-
-def auto_deploy_settings():
-    """(repo, branch, check interval in seconds) when auto-deploy is on, else None.
-
-    AUTO_DEPLOY=auto (default) turns it on only on a Pterodactyl server (P_SERVER_UUID is set),
-    so running this script on your PC never replaces your code. A git checkout is never touched.
-    """
-    mode = os.environ.get("AUTO_DEPLOY", "auto").lower()
-    enabled = mode == "true" or (mode == "auto" and "P_SERVER_UUID" in os.environ)
-    if not enabled or (ROOT / ".git").exists():
-        return None
-    repo = os.environ.get("AUTO_DEPLOY_REPO", "vahid-karami/hooperzone")
-    branch = os.environ.get("AUTO_DEPLOY_BRANCH", "deploy")
-    return repo, branch, int(os.environ.get("AUTO_DEPLOY_INTERVAL", "300"))
-
-
-def fetch(url, timeout=30):
-    request = urllib.request.Request(url, headers={"User-Agent": "hooperzone-autodeploy"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
-
-
-def remote_version(repo, branch):
-    # The query string skips GitHub's raw-file cache, so a new release is seen right away.
-    url = f"https://raw.githubusercontent.com/{repo}/{branch}/DEPLOY_VERSION?t={int(time.time())}"
-    return fetch(url).decode().strip()
-
-
-def local_version():
-    return VERSION_FILE.read_text(encoding="utf-8").strip() if VERSION_FILE.exists() else ""
-
-
-def install_release(zip_bytes, root=ROOT):
-    """Unpack a GitHub branch zip over `root`, keeping server data (KEEP). Returns its version."""
-    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-        names = zf.namelist()
-        prefix = names[0].split("/")[0] + "/"  # GitHub wraps the branch in "<repo>-<branch>/"
-        files = {n[len(prefix):]: n for n in names if n.startswith(prefix) and not n.endswith("/")}
-        for required in ("wispbyte_start.py", "manage.py", "frontend/dist/index.html", "DEPLOY_VERSION"):
-            if required not in files:
-                raise ValueError(f"Not a HooperZone release: {required} is missing.")
-        shutil.rmtree(root / "frontend" / "dist", ignore_errors=True)  # drop old hashed assets
-        for rel, name in files.items():
-            if rel.split("/")[0] in KEEP:
-                continue
-            target = root / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with zf.open(name) as src, open(target, "wb") as dst:
-                shutil.copyfileobj(src, dst)
-        return zf.read(files["DEPLOY_VERSION"]).decode().strip()
-
-
-def deploy_release(repo, branch):
-    """Download and install the newest release, plus any new Python packages."""
-    requirements = ROOT / "requirements.txt"
-    old_requirements = requirements.read_bytes() if requirements.exists() else b""
-    data = fetch(f"https://codeload.github.com/{repo}/zip/refs/heads/{branch}", timeout=120)
-    version = install_release(data)
-    if requirements.read_bytes() != old_requirements:
-        print("requirements.txt changed: installing packages...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "-U", "--prefix", ".local", "-r", "requirements.txt"])
-    VERSION_FILE.write_text(version, encoding="utf-8")
-    print(f"Deployed version {version[:7]}.")
-
-
-def restart():
-    print("Restarting with the new version...")
-    sys.stdout.flush()
-    os.execv(sys.executable, [sys.executable, str(ROOT / "wispbyte_start.py")])
-
-
-def sync_on_boot():
-    """Install a newer release before starting; restart into it so the new start script runs."""
-    settings = auto_deploy_settings()
-    if not settings:
-        return
-    repo, branch, _ = settings
-    try:
-        remote = remote_version(repo, branch)
-        if remote == local_version():
-            print(f"Auto-deploy: up to date ({remote[:7]}).")
-            return
-        print(f"Auto-deploy: installing {remote[:7]} from {repo}@{branch}...")
-        deploy_release(repo, branch)
-    except Exception as e:  # never block the site from starting
-        print(f"Auto-deploy skipped: {e}")
-        return
-    restart()
-
-
-def watch_for_releases():
-    settings = auto_deploy_settings()
-    if not settings or settings[2] <= 0:
-        return
-    repo, branch, interval = settings
-
-    def loop():
-        while True:
-            time.sleep(interval)
-            try:
-                remote = remote_version(repo, branch)
-                if remote and remote != local_version():
-                    print(f"Auto-deploy: new version {remote[:7]} found.")
-                    deploy_release(repo, branch)
-                    restart()
-            except Exception as e:
-                print(f"Auto-deploy check failed: {e}")
-
-    threading.Thread(target=loop, name="auto-deploy", daemon=True).start()
-    print(f"Auto-deploy: checking {repo}@{branch} every {interval}s.")
 
 
 def prepare():
@@ -205,7 +78,7 @@ def prepare():
 
 
 def create_admin():
-    """The panel console is not a shell, so createsuperuser can't run there. Use ADMIN_* in .env instead."""
+    """There is no shell for createsuperuser on the host, so ADMIN_* in .env create the first admin."""
     from django.contrib.auth import get_user_model
 
     phone, password = os.environ.get("ADMIN_PHONE"), os.environ.get("ADMIN_PASSWORD")
@@ -231,7 +104,7 @@ def serve():
         host="0.0.0.0",
         port=port,
         threads=int(os.environ.get("WAITRESS_THREADS", 6)),
-        # Cloudflare sits in front; trust its scheme header so Django knows the request was HTTPS.
+        # The ParsPack ingress terminates TLS; trust its scheme header so Django knows it was HTTPS.
         trusted_proxy="*",
         trusted_proxy_headers={"x-forwarded-proto"},
         clear_untrusted_proxy_headers=True,
@@ -239,13 +112,11 @@ def serve():
 
 
 def main():
-    sys.stdout.reconfigure(line_buffering=True)  # the panel console is a pipe; show progress live
+    sys.stdout.reconfigure(line_buffering=True)  # logs are a pipe; show progress live
     sys.path.insert(0, str(ROOT))
     os.chdir(ROOT)
     ensure_env_file()
-    sync_on_boot()
     prepare()
-    watch_for_releases()
     serve()
 
 
