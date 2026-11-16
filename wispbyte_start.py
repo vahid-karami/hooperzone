@@ -28,7 +28,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
-ENV_FILE = ROOT / ".env"
+# Server data (.env, database/, media/, logs/). ParsPack PaaS sets DATA_DIR to its permanent disk.
+DATA_DIR = Path(os.environ.get("DATA_DIR") or ROOT)
+ENV_FILE = DATA_DIR / ".env"
 VERSION_FILE = ROOT / ".deployed_version"
 # Server-only data that a release never overwrites (pip packages live in .local).
 KEEP = {".env", ".deployed_version", "database", "media", "logs", "staticfiles", ".local", ".cache"}
@@ -58,6 +60,7 @@ ADMIN_PASSWORD=
 
 
 def ensure_env_file():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not ENV_FILE.exists():
         ENV_FILE.write_text(DEFAULT_ENV.format(secret_key=secrets.token_urlsafe(50)), encoding="utf-8")
         print(f"Created {ENV_FILE.name} with a new SECRET_KEY.")
@@ -185,8 +188,8 @@ def prepare():
     from django.core.management import call_command
 
     django.setup()
-    (ROOT / "database").mkdir(exist_ok=True)
-    (ROOT / "media").mkdir(exist_ok=True)
+    (DATA_DIR / "database").mkdir(exist_ok=True)
+    (DATA_DIR / "media").mkdir(exist_ok=True)
     call_command("migrate", interactive=False)
     call_command("collectstatic", interactive=False, verbosity=0)
     call_command("seed_demo_store")  # first boot only: skips when products exist
@@ -235,7 +238,7 @@ def serve():
     )
 
 
-if __name__ == "__main__":
+def main():
     sys.stdout.reconfigure(line_buffering=True)  # the panel console is a pipe; show progress live
     sys.path.insert(0, str(ROOT))
     os.chdir(ROOT)
@@ -244,3 +247,7 @@ if __name__ == "__main__":
     prepare()
     watch_for_releases()
     serve()
+
+
+if __name__ == "__main__":
+    main()
