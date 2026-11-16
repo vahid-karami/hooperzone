@@ -6,6 +6,7 @@ import { afterLoginPath } from '../utils/authRedirect';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
+import { localPasswordProblem, passwordErrorMessage, passwordRuleMessage } from '../utils/passwordRules';
 
 export default function Register() {
   const { t } = useTranslation();
@@ -58,8 +59,9 @@ export default function Register() {
       return;
     }
 
-    if (!formData.password || formData.password.length < 8) {
-      setError(t('auth.minChars', 'رمز عبور باید حداقل ۸ کاراکتر باشد'));
+    const passwordProblem = localPasswordProblem(formData.password);
+    if (passwordProblem) {
+      setError(passwordRuleMessage(passwordProblem, t));
       return;
     }
 
@@ -89,7 +91,7 @@ export default function Register() {
           respData?.error ||
           respData?.username?.[0] ||
           respData?.phone?.[0] ||
-          respData?.password?.[0] ||
+          passwordErrorMessage(respData, t) ||
           respData?.non_field_errors?.[0] ||
           t('auth.registrationFailed', 'ثبت‌نام انجام نشد. لطفاً اطلاعات را بررسی کنید.');
       }
@@ -149,8 +151,9 @@ export default function Register() {
 
   const handleOtpRegister = async (e) => {
     e.preventDefault();
-    if (!otpPassword || otpPassword.length < 8) {
-      setError(t('auth.minChars', 'رمز عبور باید حداقل ۸ کاراکتر باشد'));
+    const passwordProblem = localPasswordProblem(otpPassword);
+    if (passwordProblem) {
+      setError(passwordRuleMessage(passwordProblem, t));
       return;
     }
     setLoading(true);
@@ -167,7 +170,8 @@ export default function Register() {
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
+      const data = err.response?.data;
+      const message = data?.error || passwordErrorMessage(data, t) || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
       setError(message);
       showError(message);
     } finally {
@@ -268,8 +272,12 @@ export default function Register() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="form-input"
                   autoComplete="new-password"
+                  aria-describedby="password-rules"
                   required
                 />
+                <p className="field-hint" id="password-rules">
+                  {t('auth.passwordRules', 'حداقل ۸ کاراکتر؛ فقط عدد نباشد و رمز ساده‌ای مثل password انتخاب نکنید.')}
+                </p>
               </div>
 
               <div className="form-group">
@@ -392,8 +400,13 @@ export default function Register() {
                       value={otpPassword}
                       onChange={(e) => setOtpPassword(e.target.value)}
                       className="form-input"
+                      autoComplete="new-password"
+                      aria-describedby="otp-password-rules"
                       required
                     />
+                    <p className="field-hint" id="otp-password-rules">
+                      {t('auth.passwordRules', 'حداقل ۸ کاراکتر؛ فقط عدد نباشد و رمز ساده‌ای مثل password انتخاب نکنید.')}
+                    </p>
                   </div>
                   <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-full">
                     {loading ? t('common.loading', 'در حال ثبت‌نام...') : t('common.register', 'تکمیل ثبت‌نام')}

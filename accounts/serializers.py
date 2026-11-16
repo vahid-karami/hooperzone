@@ -5,13 +5,17 @@ from rest_framework import serializers
 from hooperzone.fields import DigitsCharField, normalize_digits
 from hooperzone.permissions import admin_access
 
+from .passwords import check_password_rules
+
 User = get_user_model()
 
 
 class UserRegistrationSerializer(serializers.Serializer):
     username = DigitsCharField(max_length=150, required=False, allow_blank=True)
     phone = DigitsCharField(max_length=50, required=False, allow_blank=True)
-    password = serializers.CharField(write_only=True, min_length=8)
+    # Length and the other rules are checked in validate() (check_password_rules), so a short
+    # password is reported with a rule code like every other refused password.
+    password = serializers.CharField(write_only=True, max_length=128)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
@@ -35,6 +39,14 @@ class UserRegistrationSerializer(serializers.Serializer):
             if existing and existing.has_usable_password():
                 raise serializers.ValidationError({"phone": "A user with this phone number already exists."})
 
+        # Last, so "already registered" is reported before anything about the password.
+        check_password_rules(
+            data["password"],
+            username=username or phone,
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+            email=data.get("email", ""),
+        )
         return data
 
 
@@ -58,7 +70,8 @@ class OTPVerifySerializer(serializers.Serializer):
 class PasswordResetSerializer(serializers.Serializer):
     phone = DigitsCharField(max_length=15)
     code = DigitsCharField(max_length=6)
-    new_password = serializers.CharField(write_only=True, min_length=8)
+    # The rules (length included) are checked in the view with check_password_rules.
+    new_password = serializers.CharField(write_only=True, max_length=128)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

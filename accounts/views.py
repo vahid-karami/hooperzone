@@ -13,6 +13,7 @@ from hooperzone.fields import normalize_digits
 from hooperzone.throttling import AuthRateThrottle, IPRateThrottle
 
 from .models import OTPCode
+from .passwords import check_password_rules
 from .sms import SMSError, send_otp_sms
 from .serializers import (
     OTPSendSerializer,
@@ -296,6 +297,10 @@ def reset_password(request):
             {"error": "No user found with this phone number."},
             status=status.HTTP_404_NOT_FOUND,
         )
+
+    # Before the code is looked at: a refused password must not use up the code or count as
+    # a wrong guess, so the customer can simply type a better one.
+    check_password_rules(serializer.validated_data["new_password"], user=user)
 
     otp, error = OTPCode.check_code(user, OTPCode.OTP_TYPE_RESET_PASSWORD, code)
     if error:
