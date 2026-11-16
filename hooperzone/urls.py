@@ -78,7 +78,7 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 elif getattr(settings, "SERVE_MEDIA", False):
-    # Production without a separate web server (Wispbyte): Django serves uploaded images.
+    # Production without a separate web server (ParsPack PaaS): Django serves uploaded images.
     urlpatterns += [
         re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     ]

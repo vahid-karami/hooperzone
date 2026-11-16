@@ -1,7 +1,7 @@
 """One-time move of a shop's data (database, uploads, .env) onto this server.
 
-Used when moving hosts (Wispbyte -> ParsPack PaaS). Download an archive of `database/`, `media/`
-and `.env` from the old server's file manager, then upload it at /import-data/.
+Used when moving hosts (it moved the shop to ParsPack PaaS). Make an archive of `database/`,
+`media/` and `.env` on the old server, then upload it at /import-data/.
 
 The page is off unless the IMPORT_TOKEN environment variable is set, and the upload must carry
 the same token. Remove IMPORT_TOKEN as soon as the import is done.
