@@ -76,3 +76,30 @@ class TestSignUp:
         User.objects.create_user(phone="09127770004", password="securepass123")
         res = APIClient().post(self.url, {"phone": "09127770004", "password": "12345678"})
         assert res.status_code == 400 and "phone" in res.data and "password_codes" not in res.data
+
+
+@pytest.mark.django_db
+class TestPasswordReset:
+    url = reverse("accounts:password-reset")
+
+    def _user_and_code(self, phone):
+        from accounts.models import OTPCode
+
+        user = User.objects.create_user(phone=phone, username="sara_ahmadi", password="securepass123")
+        return user, OTPCode.objects.create(user=user, otp_type="reset_password")
+
+    @pytest.mark.parametrize("password, code", [
+        ("12345678", "password_entirely_numeric"), ("password", "password_too_common"),
+        ("sara_ahmadi", "password_too_similar"),
+    ])
+    def test_weak_new_password_is_refused_and_the_code_survives(self, password, code):
+        user, otp = self._user_and_code("09127770010")
+        payload = {"phone": user.phone, "code": otp.code}
+        res = APIClient().post(self.url, {**payload, "new_password": password})
+        assert res.status_code == 400 and code in res.data["password_codes"]
+        otp.refresh_from_db()
+        user.refresh_from_db()
+        assert not otp.is_used and otp.failed_attempts == 0 and user.check_password("securepass123")
+        assert APIClient().post(self.url, {**payload, "new_password": "blue-Kettle-41"}).status_code == 200
+        user.refresh_from_db()
+        assert user.check_password("blue-Kettle-41")
