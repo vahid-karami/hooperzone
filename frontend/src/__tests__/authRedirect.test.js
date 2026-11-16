@@ -16,5 +16,6 @@ describe('authRedirect', () => {
     expect(afterLoginPath({ state: { from: '//evil.example' } })).toBe('/');
     expect(afterLoginPath({ state: { from: '/login' } })).toBe('/');
     expect(afterLoginPath({ state: { from: '/register?x=1' } })).toBe('/');
+    expect(afterLoginPath({ state: { from: '/forgot-password' } })).toBe('/');
   });
 });

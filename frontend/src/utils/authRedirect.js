@@ -9,6 +9,6 @@ export function loginState(location) {
 export function afterLoginPath(location) {
   const from = location.state?.from;
   if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//')) return '/';
-  if (/^\/(login|register)(\/|\?|$)/.test(from)) return '/';
+  if (/^\/(login|register|forgot-password)(\/|\?|$)/.test(from)) return '/';
   return from;
 }
