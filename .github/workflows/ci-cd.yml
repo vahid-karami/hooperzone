@@ -1,8 +1,8 @@
 name: CI/CD
 
 # Every push and pull request to master is tested. A push to master that passes is published
-# as a ready-to-run bundle on the `deploy` branch; the live Wispbyte server checks that branch
-# every few minutes and installs new versions itself (wispbyte_start.py, DEPLOY_WISPBYTE.md).
+# as a ready-to-run bundle on the `deploy` branch; a GitHub webhook then makes ParsPack PaaS
+# build and run it (app.py, DEPLOY_PARSPACK.md).
 on:
   push:
     branches: [master]
@@ -104,4 +104,4 @@ jobs:
           git add -A
           git commit -q -m "Release ${GITHUB_SHA::7} from master"
           git push -q --force "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy
-          echo "Published ${GITHUB_SHA::7}. The server installs it within ~5 minutes." >> "$GITHUB_STEP_SUMMARY"
+          echo "Published ${GITHUB_SHA::7}. ParsPack builds it within a few minutes." >> "$GITHUB_STEP_SUMMARY"
