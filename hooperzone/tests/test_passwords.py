@@ -103,3 +103,27 @@ class TestPasswordReset:
         assert APIClient().post(self.url, {**payload, "new_password": "blue-Kettle-41"}).status_code == 200
         user.refresh_from_db()
         assert user.check_password("blue-Kettle-41")
+
+
+@pytest.mark.django_db
+class TestShortPassword:
+    """Too short is reported like the other rules: with a code the storefront can translate."""
+
+    def test_sign_up(self):
+        res = APIClient().post(reverse("accounts:register"), {"phone": "09127770020", "password": "kettle7"})
+        assert res.status_code == 400 and res.data["password_codes"] == ["password_too_short"]
+        assert not User.objects.filter(phone="09127770020").exists()
+
+    def test_password_reset(self):
+        from accounts.models import OTPCode
+
+        user = User.objects.create_user(phone="09127770021", password="securepass123")
+        otp = OTPCode.objects.create(user=user, otp_type="reset_password")
+        res = APIClient().post(
+            reverse("accounts:password-reset"), {"phone": user.phone, "code": otp.code, "new_password": "kettle7"}
+        )
+        assert res.status_code == 400 and res.data["password_codes"] == ["password_too_short"]
+
+    def test_very_long_password_is_refused_before_hashing(self):
+        res = APIClient().post(reverse("accounts:register"), {"phone": "09127770022", "password": "k7-" * 2000})
+        assert res.status_code == 400 and "password" in res.data
