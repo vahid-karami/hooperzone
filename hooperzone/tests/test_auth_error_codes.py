@@ -174,3 +174,13 @@ class TestRegisterFlowCodes:
             {"phone": "09128880024", "code": _wrong(otp.code), "otp_type": "register"},
         )
         assert (res.status_code, res.data["code"]) == (400, "otp_invalid")
+
+
+@pytest.mark.django_db
+def test_sign_up_form_with_a_registered_phone_says_phone_not_username(user):
+    """The form sends its one "username or mobile" box as both fields."""
+    res = APIClient().post(
+        reverse("accounts:register"), {"username": user.phone, "phone": user.phone, "password": "blue-Kettle-41"}
+    )
+    assert (res.status_code, res.data["code"]) == (400, "phone_exists")
+    assert "phone" in res.data and "username" not in res.data

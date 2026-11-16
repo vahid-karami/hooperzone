@@ -37,6 +37,10 @@ class UserRegistrationSerializer(serializers.Serializer):
         if username:
             existing = User.objects.filter(Q(username__iexact=username) | Q(phone__iexact=username)).first()
             if existing and existing.has_usable_password():
+                # The sign-up form sends one "username or mobile" value as both fields. When it
+                # is somebody's phone number, say that, not "username taken".
+                if (existing.phone or "").lower() == username.lower():
+                    raise coded_error("phone_exists", "A user with this phone number already exists.", "phone")
                 raise coded_error("username_exists", "A user with this username already exists.", "username")
 
         if phone:
