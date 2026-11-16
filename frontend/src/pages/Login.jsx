@@ -171,6 +171,13 @@ export default function Login() {
               autoComplete="current-password"
               aria-invalid={Boolean(error) || undefined}
             />
+            <Link
+              to="/forgot-password"
+              className="auth-forgot"
+              state={{ ...location.state, phone: validateIranianPhone(toEnglishDigits(phone).trim()) ? toEnglishDigits(phone).trim() : undefined }}
+            >
+              {t('auth.forgotPassword', 'رمز عبور را فراموش کرده‌اید؟')}
+            </Link>
           </div>
           <button type="submit" disabled={loading} className="auth-submit">
             {submitLabel(t('common.login', 'ورود'), t('auth.loggingIn', 'در حال ورود...'))}

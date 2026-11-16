@@ -214,6 +214,29 @@
   text-decoration: underline;
 }
 
+/* "Forgot your password?" under the password field, at the reading end of the row. */
+.auth-forgot {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-block: -6px -10px;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: var(--font-weight-semibold, 600);
+  text-decoration: none;
+}
+
+.auth-forgot:hover {
+  text-decoration: underline;
+}
+
+.auth-forgot:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
 .auth-switch {
   margin: 0;
   padding-top: var(--spacing-4, 1rem);
