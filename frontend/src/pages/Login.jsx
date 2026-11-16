@@ -8,6 +8,7 @@ import { toEnglishDigits } from '../utils/digits';
 import { validateIranianPhone } from '../utils/iranianPhone';
 import { usePageMeta } from '../utils/seo';
 import { afterLoginPath } from '../utils/authRedirect';
+import { authErrorMessage } from '../utils/authErrors';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -100,10 +101,7 @@ export default function Login() {
       success(t('auth.loginSuccess', 'ورود موفقیت‌آمیز!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.response?.data?.non_field_errors?.[0] ||
-        t('auth.invalidCredentials', 'نام کاربری یا رمز عبور اشتباه است');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
