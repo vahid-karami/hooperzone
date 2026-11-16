@@ -15,6 +15,9 @@ if SECRET_KEY.startswith("django-insecure"):  # noqa: F405
 
 # BASE_DIR is the inner "hooperzone" package; the deployed project root is one level up.
 PROJECT_ROOT = BASE_DIR.parent  # noqa: F405
+# Where the database, uploads and logs live. On ParsPack PaaS this is the permanent disk
+# (DATA_DIR=/data); on Wispbyte it stays the project folder.
+DATA_DIR = Path(os.environ.get("DATA_DIR") or PROJECT_ROOT)  # noqa: F405
 
 ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", "hooperzone.ir,www.hooperzone.ir").split(",") if h]
 CSRF_TRUSTED_ORIGINS = [
@@ -30,7 +33,7 @@ SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = os.environ.get("SECURE_COOKIES", "T
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": PROJECT_ROOT / "database" / "db.sqlite3",
+        "NAME": DATA_DIR / "database" / "db.sqlite3",
     }
 }
 
@@ -39,7 +42,7 @@ MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 STATIC_URL = "/static/"
 STATIC_ROOT = PROJECT_ROOT / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = PROJECT_ROOT / "media"
+MEDIA_ROOT = DATA_DIR / "media"
 SERVE_MEDIA = True
 
 # collectstatic writes .gz copies, so WhiteNoise sends the 340 KB main bundle as ~105 KB.
@@ -73,8 +76,8 @@ PAYMENT_MOCK_FALLBACK = False
 # Codes can only reach customers by SMS here, so a missing SMS.ir config is an error.
 SMS_REQUIRED = True
 
-LOG_DIR = PROJECT_ROOT / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = DATA_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
