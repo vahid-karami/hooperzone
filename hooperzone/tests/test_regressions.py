@@ -53,9 +53,14 @@ class TestOTPRegistrationFlow:
 
     def test_register_after_otp_verification(self, api_client):
         phone = "09121111111"
-        assert self._send_and_verify(api_client, phone).status_code == status.HTTP_200_OK
+        verified = self._send_and_verify(api_client, phone)
+        assert verified.status_code == status.HTTP_200_OK
         res = api_client.post(
-            reverse("accounts:register"), {"phone": phone, "username": phone, "password": "securepass123"}
+            reverse("accounts:register"),
+            {
+                "phone": phone, "username": phone, "password": "securepass123",
+                "registration_token": verified.data["registration_token"],
+            },
         )
         assert res.status_code == status.HTTP_201_CREATED, res.data
 

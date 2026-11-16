@@ -142,3 +142,58 @@ class TestOtpSmsFlood:
         assert codes == [200, 200, 200, 429]
         # Another customer is not affected.
         assert APIClient().post(url, {"phone": "09125550008", "otp_type": "register"}).status_code == 200
+
+
+@pytest.mark.django_db
+class TestRegistrationNeedsTheCode:
+    """Finishing an OTP registration sets a password, so it needs proof of the code, not just the phone."""
+
+    def _verify(self, phone):
+        from accounts.models import OTPCode
+
+        APIClient().post(reverse("accounts:otp-send"), {"phone": phone, "otp_type": "register"})
+        otp = OTPCode.objects.filter(user__phone=phone, otp_type="register").latest("created_at")
+        return APIClient().post(
+            reverse("accounts:otp-verify"), {"phone": phone, "code": otp.code, "otp_type": "register"}
+        )
+
+    def test_stranger_cannot_finish_someone_elses_verified_registration(self):
+        phone = "09125550010"
+        assert self._verify(phone).status_code == 200  # the owner entered their code, then paused
+        for extra in ({}, {"registration_token": "made-up"}):
+            res = APIClient().post(
+                reverse("accounts:register"), {"phone": phone, "password": "attackerpass1", **extra}
+            )
+            assert res.status_code == 400 and "tokens" not in res.data
+        assert not User.objects.get(phone=phone).has_usable_password()
+
+    def test_token_of_one_phone_does_not_open_another(self):
+        mine = self._verify("09125550011").data["registration_token"]
+        assert self._verify("09125550012").status_code == 200
+        res = APIClient().post(
+            reverse("accounts:register"),
+            {"phone": "09125550012", "password": "attackerpass1", "registration_token": mine},
+        )
+        assert res.status_code == 400
+        assert not User.objects.get(phone="09125550012").has_usable_password()
+
+    def test_expired_token_is_refused(self, monkeypatch):
+        from accounts import views
+
+        token = self._verify("09125550013").data["registration_token"]
+        monkeypatch.setattr(views, "REGISTRATION_TOKEN_MAX_AGE", -1)
+        res = APIClient().post(
+            reverse("accounts:register"),
+            {"phone": "09125550013", "password": "securepass123", "registration_token": token},
+        )
+        assert res.status_code == 400
+
+    def test_username_that_is_someone_elses_pending_phone_is_refused(self):
+        """Used to crash with a database error (two users would share the value)."""
+        assert self._verify("09125550014").status_code == 200
+        res = APIClient().post(
+            reverse("accounts:register"),
+            {"username": "09125550014", "phone": "09125550015", "password": "securepass123"},
+        )
+        assert res.status_code == 400
+        assert not User.objects.filter(phone="09125550015").exists()

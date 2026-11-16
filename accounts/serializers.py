@@ -14,6 +14,8 @@ class UserRegistrationSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
+    # From otp/verify (register): proves the caller received the code for this phone.
+    registration_token = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     def validate(self, data):
         from django.db.models import Q
