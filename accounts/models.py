@@ -79,6 +79,11 @@ class OTPCode(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
+    # Wrong guesses made against this code. At MAX_FAILED_ATTEMPTS the code stops working.
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+
+    # A six-digit code has a million values; five tries leave a guesser a 1 in 200,000 chance.
+    MAX_FAILED_ATTEMPTS = 5
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -101,8 +106,36 @@ class OTPCode(models.Model):
         self.is_used = True
         self.save(update_fields=["is_used"])
 
+    @classmethod
+    def check_code(cls, user, otp_type, code):
+        """(otp, error): the user's live code of this type if `code` matches it, else an error message.
+
+        Every wrong guess is counted on the live code and it is cancelled after
+        MAX_FAILED_ATTEMPTS, so the per-IP rate limit is not the only thing between an
+        attacker with many addresses and a customer's account. Call inside a transaction.
+        """
+        otp = (
+            cls.objects.select_for_update()
+            .filter(user=user, otp_type=otp_type, is_used=False)
+            .order_by("-created_at")
+            .first()
+        )
+        if otp is None:
+            return None, "Invalid OTP code."
+        if otp.is_expired():
+            return None, "OTP has expired. Please request a new one."
+        if not secrets.compare_digest(str(code).encode(), otp.code.encode()):
+            otp.failed_attempts += 1
+            if otp.failed_attempts >= cls.MAX_FAILED_ATTEMPTS:
+                otp.is_used = True
+            otp.save(update_fields=["failed_attempts", "is_used"])
+            if otp.is_used:
+                return None, "Too many wrong codes. Please request a new one."
+            return None, "Invalid OTP code."
+        return otp, None
+
     def __str__(self):
-        return f"{self.user.phone} - {self.code} ({self.otp_type})"
+        return f"{self.user.phone} - {self.otp_type}"
 
     class Meta:
         db_table = "otp_codes"
