@@ -23,6 +23,7 @@ INCLUDE = [
     "manage.py",
     "requirements.txt",
     "wispbyte_start.py",
+    "app.py",  # ParsPack PaaS entry point
     "hooperzone",
     "accounts",
     "cart",
