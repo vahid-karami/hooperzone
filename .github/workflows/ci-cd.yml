@@ -90,7 +90,7 @@ jobs:
         run: |
           npm --prefix frontend ci
           npm --prefix frontend run build:django
-          python scripts/package_wispbyte.py --no-build --dir bundle
+          python scripts/build_release.py --no-build --dir bundle
           echo "${GITHUB_SHA}" > bundle/DEPLOY_VERSION
 
       - name: Publish to the deploy branch
