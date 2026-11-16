@@ -82,6 +82,14 @@ class OTPCode(models.Model):
     # Wrong guesses made against this code. At MAX_FAILED_ATTEMPTS the code stops working.
     failed_attempts = models.PositiveSmallIntegerField(default=0)
 
+    # check_code() error codes and their English text. The API sends both; the storefront
+    # shows its own fa/en text for the code.
+    OTP_ERRORS = {
+        "otp_invalid": "Invalid OTP code.",
+        "otp_expired": "OTP has expired. Please request a new one.",
+        "otp_locked": "Too many wrong codes. Please request a new one.",
+    }
+
     # A six-digit code has a million values; five tries leave a guesser a 1 in 200,000 chance.
     MAX_FAILED_ATTEMPTS = 5
 
@@ -108,7 +116,8 @@ class OTPCode(models.Model):
 
     @classmethod
     def check_code(cls, user, otp_type, code):
-        """(otp, error): the user's live code of this type if `code` matches it, else an error message.
+        """(otp, error): the user's live code of this type if `code` matches it, else an error code
+        (a key of OTP_ERRORS: otp_invalid, otp_expired or otp_locked).
 
         Every wrong guess is counted on the live code and it is cancelled after
         MAX_FAILED_ATTEMPTS, so the per-IP rate limit is not the only thing between an
@@ -121,17 +130,17 @@ class OTPCode(models.Model):
             .first()
         )
         if otp is None:
-            return None, "Invalid OTP code."
+            return None, "otp_invalid"
         if otp.is_expired():
-            return None, "OTP has expired. Please request a new one."
+            return None, "otp_expired"
         if not secrets.compare_digest(str(code).encode(), otp.code.encode()):
             otp.failed_attempts += 1
             if otp.failed_attempts >= cls.MAX_FAILED_ATTEMPTS:
                 otp.is_used = True
             otp.save(update_fields=["failed_attempts", "is_used"])
             if otp.is_used:
-                return None, "Too many wrong codes. Please request a new one."
-            return None, "Invalid OTP code."
+                return None, "otp_locked"
+            return None, "otp_invalid"
         return otp, None
 
     def __str__(self):
