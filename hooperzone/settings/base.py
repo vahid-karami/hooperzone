@@ -148,6 +148,12 @@ OTP_RETURN_IN_RESPONSE = os.environ.get("OTP_RETURN_IN_RESPONSE", str(DEBUG)) ==
 
 SITE_URL = os.environ.get("SITE_URL", "https://hooperzone.ir").rstrip("/")
 
+# Turns on /import-data/ for moving a shop to a new server (hooperzone/data_import.py).
+# Needs at least 20 characters; leave empty (the default) to keep the page off.
+IMPORT_TOKEN = os.environ.get("IMPORT_TOKEN", "").strip()
+if len(IMPORT_TOKEN) < 20:
+    IMPORT_TOKEN = ""
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),

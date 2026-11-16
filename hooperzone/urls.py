@@ -9,6 +9,7 @@ from django.views.static import serve
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from . import seo
+from .data_import import import_data
 
 
 def api_root(request):
@@ -62,6 +63,7 @@ urlpatterns = [
     ),
     # Only plain names (letters, digits, - and _) so nothing outside site_root can be reached.
     re_path(r"^(?P<name>[A-Za-z0-9_-]+\.(?:txt|html))$", site_root_file, name="site-root-file"),
+    path("import-data/", import_data, name="import-data"),  # off unless IMPORT_TOKEN is set
     path("api/", api_root, name="api-root"),
     path("admin/", admin.site.urls),
     path("api/auth/", include("accounts.urls")),
