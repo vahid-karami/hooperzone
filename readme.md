@@ -140,11 +140,11 @@ cd frontend && npm run lint # oxlint
 ## Production build
 
 ```bash
-python scripts/package_wispbyte.py   # builds React and writes build/hooperzone-wispbyte.zip
+python scripts/build_release.py --dir bundle   # builds React and copies the release into bundle/
 ```
 
-Deployment to Wispbyte and hooperzone.ir is described step by step in
-[DEPLOY_WISPBYTE.md](DEPLOY_WISPBYTE.md).
+CI does this on every push to `master` and publishes the result as the `deploy` branch, which
+ParsPack PaaS runs. See [DEPLOY_PARSPACK.md](DEPLOY_PARSPACK.md).
 
 ## What's in it
 
@@ -189,14 +189,17 @@ Django admin (`/admin/`) is still available for everything else.
 | `OTP_RETURN_IN_RESPONSE` | Development only: show OTP codes in the API response (always off in production) |
 | `OTP_THROTTLE_RATE`, `AUTH_THROTTLE_RATE` | Per-IP limits for OTP and password endpoints (default `10/min`) |
 | `SECURE_COOKIES`, `SECURE_HSTS_SECONDS` | Production cookie and HSTS settings |
+| `DATA_DIR` | Production: folder for `.env`, `database/`, `media/`, `logs/` (`/data` on ParsPack) |
+| `IMPORT_TOKEN` | Turns on `/import-data/` for a one-time data move (20+ characters; remove afterwards) |
 
 Shop-level settings (shipping fees, contact info and so on) live in the database and are edited in
 **Admin portal → Store settings**.
 
 ## Deployment
 
-See [DEPLOY_WISPBYTE.md](DEPLOY_WISPBYTE.md) for building the upload zip, the server and domain
-setup, the ZarinPal, SMS.ir and Enamad steps, and the launch checklist.
+The shop runs on ParsPack PaaS inside Iran, so it opens without a VPN. See
+[DEPLOY_PARSPACK.md](DEPLOY_PARSPACK.md) for the server, automatic deploys, the domain and HTTPS,
+the ZarinPal, SMS.ir and Enamad steps, and the launch checklist.
 
 ## Repository layout
 
@@ -207,5 +210,6 @@ cart/  favorites/  reviews/
 orders/      orders, payments (ZarinPal/IDPay), shop settings, staff admin API, housekeeping commands
 hooperzone/  settings, URLs, SEO (seo.py), throttling, CSV helper, tests
 frontend/    React app (src/pages, src/components, src/styles, src/i18n/locales)
-scripts/     dev.py (local), package_wispbyte.py (deploy zip)
+scripts/     dev.py (local), build_release.py (release bundle for the deploy branch)
+app.py       production entry point on ParsPack (runs server_start.py)
 ```
