@@ -45,3 +45,22 @@ class TestPaymentVerifyPrivacy:
         unknown = APIClient().post(self.url, {"order_number": "ORD-NOPE0000", "authority": "guess"})
         wrong = APIClient().post(self.url, {"order_number": paid_order.order_number, "authority": "guess"})
         assert (unknown.status_code, unknown.data) == (wrong.status_code, wrong.data)
+
+
+class TestCsvFormulaInjection:
+    def test_formula_cells_are_written_as_text(self):
+        from hooperzone.csv_export import csv_response
+
+        rows = [["=HYPERLINK(\"http://evil\")", "+989120000000", "-1+1", "@SUM(A1)", "Ali", 1500, -3]]
+        lines = csv_response("x", ["a"], rows).content.decode("utf-8").splitlines()
+        assert lines[1] == "\"'=HYPERLINK(\"\"http://evil\"\")\",'+989120000000,'-1+1,'@SUM(A1),Ali,1500,-3"
+
+    @pytest.mark.django_db
+    def test_order_export_neutralises_a_customer_address(self, paid_order):
+        paid_order.shipping_address = "=cmd|' /C calc'!A0"
+        paid_order.save()
+        staff = User.objects.create_superuser(phone="09125550002", password="securepass123")
+        client = APIClient()
+        client.force_authenticate(staff)
+        body = client.get(reverse("orders:admin-order-export")).content.decode("utf-8")
+        assert "'=cmd|" in body and ",=cmd|" not in body
