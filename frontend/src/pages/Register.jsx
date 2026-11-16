@@ -6,7 +6,8 @@ import { afterLoginPath } from '../utils/authRedirect';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
-import { localPasswordProblem, passwordErrorMessage, passwordRuleMessage } from '../utils/passwordRules';
+import { authErrorMessage, needsNewCode } from '../utils/authErrors';
+import { localPasswordProblem, passwordRuleMessage } from '../utils/passwordRules';
 
 export default function Register() {
   const { t } = useTranslation();
@@ -84,17 +85,7 @@ export default function Register() {
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const respData = err.response?.data;
-      let message = 'ثبت‌نام ناموفق بود';
-      if (typeof respData === 'object') {
-        message =
-          respData?.error ||
-          respData?.username?.[0] ||
-          respData?.phone?.[0] ||
-          passwordErrorMessage(respData, t) ||
-          respData?.non_field_errors?.[0] ||
-          t('auth.registrationFailed', 'ثبت‌نام انجام نشد. لطفاً اطلاعات را بررسی کنید.');
-      }
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
@@ -120,7 +111,7 @@ export default function Register() {
       setOtpStep('otp');
       success(t('auth.otpSent', 'کد تایید ارسال شد'));
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.otpSendFailed', 'ارسال کد تایید ناموفق بود');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
@@ -141,7 +132,8 @@ export default function Register() {
       setRegistrationToken(verified.registration_token || '');
       setOtpStep('details');
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.invalidOtp', 'کد تایید نامعتبر است');
+      if (needsNewCode(err)) setOtpCode('');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
@@ -170,8 +162,7 @@ export default function Register() {
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const data = err.response?.data;
-      const message = data?.error || passwordErrorMessage(data, t) || t('auth.registrationFailed', 'ثبت‌نام ناموفق بود');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {

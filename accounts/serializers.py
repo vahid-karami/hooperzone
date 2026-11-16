@@ -10,6 +10,11 @@ from .passwords import check_password_rules
 User = get_user_model()
 
 
+def coded_error(code, message, field="non_field_errors"):
+    """A validation error the storefront can translate: the usual field message plus a stable `code`."""
+    return serializers.ValidationError({field: [message], "code": code})
+
+
 class UserRegistrationSerializer(serializers.Serializer):
     username = DigitsCharField(max_length=150, required=False, allow_blank=True)
     phone = DigitsCharField(max_length=50, required=False, allow_blank=True)
@@ -27,17 +32,21 @@ class UserRegistrationSerializer(serializers.Serializer):
         phone = data.get("phone", "").strip()
 
         if not username and not phone:
-            raise serializers.ValidationError("Either username or phone number is required.")
+            raise coded_error("identifier_required", "Either username or phone number is required.")
 
         if username:
             existing = User.objects.filter(Q(username__iexact=username) | Q(phone__iexact=username)).first()
             if existing and existing.has_usable_password():
-                raise serializers.ValidationError({"username": "A user with this username already exists."})
+                # The sign-up form sends one "username or mobile" value as both fields. When it
+                # is somebody's phone number, say that, not "username taken".
+                if (existing.phone or "").lower() == username.lower():
+                    raise coded_error("phone_exists", "A user with this phone number already exists.", "phone")
+                raise coded_error("username_exists", "A user with this username already exists.", "username")
 
         if phone:
             existing = User.objects.filter(Q(phone__iexact=phone) | Q(username__iexact=phone)).first()
             if existing and existing.has_usable_password():
-                raise serializers.ValidationError({"phone": "A user with this phone number already exists."})
+                raise coded_error("phone_exists", "A user with this phone number already exists.", "phone")
 
         # Last, so "already registered" is reported before anything about the password.
         check_password_rules(
@@ -126,11 +135,12 @@ class UserLoginSerializer(serializers.Serializer):
 
         identifier = data.get("username", "").strip() or data.get("phone", "").strip()
         if not identifier:
-            raise serializers.ValidationError("Please provide a username or phone number.")
+            raise coded_error("identifier_required", "Please provide a username or phone number.")
 
         user = authenticate(username=identifier, phone=identifier, password=data["password"])
         if not user:
-            raise serializers.ValidationError("Invalid username/phone or password.")
+            # One answer for a wrong password and an unknown name: don't reveal which accounts exist.
+            raise coded_error("invalid_credentials", "Invalid username/phone or password.")
 
         data["user"] = user
         return data

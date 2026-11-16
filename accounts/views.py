@@ -4,6 +4,7 @@ from django.core import signing
 from django.db import transaction
 from django.db.models import Q
 from rest_framework import status, permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
@@ -69,6 +70,21 @@ def registration_token_matches(token, user):
 def error_response(code, message, http_status=status.HTTP_400_BAD_REQUEST):
     """An error the storefront can translate: `code` is stable, `error` is the English text."""
     return Response({"error": message, "code": code}, status=http_status)
+
+
+def validate_coded(serializer):
+    """serializer.is_valid(), keeping a `code` set with serializers.coded_error as plain text.
+
+    DRF turns every value of a serializer error into a list; the storefront expects
+    {"code": "invalid_credentials"}, the same shape error_response() sends.
+    """
+    try:
+        serializer.is_valid(raise_exception=True)
+    except ValidationError as e:
+        detail = e.detail
+        if isinstance(detail, dict) and isinstance(detail.get("code"), list) and detail["code"]:
+            raise ValidationError({**detail, "code": str(detail["code"][0])}) from e
+        raise
 
 
 def otp_error_response(code):
@@ -192,7 +208,7 @@ def verify_otp(request):
 @throttle_classes([AuthRateThrottle])
 def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    validate_coded(serializer)
 
     username = serializer.validated_data.get("username", "").strip()
     phone = serializer.validated_data.get("phone", "").strip()
@@ -211,19 +227,13 @@ def register(request):
         )
     )
     if any(u.has_usable_password() for u in matches):
-        return Response(
-            {"error": "User already registered. Please login."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("already_registered", "User already registered. Please login.")
 
     # What is left are placeholders made by "send me a code" (a phone and no password yet).
     existing_user = next((u for u in matches if u.phone == phone_val), None)
     if len(matches) > (1 if existing_user else 0):
         # The chosen username is a phone number someone else is registering with.
-        return Response(
-            {"error": "This username is not available."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("username_exists", "This username is not available.")
 
     # Finishing an OTP registration sets the password of the placeholder, so the caller must
     # prove they are the one who received the code: knowing the phone number is not enough.
@@ -231,10 +241,7 @@ def register(request):
         existing_user.is_verified
         and registration_token_matches(serializer.validated_data.get("registration_token", ""), existing_user)
     ):
-        return Response(
-            {"error": "Please verify your phone number before registering."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("phone_not_verified", "Please verify your phone number before registering.")
 
     if existing_user:
         existing_user.set_password(password)
@@ -332,7 +339,7 @@ def profile(request):
 @throttle_classes([AuthRateThrottle])
 def login_with_password(request):
     serializer = UserLoginSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    validate_coded(serializer)
 
     user = serializer.validated_data["user"]
     tokens = get_tokens_for_user(user)

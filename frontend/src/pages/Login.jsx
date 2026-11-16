@@ -8,6 +8,7 @@ import { toEnglishDigits } from '../utils/digits';
 import { validateIranianPhone } from '../utils/iranianPhone';
 import { usePageMeta } from '../utils/seo';
 import { afterLoginPath } from '../utils/authRedirect';
+import { authErrorMessage, needsNewCode } from '../utils/authErrors';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -51,7 +52,7 @@ export default function Login() {
       setStep('otp');
       success(t('auth.otpSent', 'کد تایید ارسال شد'));
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.otpSendFailed', 'ارسال کد تایید ناموفق بود');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
@@ -73,7 +74,9 @@ export default function Login() {
       success(t('auth.loginSuccess', 'ورود موفقیت‌آمیز!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const message = err.response?.data?.error || t('auth.invalidOtp', 'کد تایید نامعتبر');
+      // An expired or cancelled code can't be retried: empty the field so a new one is requested.
+      if (needsNewCode(err)) setCode('');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
@@ -100,10 +103,7 @@ export default function Login() {
       success(t('auth.loginSuccess', 'ورود موفقیت‌آمیز!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const message =
-        err.response?.data?.error ||
-        err.response?.data?.non_field_errors?.[0] ||
-        t('auth.invalidCredentials', 'نام کاربری یا رمز عبور اشتباه است');
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {

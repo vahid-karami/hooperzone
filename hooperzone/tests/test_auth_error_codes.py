@@ -87,3 +87,100 @@ class TestResetCodes:
         assert _reset(user, otp.code).data["code"] == "otp_invalid"
         user.refresh_from_db()
         assert user.check_password("securepass123")
+
+
+@pytest.mark.django_db
+class TestLoginCodes:
+    url = reverse("accounts:login")
+
+    def test_wrong_password_and_unknown_name_look_the_same(self, user):
+        wrong = APIClient().post(self.url, {"phone": user.phone, "password": "not-the-password"})
+        unknown = APIClient().post(self.url, {"phone": "09128880009", "password": "not-the-password"})
+        assert wrong.status_code == unknown.status_code == 400
+        assert wrong.data == unknown.data
+        assert wrong.data["code"] == "invalid_credentials"
+        # The old shape is still there for clients that read it.
+        assert wrong.data["non_field_errors"] == ["Invalid username/phone or password."]
+
+    def test_no_name_given(self, db):
+        res = APIClient().post(self.url, {"password": "securepass123"})
+        assert (res.status_code, res.data["code"]) == (400, "identifier_required")
+
+    def test_success_has_no_code(self, user):
+        res = APIClient().post(self.url, {"phone": user.phone, "password": "securepass123"})
+        assert res.status_code == 200 and "code" not in res.data
+
+
+@pytest.mark.django_db
+class TestRegisterFormCodes:
+    url = reverse("accounts:register")
+
+    def test_phone_already_has_an_account(self, user):
+        res = APIClient().post(self.url, {"phone": user.phone, "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_exists")
+        assert res.data["phone"] == ["A user with this phone number already exists."]
+
+    def test_username_already_taken(self, db):
+        User.objects.create_user(phone="09128880010", username="sara", password="securepass123")
+        res = APIClient().post(self.url, {"username": "SARA", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "username_exists") and "username" in res.data
+
+    def test_nothing_to_register_with(self, db):
+        res = APIClient().post(self.url, {"password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "identifier_required")
+
+    def test_refused_password_keeps_its_own_codes(self, db):
+        res = APIClient().post(self.url, {"phone": "09128880011", "password": "12345678"})
+        assert res.status_code == 400 and "code" not in res.data
+        assert "password_entirely_numeric" in res.data["password_codes"]
+
+
+@pytest.mark.django_db
+class TestRegisterFlowCodes:
+    url = reverse("accounts:register")
+
+    def _pending(self, phone, verify=True):
+        """A phone that asked for a register code (and entered it, if `verify`)."""
+        APIClient().post(reverse("accounts:otp-send"), {"phone": phone, "otp_type": "register"})
+        if verify:
+            otp = OTPCode.objects.filter(user__phone=phone).latest("created_at")
+            return APIClient().post(
+                reverse("accounts:otp-verify"), {"phone": phone, "code": otp.code, "otp_type": "register"}
+            ).data["registration_token"]
+        return None
+
+    def test_phone_that_never_entered_its_code(self):
+        self._pending("09128880020", verify=False)
+        res = APIClient().post(self.url, {"phone": "09128880020", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_not_verified")
+
+    def test_verified_phone_without_the_token(self):
+        self._pending("09128880021")
+        res = APIClient().post(self.url, {"phone": "09128880021", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_not_verified")
+
+    def test_username_that_is_someone_elses_pending_phone(self):
+        self._pending("09128880022")
+        res = APIClient().post(
+            self.url, {"username": "09128880022", "phone": "09128880023", "password": "blue-Kettle-41"}
+        )
+        assert (res.status_code, res.data["code"]) == (400, "username_exists")
+
+    def test_wrong_register_code(self):
+        self._pending("09128880024", verify=False)
+        otp = OTPCode.objects.filter(user__phone="09128880024").latest("created_at")
+        res = APIClient().post(
+            reverse("accounts:otp-verify"),
+            {"phone": "09128880024", "code": _wrong(otp.code), "otp_type": "register"},
+        )
+        assert (res.status_code, res.data["code"]) == (400, "otp_invalid")
+
+
+@pytest.mark.django_db
+def test_sign_up_form_with_a_registered_phone_says_phone_not_username(user):
+    """The form sends its one "username or mobile" box as both fields."""
+    res = APIClient().post(
+        reverse("accounts:register"), {"username": user.phone, "phone": user.phone, "password": "blue-Kettle-41"}
+    )
+    assert (res.status_code, res.data["code"]) == (400, "phone_exists")
+    assert "phone" in res.data and "username" not in res.data
