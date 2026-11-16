@@ -133,3 +133,44 @@ class TestRegisterFormCodes:
         res = APIClient().post(self.url, {"phone": "09128880011", "password": "12345678"})
         assert res.status_code == 400 and "code" not in res.data
         assert "password_entirely_numeric" in res.data["password_codes"]
+
+
+@pytest.mark.django_db
+class TestRegisterFlowCodes:
+    url = reverse("accounts:register")
+
+    def _pending(self, phone, verify=True):
+        """A phone that asked for a register code (and entered it, if `verify`)."""
+        APIClient().post(reverse("accounts:otp-send"), {"phone": phone, "otp_type": "register"})
+        if verify:
+            otp = OTPCode.objects.filter(user__phone=phone).latest("created_at")
+            return APIClient().post(
+                reverse("accounts:otp-verify"), {"phone": phone, "code": otp.code, "otp_type": "register"}
+            ).data["registration_token"]
+        return None
+
+    def test_phone_that_never_entered_its_code(self):
+        self._pending("09128880020", verify=False)
+        res = APIClient().post(self.url, {"phone": "09128880020", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_not_verified")
+
+    def test_verified_phone_without_the_token(self):
+        self._pending("09128880021")
+        res = APIClient().post(self.url, {"phone": "09128880021", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_not_verified")
+
+    def test_username_that_is_someone_elses_pending_phone(self):
+        self._pending("09128880022")
+        res = APIClient().post(
+            self.url, {"username": "09128880022", "phone": "09128880023", "password": "blue-Kettle-41"}
+        )
+        assert (res.status_code, res.data["code"]) == (400, "username_exists")
+
+    def test_wrong_register_code(self):
+        self._pending("09128880024", verify=False)
+        otp = OTPCode.objects.filter(user__phone="09128880024").latest("created_at")
+        res = APIClient().post(
+            reverse("accounts:otp-verify"),
+            {"phone": "09128880024", "code": _wrong(otp.code), "otp_type": "register"},
+        )
+        assert (res.status_code, res.data["code"]) == (400, "otp_invalid")

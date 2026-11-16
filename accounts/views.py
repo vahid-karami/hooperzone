@@ -227,19 +227,13 @@ def register(request):
         )
     )
     if any(u.has_usable_password() for u in matches):
-        return Response(
-            {"error": "User already registered. Please login."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("already_registered", "User already registered. Please login.")
 
     # What is left are placeholders made by "send me a code" (a phone and no password yet).
     existing_user = next((u for u in matches if u.phone == phone_val), None)
     if len(matches) > (1 if existing_user else 0):
         # The chosen username is a phone number someone else is registering with.
-        return Response(
-            {"error": "This username is not available."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("username_exists", "This username is not available.")
 
     # Finishing an OTP registration sets the password of the placeholder, so the caller must
     # prove they are the one who received the code: knowing the phone number is not enough.
@@ -247,10 +241,7 @@ def register(request):
         existing_user.is_verified
         and registration_token_matches(serializer.validated_data.get("registration_token", ""), existing_user)
     ):
-        return Response(
-            {"error": "Please verify your phone number before registering."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("phone_not_verified", "Please verify your phone number before registering.")
 
     if existing_user:
         existing_user.set_password(password)
