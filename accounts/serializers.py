@@ -5,6 +5,8 @@ from rest_framework import serializers
 from hooperzone.fields import DigitsCharField, normalize_digits
 from hooperzone.permissions import admin_access
 
+from .passwords import check_password_rules
+
 User = get_user_model()
 
 
@@ -35,6 +37,14 @@ class UserRegistrationSerializer(serializers.Serializer):
             if existing and existing.has_usable_password():
                 raise serializers.ValidationError({"phone": "A user with this phone number already exists."})
 
+        # Last, so "already registered" is reported before anything about the password.
+        check_password_rules(
+            data["password"],
+            username=username or phone,
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+            email=data.get("email", ""),
+        )
         return data
 
 

@@ -35,3 +35,44 @@ class TestRules:
     @pytest.mark.parametrize("password", ["securepass123", "کلمه‌عبور۱۲۳", "blue-Kettle-41", "zanoo band 7"])
     def test_ordinary_passwords_pass(self, password):
         check_password_rules(password, username="09121234567", first_name="Sara")
+
+
+@pytest.mark.django_db
+class TestSignUp:
+    url = reverse("accounts:register")
+
+    @pytest.mark.parametrize("password, code", WEAK[:4])
+    def test_weak_password_does_not_create_an_account(self, password, code):
+        res = APIClient().post(self.url, {"phone": "09127770001", "password": password})
+        assert res.status_code == 400
+        assert code in res.data["password_codes"] and res.data["password"]
+        assert not User.objects.filter(phone="09127770001").exists()
+
+    def test_password_equal_to_the_username_is_refused(self):
+        res = APIClient().post(self.url, {"username": "sara_ahmadi", "password": "sara_ahmadi"})
+        assert res.status_code == 400 and res.data["password_codes"] == ["password_too_similar"]
+
+    def test_good_password_registers(self):
+        res = APIClient().post(self.url, {"phone": "09127770002", "password": "blue-Kettle-41", "first_name": "Sara"})
+        assert res.status_code == 201, res.data
+        assert User.objects.get(phone="09127770002").check_password("blue-Kettle-41")
+
+    def test_weak_password_cannot_finish_an_otp_registration(self):
+        from accounts.models import OTPCode
+
+        phone = "09127770003"
+        APIClient().post(reverse("accounts:otp-send"), {"phone": phone, "otp_type": "register"})
+        otp = OTPCode.objects.filter(user__phone=phone).latest("created_at")
+        token = APIClient().post(
+            reverse("accounts:otp-verify"), {"phone": phone, "code": otp.code, "otp_type": "register"}
+        ).data["registration_token"]
+        payload = {"phone": phone, "username": phone, "registration_token": token}
+        weak = APIClient().post(self.url, {**payload, "password": "12345678"})
+        assert weak.status_code == 400 and not User.objects.get(phone=phone).has_usable_password()
+        # The token still works after the customer picks a better password.
+        assert APIClient().post(self.url, {**payload, "password": "blue-Kettle-41"}).status_code == 201
+
+    def test_existing_account_is_reported_before_the_password(self):
+        User.objects.create_user(phone="09127770004", password="securepass123")
+        res = APIClient().post(self.url, {"phone": "09127770004", "password": "12345678"})
+        assert res.status_code == 400 and "phone" in res.data and "password_codes" not in res.data
