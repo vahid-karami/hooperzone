@@ -186,12 +186,37 @@ class TestAuthHardening:
 
         monkeypatch.setattr(SimpleRateThrottle, "THROTTLE_RATES", {"auth": "3/min", "otp": "10/min"})
         url = reverse("accounts:login")
-        attacker = APIClient(HTTP_CF_CONNECTING_IP="5.5.5.5")
+        attacker = APIClient(REMOTE_ADDR="5.5.5.5")
         codes = [attacker.post(url, {"username": "x", "password": "wrong"}).status_code for _ in range(4)]
         assert codes[-1] == status.HTTP_429_TOO_MANY_REQUESTS
-        # Another visitor behind the same Cloudflare edge is not blocked.
-        other = APIClient(HTTP_CF_CONNECTING_IP="6.6.6.6")
+        # Another visitor (a different address from the proxy) is not blocked.
+        other = APIClient(REMOTE_ADDR="6.6.6.6")
         assert other.post(url, {"username": "x", "password": "wrong"}).status_code != 429
+
+    def test_forged_cloudflare_header_does_not_reset_the_limit(self, monkeypatch, settings):
+        from rest_framework.throttling import SimpleRateThrottle
+
+        settings.TRUST_CF_CONNECTING_IP = False  # no Cloudflare proxy in front (ParsPack, grey cloud)
+        monkeypatch.setattr(SimpleRateThrottle, "THROTTLE_RATES", {"auth": "3/min", "otp": "10/min"})
+        url = reverse("accounts:login")
+        codes = [
+            APIClient(REMOTE_ADDR="5.5.5.5", HTTP_CF_CONNECTING_IP=f"7.7.7.{i}").post(
+                url, {"username": "x", "password": "wrong"}
+            ).status_code
+            for i in range(4)
+        ]
+        assert codes[-1] == status.HTTP_429_TOO_MANY_REQUESTS
+
+    def test_cloudflare_header_is_used_when_trusted(self, settings):
+        from django.test import RequestFactory
+
+        from hooperzone.throttling import client_ip
+
+        request = RequestFactory().get("/", REMOTE_ADDR="172.16.0.1", HTTP_CF_CONNECTING_IP="5.5.5.5")
+        settings.TRUST_CF_CONNECTING_IP = False
+        assert client_ip(request) == "172.16.0.1"
+        settings.TRUST_CF_CONNECTING_IP = True
+        assert client_ip(request) == "5.5.5.5"
 
     def test_direct_registration_does_not_mark_phone_verified(self):
         res = APIClient().post(reverse("accounts:register"), {"phone": "09123334444", "password": "securepass123"})

@@ -148,6 +148,10 @@ OTP_RETURN_IN_RESPONSE = os.environ.get("OTP_RETURN_IN_RESPONSE", str(DEBUG)) ==
 
 SITE_URL = os.environ.get("SITE_URL", "https://hooperzone.ir").rstrip("/")
 
+# Use Cloudflare's CF-Connecting-IP header as the visitor IP for rate limits. Only safe while
+# Cloudflare proxies the site (orange cloud); with DNS only, anyone could forge it.
+TRUST_CF_CONNECTING_IP = os.environ.get("TRUST_CF_CONNECTING_IP", "False") == "True"
+
 # Turns on /import-data/ for moving a shop to a new server (hooperzone/data_import.py).
 # Needs at least 20 characters; leave empty (the default) to keep the page off.
 IMPORT_TOKEN = os.environ.get("IMPORT_TOKEN", "").strip()

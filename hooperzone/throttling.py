@@ -1,10 +1,20 @@
-"""Throttles that see the real visitor IP behind Cloudflare."""
+"""Throttles keyed on the real visitor IP.
+
+On ParsPack the app sits behind one ingress proxy. Waitress (server_start.serve) takes the last
+X-Forwarded-For entry, which that proxy wrote, as REMOTE_ADDR, so a forged header can't fake an IP.
+CF-Connecting-IP is only trusted when Cloudflare proxies the site (TRUST_CF_CONNECTING_IP=True);
+otherwise anyone could send it and get a fresh limit with every request.
+"""
+from django.conf import settings
 from rest_framework.throttling import ScopedRateThrottle, SimpleRateThrottle
 
 
 def client_ip(request):
-    """Cloudflare puts the visitor's address in CF-Connecting-IP; REMOTE_ADDR is its edge server."""
-    return request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get("REMOTE_ADDR")
+    if getattr(settings, "TRUST_CF_CONNECTING_IP", False):
+        cf_ip = request.META.get("HTTP_CF_CONNECTING_IP")
+        if cf_ip:
+            return cf_ip
+    return request.META.get("REMOTE_ADDR")
 
 
 class ClientIPMixin:
