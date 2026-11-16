@@ -71,6 +71,11 @@ Both names are added in panel → تنظیمات دامنه و IP (domain and IP
 certificate (Let's Encrypt), which ParsPack renews itself. A new name only gets its certificate
 after its DNS points at ParsPack.
 
+Rate limits (login, SMS codes) count per visitor IP, taken from the X-Forwarded-For entry that
+ParsPack's ingress adds (`server_start.serve`). If Cloudflare ever proxies the site again (orange
+cloud), set `TRUST_CF_CONNECTING_IP=True` so the limits use Cloudflare's visitor-IP header;
+never set it while the cloud is grey, because then anyone can forge that header.
+
 ## Moving data from another server (one time)
 1. On the old server, archive `database/`, `media/` and `.env` (zip or tar.gz) and download it.
 2. ParsPack: add `IMPORT_TOKEN` = random text of 20+ characters; wait for the restart.
