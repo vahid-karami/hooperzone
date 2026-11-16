@@ -66,6 +66,15 @@ def registration_token_matches(token, user):
     return isinstance(data, dict) and data.get("uid") == user.pk
 
 
+def error_response(code, message, http_status=status.HTTP_400_BAD_REQUEST):
+    """An error the storefront can translate: `code` is stable, `error` is the English text."""
+    return Response({"error": message, "code": code}, status=http_status)
+
+
+def otp_error_response(code):
+    return error_response(code, OTPCode.OTP_ERRORS[code])
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -90,16 +99,10 @@ def send_otp(request):
     is_registered = user is not None and user.has_usable_password()
 
     if otp_type == OTPCode.OTP_TYPE_REGISTER and is_registered:
-        return Response(
-            {"error": "A user with this phone number already exists."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return error_response("phone_exists", "A user with this phone number already exists.")
 
     if otp_type in (OTPCode.OTP_TYPE_LOGIN, OTPCode.OTP_TYPE_RESET_PASSWORD) and not is_registered:
-        return Response(
-            {"error": "No user found with this phone number."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return error_response("user_not_found", "No user found with this phone number.", status.HTTP_404_NOT_FOUND)
 
     if user is None:
         user = User(phone=phone, is_verified=False)
@@ -116,9 +119,9 @@ def send_otp(request):
         send_otp_sms(phone, otp.code)
     except SMSError:
         otp.mark_used()
-        return Response(
-            {"error": "Could not send the SMS. Please try again in a few minutes."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        return error_response(
+            "sms_failed", "Could not send the SMS. Please try again in a few minutes.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
     data = {
@@ -146,14 +149,11 @@ def verify_otp(request):
     try:
         user = User.objects.get(phone=phone)
     except User.DoesNotExist:
-        return Response(
-            {"error": "No user found with this phone number."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return error_response("user_not_found", "No user found with this phone number.", status.HTTP_404_NOT_FOUND)
 
     otp, error = OTPCode.check_code(user, otp_type, code)
     if error:
-        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        return otp_error_response(error)
 
     otp.mark_used()
 
@@ -293,10 +293,7 @@ def reset_password(request):
     try:
         user = User.objects.get(phone=phone)
     except User.DoesNotExist:
-        return Response(
-            {"error": "No user found with this phone number."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return error_response("user_not_found", "No user found with this phone number.", status.HTTP_404_NOT_FOUND)
 
     # Before the code is looked at: a refused password must not use up the code or count as
     # a wrong guess, so the customer can simply type a better one.
@@ -304,7 +301,7 @@ def reset_password(request):
 
     otp, error = OTPCode.check_code(user, OTPCode.OTP_TYPE_RESET_PASSWORD, code)
     if error:
-        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        return otp_error_response(error)
 
     otp.mark_used()
     user.set_password(serializer.validated_data["new_password"])

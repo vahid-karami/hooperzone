@@ -17,7 +17,8 @@ export default function Login() {
   const { success, error: showError } = useToast();
 
   const [authMethod, setAuthMethod] = useState('password');
-  const [phone, setPhone] = useState('');
+  // Coming back from the forgot-password page: the number is already known.
+  const [phone, setPhone] = useState(location.state?.phone || '');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [step, setStep] = useState('phone');
@@ -171,6 +172,13 @@ export default function Login() {
               autoComplete="current-password"
               aria-invalid={Boolean(error) || undefined}
             />
+            <Link
+              to="/forgot-password"
+              className="auth-forgot"
+              state={{ ...location.state, phone: validateIranianPhone(toEnglishDigits(phone).trim()) ? toEnglishDigits(phone).trim() : undefined }}
+            >
+              {t('auth.forgotPassword', 'رمز عبور را فراموش کرده‌اید؟')}
+            </Link>
           </div>
           <button type="submit" disabled={loading} className="auth-submit">
             {submitLabel(t('common.login', 'ورود'), t('auth.loggingIn', 'در حال ورود...'))}

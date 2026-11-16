@@ -20,6 +20,7 @@ const Cart = lazy(loadCart);
 const Checkout = lazy(() => import('./pages/Checkout'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Orders = lazy(() => import('./pages/Orders'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:orderNumber" element={<OrderDetail />} />
