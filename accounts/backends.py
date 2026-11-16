@@ -14,15 +14,21 @@ class PhoneOrUsernameBackend(ModelBackend):
         if not identifier or not password:
             return None
 
-        try:
-            user = UserModel.objects.filter(
+        # Phone and username are each unique, but one person's username or email can equal
+        # another's phone. Check every match (own phone first) instead of whichever row the
+        # database returns first, or a look-alike account would lock the real owner out.
+        matches = list(
+            UserModel.objects.filter(
                 Q(username__iexact=identifier)
                 | Q(phone__iexact=identifier)
                 | Q(email__iexact=identifier)
-            ).first()
-        except UserModel.DoesNotExist:
+            ).order_by("id")[:10]
+        )
+        if not matches:
+            UserModel().set_password(password)  # same work as a real check: don't reveal who exists
             return None
-
-        if user and user.check_password(password) and self.user_can_authenticate(user):
-            return user
+        matches.sort(key=lambda u: (u.phone != identifier, (u.username or "").lower() != identifier.lower()))
+        for user in matches:
+            if user.check_password(password) and self.user_can_authenticate(user):
+                return user
         return None
