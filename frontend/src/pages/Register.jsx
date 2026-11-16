@@ -28,6 +28,8 @@ export default function Register() {
   const [otpStep, setOtpStep] = useState('phone');
   const [otpPhone, setOtpPhone] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  // Proof from the server that this browser entered the right code; sent with the final form.
+  const [registrationToken, setRegistrationToken] = useState('');
   const [otpPassword, setOtpPassword] = useState('');
   const [otpFirstName, setOtpFirstName] = useState('');
   const [otpLastName, setOtpLastName] = useState('');
@@ -133,7 +135,8 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      await verifyOTP(otpPhone, otpCode, 'register');
+      const verified = await verifyOTP(otpPhone, otpCode, 'register');
+      setRegistrationToken(verified.registration_token || '');
       setOtpStep('details');
     } catch (err) {
       const message = err.response?.data?.error || t('auth.invalidOtp', 'کد تایید نامعتبر است');
@@ -159,6 +162,7 @@ export default function Register() {
         password: otpPassword,
         first_name: otpFirstName.trim(),
         last_name: otpLastName.trim(),
+        registration_token: registrationToken,
       });
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });

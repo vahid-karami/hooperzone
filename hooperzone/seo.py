@@ -5,6 +5,7 @@ Google) would otherwise see the same generic <head> on every URL. `render_page`
 fills in each page's title, description, canonical URL, Open Graph tags and
 JSON-LD before index.html is sent, and reports unknown URLs as 404.
 """
+import hashlib
 import html
 import json
 import re
@@ -13,7 +14,7 @@ from dataclasses import dataclass, field
 
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
-from django.core.cache import cache
+from django.core.cache import caches
 from django.db.models import Avg, Count
 from django.http import HttpResponse
 from django.urls import reverse
@@ -264,13 +265,13 @@ def head_tags(meta):
 
 def inject(index_html, meta):
     esc = lambda v: html.escape(v, quote=True)  # noqa: E731
-    out = re.sub(r"<title>.*?</title>", f"<title>{esc(meta.title)}</title>", index_html, count=1, flags=re.S)
-    out = re.sub(
-        r'<meta name="description" content="[^"]*"\s*/?>',
-        f'<meta name="description" content="{esc(meta.description)}" />',
-        out, count=1,
-    )
+    # Replacements are functions: in a plain replacement string re.sub reads backslashes in
+    # the text as group references, so a title with "\\" in it made the page answer 500.
+    title = f"<title>{esc(meta.title)}</title>"
+    description = f'<meta name="description" content="{esc(meta.description)}" />'
     robots = "noindex, nofollow" if meta.noindex else "index, follow, max-image-preview:large"
+    out = re.sub(r"<title>.*?</title>", lambda m: title, index_html, count=1, flags=re.S)
+    out = re.sub(r'<meta name="description" content="[^"]*"\s*/?>', lambda m: description, out, count=1)
     out = re.sub(r'<meta name="robots" content="[^"]*"\s*/?>', f'<meta name="robots" content="{robots}" />', out, count=1)
     return out.replace("</head>", f"    {head_tags(meta)}\n  </head>", 1)
 
@@ -279,7 +280,11 @@ def render_page(request, index_html):
     """index.html with this URL's meta tags, and its HTTP status (404 for unknown pages)."""
     # The build's fingerprint is in the key, so a new frontend build never gets old cached HTML
     # that points at asset files the build removed.
-    key = f"seo:{zlib.crc32(index_html.encode())}:{request.get_full_path()}"
+    # Own cache ("pages"): the URL is chosen by the visitor, so this must not share space with
+    # the rate-limit counters. Hashed because cache keys have a length limit and URLs don't.
+    cache = caches["pages"]
+    path = hashlib.sha256(request.get_full_path().encode()).hexdigest()
+    key = f"seo:{zlib.crc32(index_html.encode())}:{path}"
     cached = cache.get(key)
     if cached is None:
         meta = page_meta(request)

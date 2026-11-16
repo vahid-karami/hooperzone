@@ -10,6 +10,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from hooperzone.csv_export import csv_response
+from hooperzone.fields import normalize_digits
 from hooperzone.permissions import CanManageCatalog, can_delete
 
 from .models import Category, Product, ProductImage, SizeGuide, Sport
@@ -53,6 +54,15 @@ class SportViewSet(viewsets.ReadOnlyModelViewSet):
         context = super().get_serializer_context()
         context["lang"] = self.request.query_params.get("lang", "en")
         return context
+
+
+def price_param(value):
+    """A price typed into the URL (Persian digits allowed) as a Decimal, or None if it isn't a number."""
+    try:
+        price = Decimal(normalize_digits(value or "").strip())
+    except InvalidOperation:
+        return None
+    return price if price.is_finite() else None
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -101,12 +111,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if size:
             queryset = queryset.filter(sizes__label__iexact=size, sizes__is_active=True).distinct()
 
-        min_price = self.request.query_params.get("min_price")
-        if min_price:
+        min_price = price_param(self.request.query_params.get("min_price"))
+        if min_price is not None:
             queryset = queryset.filter(price__gte=min_price)
 
-        max_price = self.request.query_params.get("max_price")
-        if max_price:
+        max_price = price_param(self.request.query_params.get("max_price"))
+        if max_price is not None:
             queryset = queryset.filter(price__lte=max_price)
 
         in_stock = self.request.query_params.get("in_stock")

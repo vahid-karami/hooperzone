@@ -71,6 +71,22 @@ DATABASES = {
     }
 }
 
+# Two in-memory caches on purpose. "default" holds the rate-limit counters (OTP, login); the
+# rendered pages of hooperzone/seo.py go to "pages". In one shared cache, anyone could open a
+# few hundred made-up URLs, fill it, and push the counters out, which resets the limits.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "default",
+        "OPTIONS": {"MAX_ENTRIES": 20000},
+    },
+    "pages": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "pages",
+        "OPTIONS": {"MAX_ENTRIES": 500},
+    },
+}
+
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -126,6 +142,8 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.environ.get("OTP_THROTTLE_RATE", "10/min"),
+        # Codes texted to one phone number, from any address.
+        "otp_phone": os.environ.get("OTP_PHONE_THROTTLE_RATE", "5/hour"),
         "auth": os.environ.get("AUTH_THROTTLE_RATE", "10/min"),
     },
 }

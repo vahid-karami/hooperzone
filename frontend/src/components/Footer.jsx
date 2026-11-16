@@ -89,7 +89,8 @@ export default function Footer() {
         <div className="container footer-bottom-inner">
           <p>© {year} {t('footer.copyright', 'هوپرزون. تمامی حقوق محفوظ است.')}</p>
           {(shop.enamad_html || shop.samandehi_html) && (
-            // Badge code is pasted by staff from enamad.ir / samandehi.ir in the admin portal.
+            // Badge code pasted by staff in the admin portal. The API returns it cleaned
+            // (orders/badge_html.py: only a linked picture), so it is safe to put in as HTML.
             <div className="trust-badges">
               {shop.enamad_html && <div dangerouslySetInnerHTML={{ __html: shop.enamad_html }} />}
               {shop.samandehi_html && <div dangerouslySetInnerHTML={{ __html: shop.samandehi_html }} />}

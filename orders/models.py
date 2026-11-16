@@ -38,7 +38,12 @@ class ShopSettings(models.Model):
         return "Shop settings"
 
     def save(self, *args, **kwargs):
+        from .badge_html import clean_badge_html
+
         self.pk = 1
+        # Shown as raw HTML on every page: keep nothing but the linked badge picture.
+        self.enamad_html = clean_badge_html(self.enamad_html)
+        self.samandehi_html = clean_badge_html(self.samandehi_html)
         super().save(*args, **kwargs)
 
     @classmethod

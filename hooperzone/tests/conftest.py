@@ -1,10 +1,12 @@
 import pytest
-from django.core.cache import cache
+from django.core.cache import caches
 
 
 @pytest.fixture(autouse=True)
 def _clear_cache():
-    # Throttle counters live in the cache; don't let them leak between tests.
-    cache.clear()
+    # Throttle counters and rendered pages live in the caches; don't let them leak between tests.
+    for cache in caches.all():
+        cache.clear()
     yield
-    cache.clear()
+    for cache in caches.all():
+        cache.clear()

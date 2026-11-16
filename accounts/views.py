@@ -1,10 +1,15 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import signing
+from django.db import transaction
+from django.db.models import Q
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from hooperzone.fields import normalize_digits
 from hooperzone.throttling import AuthRateThrottle, IPRateThrottle
 
 from .models import OTPCode
@@ -27,6 +32,39 @@ class OTPRateThrottle(IPRateThrottle):
     scope = "otp"
 
 
+class OTPPhoneRateThrottle(SimpleRateThrottle):
+    """Limit on codes sent to one phone number, whoever asks and from whatever address.
+
+    The per-IP limit alone lets someone with many addresses text a stranger's phone without end
+    (each SMS also costs the shop money).
+    """
+
+    scope = "otp_phone"
+
+    def get_cache_key(self, request, view):
+        phone = normalize_digits(str(request.data.get("phone") or "")).strip()
+        if not phone:
+            return None  # the serializer rejects the request anyway
+        return self.cache_format % {"scope": self.scope, "ident": phone[:32]}
+
+
+REGISTRATION_TOKEN_SALT = "accounts.registration"
+REGISTRATION_TOKEN_MAX_AGE = 15 * 60  # seconds to finish the form after the code was accepted
+
+
+def make_registration_token(user):
+    """Signed proof, handed out when a register code is accepted, that the caller holds this phone."""
+    return signing.dumps({"uid": user.pk}, salt=REGISTRATION_TOKEN_SALT)
+
+
+def registration_token_matches(token, user):
+    try:
+        data = signing.loads(token, salt=REGISTRATION_TOKEN_SALT, max_age=REGISTRATION_TOKEN_MAX_AGE)
+    except signing.BadSignature:  # also covers an expired token
+        return False
+    return isinstance(data, dict) and data.get("uid") == user.pk
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -37,7 +75,7 @@ def get_tokens_for_user(user):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-@throttle_classes([OTPRateThrottle])
+@throttle_classes([OTPRateThrottle, OTPPhoneRateThrottle])
 def send_otp(request):
     serializer = OTPSendSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -95,6 +133,7 @@ def send_otp(request):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([OTPRateThrottle])
+@transaction.atomic
 def verify_otp(request):
     serializer = OTPVerifySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -111,24 +150,9 @@ def verify_otp(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    try:
-        otp = OTPCode.objects.filter(
-            user=user,
-            code=code,
-            otp_type=otp_type,
-            is_used=False,
-        ).latest("created_at")
-    except OTPCode.DoesNotExist:
-        return Response(
-            {"error": "Invalid OTP code."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if otp.is_expired():
-        return Response(
-            {"error": "OTP has expired. Please request a new one."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    otp, error = OTPCode.check_code(user, otp_type, code)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
     otp.mark_used()
 
@@ -139,6 +163,8 @@ def verify_otp(request):
             {
                 "message": "Phone number verified successfully.",
                 "next_step": "Please complete registration with phone and password.",
+                # Send this back with the registration form.
+                "registration_token": make_registration_token(user),
             },
             status=status.HTTP_200_OK,
         )
@@ -174,23 +200,36 @@ def register(request):
     last_name = serializer.validated_data.get("last_name", "")
     email = serializer.validated_data.get("email", "")
 
-    identifier = username or phone
     phone_val = phone or username
     username_val = username or phone
 
-    from django.db.models import Q
-
-    existing_user = User.objects.filter(
-        Q(phone__iexact=identifier) | Q(username__iexact=identifier)
-    ).first()
-
-    if existing_user and existing_user.has_usable_password():
+    matches = list(
+        User.objects.filter(
+            Q(phone__iexact=phone_val) | Q(username__iexact=phone_val)
+            | Q(phone__iexact=username_val) | Q(username__iexact=username_val)
+        )
+    )
+    if any(u.has_usable_password() for u in matches):
         return Response(
             {"error": "User already registered. Please login."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if existing_user and not existing_user.is_verified:
+    # What is left are placeholders made by "send me a code" (a phone and no password yet).
+    existing_user = next((u for u in matches if u.phone == phone_val), None)
+    if len(matches) > (1 if existing_user else 0):
+        # The chosen username is a phone number someone else is registering with.
+        return Response(
+            {"error": "This username is not available."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Finishing an OTP registration sets the password of the placeholder, so the caller must
+    # prove they are the one who received the code: knowing the phone number is not enough.
+    if existing_user and not (
+        existing_user.is_verified
+        and registration_token_matches(serializer.validated_data.get("registration_token", ""), existing_user)
+    ):
         return Response(
             {"error": "Please verify your phone number before registering."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -242,6 +281,7 @@ def register(request):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([OTPRateThrottle])
+@transaction.atomic
 def reset_password(request):
     serializer = PasswordResetSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -257,24 +297,9 @@ def reset_password(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    try:
-        otp = OTPCode.objects.filter(
-            user=user,
-            code=code,
-            otp_type=OTPCode.OTP_TYPE_RESET_PASSWORD,
-            is_used=False,
-        ).latest("created_at")
-    except OTPCode.DoesNotExist:
-        return Response(
-            {"error": "Invalid OTP code."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if otp.is_expired():
-        return Response(
-            {"error": "OTP has expired. Please request a new one."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    otp, error = OTPCode.check_code(user, OTPCode.OTP_TYPE_RESET_PASSWORD, code)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
     otp.mark_used()
     user.set_password(serializer.validated_data["new_password"])

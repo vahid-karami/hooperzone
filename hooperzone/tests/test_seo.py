@@ -102,11 +102,21 @@ def test_sitemap_lists_active_products_with_images(site, settings, tmp_path):
 
 
 def test_seo_cache_follows_a_new_frontend_build(client, settings, tmp_path, db):
-    from django.core.cache import cache
+    from django.core.cache import caches
 
-    cache.clear()
+    caches["pages"].clear()
     settings.FRONTEND_DIST = tmp_path
     (tmp_path / "index.html").write_text('<html><head><title>x</title></head><script src="/static/a-OLD.js">', "utf-8")
     assert b"a-OLD.js" in client.get("/products").content
     (tmp_path / "index.html").write_text('<html><head><title>x</title></head><script src="/static/a-NEW.js">', "utf-8")
     assert b"a-NEW.js" in client.get("/products").content
+
+
+def test_backslashes_in_a_product_title_do_not_break_the_page(client, site):
+    """re.sub read "\\1" in the title as a group reference and the product page answered 500."""
+    Product.objects.filter(pk=site.pk).update(meta_title=r"Brace \1 size S\M \g<0>", meta_description=r"fits \d wrists")
+    res = client.get("/products/pro-brace")
+    assert res.status_code == 200
+    body = res.content.decode()
+    assert r"<title>Brace \1 size S\M \g&lt;0&gt; | هوپرزون</title>" in body
+    assert r'content="fits \d wrists"' in body

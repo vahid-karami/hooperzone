@@ -1,3 +1,4 @@
+import hmac
 import uuid
 from decimal import Decimal
 from urllib.parse import urlparse
@@ -245,21 +246,25 @@ def order_pay_verify(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    try:
-        order = Order.objects.select_for_update().get(order_number=order_number)
-    except Order.DoesNotExist:
-        return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    if order.payment_status == Order.PAYMENT_STATUS_PAID:
-        return Response(
-            {"message": "Order already paid.", "order": OrderSerializer(order).data},
-            status=status.HTTP_200_OK,
-        )
-
-    if not order.payment_authority or str(authority) != order.payment_authority:
+    # This endpoint is public (the bank sends the customer back here, possibly logged out), so
+    # the authority saved when the payment started is the only proof the caller owns the order.
+    # Check it before anything else: an order number alone must not show the order's address
+    # and phone, or even whether that order exists.
+    order = Order.objects.select_for_update().filter(order_number=order_number).first()
+    if (
+        order is None
+        or not order.payment_authority
+        or not hmac.compare_digest(str(authority).encode(), order.payment_authority.encode())
+    ):
         return Response(
             {"success": False, "error": "Payment authority does not match this order."},
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if order.payment_status == Order.PAYMENT_STATUS_PAID:
+        return Response(
+            {"message": "Order already paid.", "ref_id": order.payment_ref_id, "order": OrderSerializer(order).data},
+            status=status.HTTP_200_OK,
         )
 
     if order.status == Order.STATUS_CANCELLED:
