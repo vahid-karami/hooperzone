@@ -104,9 +104,12 @@ def serve():
         host="0.0.0.0",
         port=port,
         threads=int(os.environ.get("WAITRESS_THREADS", 6)),
-        # The ParsPack ingress terminates TLS; trust its scheme header so Django knows it was HTTPS.
+        # The ParsPack ingress terminates TLS and forwards plain HTTP. Trust its scheme header so
+        # Django knows it was HTTPS, and the last X-Forwarded-For entry (the address the ingress
+        # saw) as REMOTE_ADDR, so rate limits see each visitor; earlier, client-sent entries are ignored.
         trusted_proxy="*",
-        trusted_proxy_headers={"x-forwarded-proto"},
+        trusted_proxy_count=1,
+        trusted_proxy_headers={"x-forwarded-proto", "x-forwarded-for"},
         clear_untrusted_proxy_headers=True,
     )
 

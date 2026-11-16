@@ -35,6 +35,20 @@ def test_production_settings_put_data_under_data_dir(tmp_path):
     assert [Path(p) for p in out] == [tmp_path / "database" / "db.sqlite3", tmp_path / "media", tmp_path / "logs"]
 
 
+def test_waitress_takes_the_visitor_ip_from_the_ingress(monkeypatch):
+    import waitress
+
+    calls = {}
+    monkeypatch.setattr(waitress, "serve", lambda app, **kwargs: calls.update(kwargs))
+    monkeypatch.setenv("SERVER_PORT", "8123")
+    monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "hooperzone.settings.local")
+    server_start.serve()
+    assert calls["port"] == 8123
+    assert calls["trusted_proxy_count"] == 1  # only the entry the ingress added counts
+    assert calls["trusted_proxy_headers"] == {"x-forwarded-proto", "x-forwarded-for"}
+    assert calls["clear_untrusted_proxy_headers"] is True
+
+
 def test_app_py_defaults_to_port_8000(monkeypatch):
     monkeypatch.setenv("SERVER_PORT", "1")  # recorded, so teardown removes what app.py sets
     monkeypatch.delenv("SERVER_PORT")
