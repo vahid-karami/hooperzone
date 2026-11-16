@@ -6,6 +6,7 @@ import { afterLoginPath } from '../utils/authRedirect';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
+import { localPasswordProblem, passwordErrorMessage, passwordRuleMessage } from '../utils/passwordRules';
 
 export default function Register() {
   const { t } = useTranslation();
@@ -58,8 +59,9 @@ export default function Register() {
       return;
     }
 
-    if (!formData.password || formData.password.length < 8) {
-      setError(t('auth.minChars', 'رمز عبور باید حداقل ۸ کاراکتر باشد'));
+    const passwordProblem = localPasswordProblem(formData.password);
+    if (passwordProblem) {
+      setError(passwordRuleMessage(passwordProblem, t));
       return;
     }
 
@@ -89,7 +91,7 @@ export default function Register() {
           respData?.error ||
           respData?.username?.[0] ||
           respData?.phone?.[0] ||
-          respData?.password?.[0] ||
+          passwordErrorMessage(respData, t) ||
           respData?.non_field_errors?.[0] ||
           t('auth.registrationFailed', 'ثبت‌نام انجام نشد. لطفاً اطلاعات را بررسی کنید.');
       }
