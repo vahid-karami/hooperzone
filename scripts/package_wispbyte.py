@@ -22,7 +22,7 @@ NPM = shutil.which("npm.cmd") or shutil.which("npm") or "npm"
 INCLUDE = [
     "manage.py",
     "requirements.txt",
-    "wispbyte_start.py",
+    "server_start.py",
     "app.py",  # ParsPack PaaS entry point
     "hooperzone",
     "accounts",

@@ -4,16 +4,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-import wispbyte_start
+import server_start
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_env_file_is_created_under_data_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(wispbyte_start, "DATA_DIR", tmp_path / "disk")
-    monkeypatch.setattr(wispbyte_start, "ENV_FILE", tmp_path / "disk" / ".env")
+    monkeypatch.setattr(server_start, "DATA_DIR", tmp_path / "disk")
+    monkeypatch.setattr(server_start, "ENV_FILE", tmp_path / "disk" / ".env")
     monkeypatch.delenv("SERVER_IP", raising=False)
-    wispbyte_start.ensure_env_file()
+    server_start.ensure_env_file()
     assert "SECRET_KEY=" in (tmp_path / "disk" / ".env").read_text(encoding="utf-8")
 
 

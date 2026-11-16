@@ -75,7 +75,7 @@ def test_zip_import_replaces_database_media_and_env(client, data_dir, tmp_path):
         "database/backups/db-old.sqlite3": b"old backup",
         "media/products/a.jpg": b"photo",
         ".env": b"SECRET_KEY=moved",
-        "wispbyte_start.py": b"code is ignored",
+        "server_start.py": b"code is ignored",
     })
     response = post(client, archive)
     assert response.status_code == 200
@@ -86,7 +86,7 @@ def test_zip_import_replaces_database_media_and_env(client, data_dir, tmp_path):
     assert not (data_dir / "media" / "old").exists()  # media is replaced, not merged
     assert (data_dir / ".env").read_text() == "SECRET_KEY=moved"
     assert not (data_dir / "database" / "backups").exists()
-    assert not (data_dir / "wispbyte_start.py").exists()
+    assert not (data_dir / "server_start.py").exists()
 
 
 @pytest.mark.django_db
