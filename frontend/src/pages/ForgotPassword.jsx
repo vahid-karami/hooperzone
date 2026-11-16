@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import AuthLayout from '../components/AuthLayout';
 import { toEnglishDigits } from '../utils/digits';
+import { toPersianNumber } from '../hooks/useLanguage';
 import { validateIranianPhone } from '../utils/iranianPhone';
 import { usePageMeta } from '../utils/seo';
 import { authErrorMessage, needsNewCode } from '../utils/authErrors';
@@ -13,8 +14,11 @@ import { localPasswordProblem, passwordRuleMessage } from '../utils/passwordRule
 // Forgot password: 1) phone -> a code by SMS, 2) code + new password -> back to login.
 // The code and the new password go to the server together (one request); checking the code
 // on its own first would use it up.
+const RESEND_SECONDS = 60;
+
 export default function ForgotPassword() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const num = (value) => (i18n.language === 'fa' ? toPersianNumber(value) : String(value));
   const navigate = useNavigate();
   const location = useLocation();
   const { sendOTP, resetPassword } = useAuth();
@@ -28,7 +32,16 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Seconds until "send the code again" is offered; the server also limits codes per phone.
+  const [resendWait, setResendWait] = useState(0);
+
   usePageMeta({ title: t('auth.forgotTitle', 'بازیابی رمز عبور'), noindex: true });
+
+  useEffect(() => {
+    if (resendWait <= 0) return undefined;
+    const timer = setTimeout(() => setResendWait((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendWait]);
 
   const number = toEnglishDigits(phone).trim();
   // Keeps the page the customer was sent to login from (e.g. checkout).
@@ -50,7 +63,23 @@ export default function ForgotPassword() {
     try {
       await sendOTP(number, 'reset_password');
       setStep('reset');
+      setResendWait(RESEND_SECONDS);
       success(t('auth.otpSent', 'کد تایید ارسال شد'));
+    } catch (err) {
+      fail(authErrorMessage(err, t));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await sendOTP(number, 'reset_password');
+      setCode('');
+      setResendWait(RESEND_SECONDS);
+      success(t('auth.codeResent', 'کد تازه ارسال شد'));
     } catch (err) {
       fail(authErrorMessage(err, t));
     } finally {
@@ -186,6 +215,11 @@ export default function ForgotPassword() {
           </div>
           <button type="submit" disabled={loading} className="auth-submit">
             {submitLabel(t('auth.savePassword', 'ذخیره رمز عبور جدید'), t('auth.saving', 'در حال ذخیره...'))}
+          </button>
+          <button type="button" className="auth-link-btn" onClick={handleResend} disabled={loading || resendWait > 0}>
+            {resendWait > 0
+              ? t('auth.resendIn', 'ارسال دوباره تا {{seconds}} ثانیه دیگر', { seconds: num(resendWait) })
+              : t('auth.resendCode', 'ارسال دوباره کد')}
           </button>
           <button type="button" className="auth-link-btn" onClick={changePhone}>
             {t('auth.changePhone', 'تغییر شماره موبایل')}
