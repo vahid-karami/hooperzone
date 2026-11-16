@@ -10,6 +10,11 @@ from .passwords import check_password_rules
 User = get_user_model()
 
 
+def coded_error(code, message, field="non_field_errors"):
+    """A validation error the storefront can translate: the usual field message plus a stable `code`."""
+    return serializers.ValidationError({field: [message], "code": code})
+
+
 class UserRegistrationSerializer(serializers.Serializer):
     username = DigitsCharField(max_length=150, required=False, allow_blank=True)
     phone = DigitsCharField(max_length=50, required=False, allow_blank=True)
@@ -126,11 +131,12 @@ class UserLoginSerializer(serializers.Serializer):
 
         identifier = data.get("username", "").strip() or data.get("phone", "").strip()
         if not identifier:
-            raise serializers.ValidationError("Please provide a username or phone number.")
+            raise coded_error("identifier_required", "Please provide a username or phone number.")
 
         user = authenticate(username=identifier, phone=identifier, password=data["password"])
         if not user:
-            raise serializers.ValidationError("Invalid username/phone or password.")
+            # One answer for a wrong password and an unknown name: don't reveal which accounts exist.
+            raise coded_error("invalid_credentials", "Invalid username/phone or password.")
 
         data["user"] = user
         return data

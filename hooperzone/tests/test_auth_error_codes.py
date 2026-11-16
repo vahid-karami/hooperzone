@@ -87,3 +87,25 @@ class TestResetCodes:
         assert _reset(user, otp.code).data["code"] == "otp_invalid"
         user.refresh_from_db()
         assert user.check_password("securepass123")
+
+
+@pytest.mark.django_db
+class TestLoginCodes:
+    url = reverse("accounts:login")
+
+    def test_wrong_password_and_unknown_name_look_the_same(self, user):
+        wrong = APIClient().post(self.url, {"phone": user.phone, "password": "not-the-password"})
+        unknown = APIClient().post(self.url, {"phone": "09128880009", "password": "not-the-password"})
+        assert wrong.status_code == unknown.status_code == 400
+        assert wrong.data == unknown.data
+        assert wrong.data["code"] == "invalid_credentials"
+        # The old shape is still there for clients that read it.
+        assert wrong.data["non_field_errors"] == ["Invalid username/phone or password."]
+
+    def test_no_name_given(self, db):
+        res = APIClient().post(self.url, {"password": "securepass123"})
+        assert (res.status_code, res.data["code"]) == (400, "identifier_required")
+
+    def test_success_has_no_code(self, user):
+        res = APIClient().post(self.url, {"phone": user.phone, "password": "securepass123"})
+        assert res.status_code == 200 and "code" not in res.data

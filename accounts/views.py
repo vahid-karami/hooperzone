@@ -4,6 +4,7 @@ from django.core import signing
 from django.db import transaction
 from django.db.models import Q
 from rest_framework import status, permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
@@ -69,6 +70,21 @@ def registration_token_matches(token, user):
 def error_response(code, message, http_status=status.HTTP_400_BAD_REQUEST):
     """An error the storefront can translate: `code` is stable, `error` is the English text."""
     return Response({"error": message, "code": code}, status=http_status)
+
+
+def validate_coded(serializer):
+    """serializer.is_valid(), keeping a `code` set with serializers.coded_error as plain text.
+
+    DRF turns every value of a serializer error into a list; the storefront expects
+    {"code": "invalid_credentials"}, the same shape error_response() sends.
+    """
+    try:
+        serializer.is_valid(raise_exception=True)
+    except ValidationError as e:
+        detail = e.detail
+        if isinstance(detail, dict) and isinstance(detail.get("code"), list) and detail["code"]:
+            raise ValidationError({**detail, "code": str(detail["code"][0])}) from e
+        raise
 
 
 def otp_error_response(code):
@@ -332,7 +348,7 @@ def profile(request):
 @throttle_classes([AuthRateThrottle])
 def login_with_password(request):
     serializer = UserLoginSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    validate_coded(serializer)
 
     user = serializer.validated_data["user"]
     tokens = get_tokens_for_user(user)
