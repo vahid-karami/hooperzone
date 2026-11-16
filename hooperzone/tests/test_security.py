@@ -124,3 +124,21 @@ class TestOtpGuessLimit:
         assert res.status_code == 400
         otp.refresh_from_db()
         assert otp.failed_attempts == 0
+
+
+@pytest.mark.django_db
+class TestOtpSmsFlood:
+    def test_one_phone_gets_a_limited_number_of_codes(self, monkeypatch):
+        from rest_framework.throttling import SimpleRateThrottle
+
+        monkeypatch.setattr(SimpleRateThrottle, "THROTTLE_RATES", {"otp": "1000/min", "otp_phone": "3/hour"})
+        url = reverse("accounts:otp-send")
+        # Persian digits are the same phone; each request comes from another address.
+        phones = ["09125550007", "۰۹۱۲۵۵۵۰۰۰۷", "09125550007", "09125550007"]
+        codes = [
+            APIClient(REMOTE_ADDR=f"10.0.0.{i}").post(url, {"phone": phone, "otp_type": "register"}).status_code
+            for i, phone in enumerate(phones)
+        ]
+        assert codes == [200, 200, 200, 429]
+        # Another customer is not affected.
+        assert APIClient().post(url, {"phone": "09125550008", "otp_type": "register"}).status_code == 200

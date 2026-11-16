@@ -126,6 +126,8 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.environ.get("OTP_THROTTLE_RATE", "10/min"),
+        # Codes texted to one phone number, from any address.
+        "otp_phone": os.environ.get("OTP_PHONE_THROTTLE_RATE", "5/hour"),
         "auth": os.environ.get("AUTH_THROTTLE_RATE", "10/min"),
     },
 }

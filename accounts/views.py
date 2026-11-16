@@ -4,8 +4,10 @@ from django.db import transaction
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from hooperzone.fields import normalize_digits
 from hooperzone.throttling import AuthRateThrottle, IPRateThrottle
 
 from .models import OTPCode
@@ -28,6 +30,22 @@ class OTPRateThrottle(IPRateThrottle):
     scope = "otp"
 
 
+class OTPPhoneRateThrottle(SimpleRateThrottle):
+    """Limit on codes sent to one phone number, whoever asks and from whatever address.
+
+    The per-IP limit alone lets someone with many addresses text a stranger's phone without end
+    (each SMS also costs the shop money).
+    """
+
+    scope = "otp_phone"
+
+    def get_cache_key(self, request, view):
+        phone = normalize_digits(str(request.data.get("phone") or "")).strip()
+        if not phone:
+            return None  # the serializer rejects the request anyway
+        return self.cache_format % {"scope": self.scope, "ident": phone[:32]}
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -38,7 +56,7 @@ def get_tokens_for_user(user):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-@throttle_classes([OTPRateThrottle])
+@throttle_classes([OTPRateThrottle, OTPPhoneRateThrottle])
 def send_otp(request):
     serializer = OTPSendSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

@@ -188,6 +188,7 @@ Django admin (`/admin/`) is still available for everything else.
 | `SMSIR_API_KEY`, `SMSIR_TEMPLATE_ID` | SMS.ir verify template (with a `CODE` parameter) for OTP codes |
 | `OTP_RETURN_IN_RESPONSE` | Development only: show OTP codes in the API response (always off in production) |
 | `OTP_THROTTLE_RATE`, `AUTH_THROTTLE_RATE` | Per-IP limits for OTP and password endpoints (default `10/min`) |
+| `OTP_PHONE_THROTTLE_RATE` | Codes texted to one phone number, from any address (default `5/hour`) |
 | `SECURE_COOKIES`, `SECURE_HSTS_SECONDS` | Production cookie and HSTS settings |
 | `DATA_DIR` | Production: folder for `.env`, `database/`, `media/`, `logs/` (`/data` on ParsPack) |
 | `IMPORT_TOKEN` | Turns on `/import-data/` for a one-time data move (20+ characters; remove afterwards) |
