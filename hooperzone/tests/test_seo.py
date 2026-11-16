@@ -120,3 +120,11 @@ def test_backslashes_in_a_product_title_do_not_break_the_page(client, site):
     body = res.content.decode()
     assert r"<title>Brace \1 size S\M \g&lt;0&gt; | هوپرزون</title>" in body
     assert r'content="fits \d wrists"' in body
+
+
+def test_forgot_password_page_exists_and_is_not_indexed(client, site):
+    """A React route the server doesn't know answers 404, which breaks reloads and shared links."""
+    res = client.get("/forgot-password")
+    assert res.status_code == 200
+    assert '<meta name="robots" content="noindex, nofollow" />' in res.content.decode()
+    assert "Disallow: /forgot-password" in client.get("/robots.txt").content.decode()

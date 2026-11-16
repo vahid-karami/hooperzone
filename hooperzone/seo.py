@@ -31,7 +31,7 @@ CACHE_SECONDS = 300
 
 # Pages that exist in the React app but shouldn't be indexed (personal or transactional).
 PRIVATE_PREFIXES = (
-    "/cart", "/checkout", "/login", "/register", "/profile", "/orders", "/payment",
+    "/cart", "/checkout", "/login", "/register", "/forgot-password", "/profile", "/orders", "/payment",
     "/favorites", "/admin-portal",
 )
 
@@ -310,6 +310,7 @@ def robots_txt(request):
         "Disallow: /favorites",
         "Disallow: /login",
         "Disallow: /register",
+        "Disallow: /forgot-password",
         "Disallow: /products?*search=",
         "Allow: /",
         "",
