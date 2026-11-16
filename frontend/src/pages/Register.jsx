@@ -6,6 +6,7 @@ import { afterLoginPath } from '../utils/authRedirect';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { validateIranianPhone } from '../utils/iranianPhone';
+import { authErrorMessage } from '../utils/authErrors';
 import { localPasswordProblem, passwordErrorMessage, passwordRuleMessage } from '../utils/passwordRules';
 
 export default function Register() {
@@ -84,17 +85,7 @@ export default function Register() {
       success(t('auth.registrationSuccess', 'ثبت‌نام با موفقیت انجام شد!'));
       navigate(afterLoginPath(location), { replace: true });
     } catch (err) {
-      const respData = err.response?.data;
-      let message = 'ثبت‌نام ناموفق بود';
-      if (typeof respData === 'object') {
-        message =
-          respData?.error ||
-          respData?.username?.[0] ||
-          respData?.phone?.[0] ||
-          passwordErrorMessage(respData, t) ||
-          respData?.non_field_errors?.[0] ||
-          t('auth.registrationFailed', 'ثبت‌نام انجام نشد. لطفاً اطلاعات را بررسی کنید.');
-      }
+      const message = authErrorMessage(err, t);
       setError(message);
       showError(message);
     } finally {
