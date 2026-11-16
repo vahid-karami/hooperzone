@@ -17,7 +17,8 @@ export default function Login() {
   const { success, error: showError } = useToast();
 
   const [authMethod, setAuthMethod] = useState('password');
-  const [phone, setPhone] = useState('');
+  // Coming back from the forgot-password page: the number is already known.
+  const [phone, setPhone] = useState(location.state?.phone || '');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [step, setStep] = useState('phone');
