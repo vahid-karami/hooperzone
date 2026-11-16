@@ -46,6 +46,16 @@ cd frontend && npm run build:django               # production build served by D
 ## Logo on product photos
 Photos uploaded in the admin portal get the shop logo automatically (`products/watermark.py`: small, 70% opaque, bottom-right; white logo on dark photos; logo files in `products/assets/watermark/`). The clean upload is kept in `product_images.original` under a random name; `original` set means `image` is the logo copy, empty means `image` is clean. Never hand out `original` in an API. `ShopSettings.watermark_product_images` (admin Settings page) switches it; changing it updates every photo. `manage.py watermark_product_images` brings existing photos in line (runs on boot; `--force` re-renders after a logo change, `--remove` takes the logo off).
 
+## Security rules (keep these when changing the code)
+- `position: fixed` UI (modals, sticky bars) only works while no ancestor has a transform/filter. `.route-view` wraps every page: its fade uses `animation-fill-mode: backwards`, never `both`/`forwards`.
+- OTP: check codes only through `OTPCode.check_code()` (constant-time, five wrong guesses cancel the code). Sending is limited per IP (`otp`) and per phone (`otp_phone`). Finishing an OTP registration needs the `registration_token` returned by `otp/verify`.
+- Phone and username are both login names: neither may equal another user's phone or username (`UserProfileSerializer`, `register`).
+- Rate-limit counters live in the `default` cache. Anything keyed by visitor-chosen text (rendered pages, sitemap) goes to the `pages` cache so it can't push the counters out.
+- The public `payment/verify/` endpoint checks the stored payment authority before it says anything about an order.
+- CSV exports go through `csv_response` (it neutralises spreadsheet formulas). Trust-badge HTML goes through `orders/badge_html.py` `clean_badge_html`; never render other stored HTML with `dangerouslySetInnerHTML`.
+- Cap every customer free-text field with `max_length` in its serializer.
+- Tests for these are in `hooperzone/tests/test_security.py`.
+
 ## Payments
 `utils/payment.js` `startPayment()` → `POST /api/orders/<number>/pay/` with a callback URL of `/payment/result`. The backend validates the callback host. In sandbox mode it redirects straight back, and `PaymentResult` verifies the payment.
 
