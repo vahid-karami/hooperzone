@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from hooperzone.fields import DigitsCharField
 
+from .badge_html import clean_badge_html
 from .models import Order, OrderItem, ShopSettings
 
 
@@ -64,6 +65,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class ShopInfoSerializer(serializers.ModelSerializer):
     shipping_methods = serializers.SerializerMethodField()
+    # Cleaned again on the way out, for rows saved before the cleaning existed.
+    enamad_html = serializers.SerializerMethodField()
+    samandehi_html = serializers.SerializerMethodField()
 
     class Meta:
         model = ShopSettings
@@ -74,6 +78,12 @@ class ShopInfoSerializer(serializers.ModelSerializer):
 
     def get_shipping_methods(self, obj):
         return obj.shipping_methods()
+
+    def get_enamad_html(self, obj):
+        return clean_badge_html(obj.enamad_html)
+
+    def get_samandehi_html(self, obj):
+        return clean_badge_html(obj.samandehi_html)
 
 
 class ShopSettingsSerializer(serializers.ModelSerializer):
