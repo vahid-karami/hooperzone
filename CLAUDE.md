@@ -49,6 +49,7 @@ Photos uploaded in the admin portal get the shop logo automatically (`products/w
 ## Security rules (keep these when changing the code)
 - `position: fixed` UI (modals, sticky bars) only works while no ancestor has a transform/filter. `.route-view` wraps every page: its fade uses `animation-fill-mode: backwards`, never `both`/`forwards`.
 - OTP: check codes only through `OTPCode.check_code()` (constant-time, five wrong guesses cancel the code). Sending is limited per IP (`otp`) and per phone (`otp_phone`). Finishing an OTP registration needs the `registration_token` returned by `otp/verify`.
+- Passwords: every API endpoint that sets a password calls `accounts/passwords.py` `check_password_rules()` first (Django's `AUTH_PASSWORD_VALIDATORS`: 8+ characters, not all digits, not common, not like the username/name). It returns rule codes (`password_codes`); the storefront turns them into fa/en text with `utils/passwordRules.js`. Tests: `hooperzone/tests/test_passwords.py`.
 - Phone and username are both login names: neither may equal another user's phone or username (`UserProfileSerializer`, `register`).
 - Rate-limit counters live in the `default` cache. Anything keyed by visitor-chosen text (rendered pages, sitemap) goes to the `pages` cache so it can't push the counters out.
 - The public `payment/verify/` endpoint checks the stored payment authority before it says anything about an order.
