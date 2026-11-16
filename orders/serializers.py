@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 
 from hooperzone.fields import DigitsCharField
@@ -112,11 +114,19 @@ class AdminOrderSerializer(OrderSerializer):
 
 
 class OrderCreateSerializer(serializers.Serializer):
-    shipping_address = serializers.CharField()
+    # Free text is capped: it is stored, printed on invoices and exported, and without a
+    # limit one request could store megabytes in an order.
+    shipping_address = serializers.CharField(max_length=500)
     shipping_city = serializers.CharField(max_length=100)
     shipping_state = serializers.CharField(max_length=100, required=False, allow_blank=True)
     shipping_zip = DigitsCharField(max_length=20)
     shipping_country = serializers.CharField(max_length=100, required=False, default="IR")
     shipping_phone = DigitsCharField(max_length=15)
     shipping_method = serializers.ChoiceField(choices=Order.SHIPPING_CHOICES, required=False, default=Order.SHIPPING_POST)
-    notes = serializers.CharField(required=False, allow_blank=True)
+    notes = serializers.CharField(required=False, allow_blank=True, max_length=1000)
+
+    def validate_shipping_phone(self, value):
+        value = value.strip().replace(" ", "").replace("-", "")
+        if not re.fullmatch(r"\+?\d{7,15}", value):
+            raise serializers.ValidationError("Enter a valid phone number.")
+        return value

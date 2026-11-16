@@ -396,3 +396,53 @@ class TestPriceFilter:
     def test_numbers_still_filter_in_latin_and_persian_digits(self, api_client, catalog):
         assert self._slugs(api_client, "?min_price=500000") == ["dear"]
         assert self._slugs(api_client, "?max_price=۵۰۰۰۰۰") == ["cheap"]
+
+
+@pytest.mark.django_db
+class TestFreeTextLimits:
+    """Customer text is stored and shown to staff and visitors; none of it may be unbounded."""
+
+    @pytest.fixture
+    def customer(self):
+        from cart.models import Cart, CartItem
+        from products.models import Category, Product
+
+        user = User.objects.create_user(phone="09126660001", password="securepass123")
+        cat = Category.objects.create(name="Knee", slug="knee-l")
+        self.product = Product.objects.create(category=cat, name="p", slug="p-l", description="d", price=1000, stock=5)
+        CartItem.objects.create(cart=Cart.objects.create(user=user), product=self.product, quantity=1)
+        client = APIClient()
+        client.force_authenticate(user)
+        return client
+
+    def _order(self, **over):
+        return {
+            "shipping_address": "Tehran, Valiasr St, no. 12", "shipping_city": "Tehran",
+            "shipping_zip": "1234567890", "shipping_phone": "09126660001", **over,
+        }
+
+    @pytest.mark.parametrize("field, value", [
+        ("shipping_address", "x" * 501),
+        ("notes", "x" * 1001),
+        ("shipping_phone", "=1+1"),
+        ("shipping_phone", "0912<b>"),
+    ])
+    def test_order_rejects_oversized_or_odd_fields(self, customer, field, value):
+        res = customer.post(reverse("orders:order-create"), self._order(**{field: value}), format="json")
+        assert res.status_code == status.HTTP_400_BAD_REQUEST and field in res.data
+
+    def test_normal_order_with_persian_phone_still_works(self, customer):
+        res = customer.post(
+            reverse("orders:order-create"), self._order(shipping_phone="۰۹۱۲ ۶۶۶ ۰۰۰۱", notes="زنگ نزنید"), format="json"
+        )
+        assert res.status_code == status.HTTP_201_CREATED, res.data
+        assert res.data["shipping_phone"] == "09126660001"
+
+    def test_review_and_profile_address_are_capped(self, customer):
+        res = customer.post(
+            reverse("reviews:review-create", kwargs={"product_slug": self.product.slug}),
+            {"rating": 5, "title": "t", "comment": "x" * 2001}, format="json",
+        )
+        assert res.status_code == status.HTTP_400_BAD_REQUEST and "comment" in res.data
+        res = customer.patch(reverse("accounts:profile"), {"address": "x" * 501}, format="json")
+        assert res.status_code == status.HTTP_400_BAD_REQUEST and "address" in res.data

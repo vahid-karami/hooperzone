@@ -64,6 +64,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     # Which staff-portal sections this user may open: {"catalog": bool, "shop": bool}.
     admin_access = serializers.SerializerMethodField()
+    address = serializers.CharField(max_length=500, required=False, allow_blank=True)
 
     class Meta:
         model = User

@@ -38,6 +38,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
+    # Reviews are public and listed in full on the product page; keep one from being megabytes.
+    comment = serializers.CharField(max_length=2000)
+
     class Meta:
         model = Review
         fields = ["rating", "title", "comment"]
