@@ -310,3 +310,21 @@ class TestBadgeHtml:
         # A row written before the cleaning existed is still safe for visitors.
         ShopSettings.objects.filter(pk=1).update(samandehi_html="<img src=x onerror=alert(1)>")
         assert APIClient().get(reverse("orders:shop-info")).data["samandehi_html"] == ""
+
+
+@pytest.mark.django_db
+class TestRateLimitsSurviveUrlFlood:
+    def test_made_up_urls_do_not_reset_the_otp_limit(self, client, settings, tmp_path, monkeypatch):
+        """Rendered pages used to share one 300-entry cache with the throttle counters."""
+        from rest_framework.throttling import SimpleRateThrottle
+
+        monkeypatch.setattr(SimpleRateThrottle, "THROTTLE_RATES", {"otp": "2/min", "otp_phone": "100/hour"})
+        (tmp_path / "index.html").write_text("<html><head><title>x</title></head></html>", "utf-8")
+        settings.FRONTEND_DIST = tmp_path
+        url = reverse("accounts:otp-verify")
+        payload = {"phone": "09125550040", "code": "000000", "otp_type": "login"}
+        assert [client.post(url, payload).status_code for _ in range(3)][-1] == 429
+        for i in range(700):
+            client.get(f"/no-such-page-{i}?x={'y' * 300}")
+        client.get("/sitemap.xml?" + "z" * 300)
+        assert client.post(url, payload).status_code == 429

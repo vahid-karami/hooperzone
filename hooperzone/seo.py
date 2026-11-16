@@ -5,6 +5,7 @@ Google) would otherwise see the same generic <head> on every URL. `render_page`
 fills in each page's title, description, canonical URL, Open Graph tags and
 JSON-LD before index.html is sent, and reports unknown URLs as 404.
 """
+import hashlib
 import html
 import json
 import re
@@ -13,7 +14,7 @@ from dataclasses import dataclass, field
 
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
-from django.core.cache import cache
+from django.core.cache import caches
 from django.db.models import Avg, Count
 from django.http import HttpResponse
 from django.urls import reverse
@@ -279,7 +280,11 @@ def render_page(request, index_html):
     """index.html with this URL's meta tags, and its HTTP status (404 for unknown pages)."""
     # The build's fingerprint is in the key, so a new frontend build never gets old cached HTML
     # that points at asset files the build removed.
-    key = f"seo:{zlib.crc32(index_html.encode())}:{request.get_full_path()}"
+    # Own cache ("pages"): the URL is chosen by the visitor, so this must not share space with
+    # the rate-limit counters. Hashed because cache keys have a length limit and URLs don't.
+    cache = caches["pages"]
+    path = hashlib.sha256(request.get_full_path().encode()).hexdigest()
+    key = f"seo:{zlib.crc32(index_html.encode())}:{path}"
     cached = cache.get(key)
     if cached is None:
         meta = page_meta(request)

@@ -57,7 +57,7 @@ urlpatterns = [
     path("robots.txt", seo.robots_txt, name="robots"),
     path(
         "sitemap.xml",
-        cache_page(3600)(sitemap),
+        cache_page(3600, cache="pages")(sitemap),  # not the cache that holds rate-limit counters
         {"sitemaps": seo.SITEMAPS, "template_name": "sitemap.xml"},
         name="sitemap",
     ),
