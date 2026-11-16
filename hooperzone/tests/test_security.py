@@ -197,3 +197,45 @@ class TestRegistrationNeedsTheCode:
         )
         assert res.status_code == 400
         assert not User.objects.filter(phone="09125550015").exists()
+
+
+@pytest.mark.django_db
+class TestLoginIdentifiers:
+    """People sign in with phone, username or email; one account must not shadow another."""
+
+    def _profile(self, user, data):
+        client = APIClient()
+        client.force_authenticate(user)
+        return client.patch(reverse("accounts:profile"), data, format="json")
+
+    def test_username_cannot_be_someone_elses_phone(self):
+        squatter = User.objects.create_user(phone="09125550020", password="securepass123")
+        User.objects.create_user(phone="09125550021", password="securepass123")
+        assert self._profile(squatter, {"username": "09125550021"}).status_code == 400
+        # ...nor a number that is still free, with Persian digits or not: its owner must be able to register.
+        assert self._profile(squatter, {"username": "nickname"}).status_code == 200
+
+    def test_phone_cannot_be_someone_elses_username(self):
+        user = User.objects.create_user(phone="09125550022", password="securepass123")
+        User.objects.create_user(phone="09125550023", username="09125550024", password="securepass123")
+        assert self._profile(user, {"phone": "۰۹۱۲۵۵۵۰۰۲۴"}).status_code == 400
+
+    def test_changing_phone_clears_verified(self):
+        user = User.objects.create_user(phone="09125550025", password="securepass123", is_verified=True)
+        assert self._profile(user, {"first_name": "Sara"}).status_code == 200
+        user.refresh_from_db()
+        assert user.is_verified
+        assert self._profile(user, {"phone": "09125550026"}).status_code == 200
+        user.refresh_from_db()
+        assert user.phone == "09125550026" and not user.is_verified
+
+    def test_lookalike_account_does_not_lock_the_owner_out(self):
+        """An older account whose email/username equals the owner's login name came first before."""
+        older = User.objects.create_user(phone="09125550027", password="otherpass123", email="sara@example.com")
+        owner = User.objects.create_user(phone="09125550028", username="sara@example.com", password="securepass123")
+        login = reverse("accounts:login")
+        res = APIClient().post(login, {"username": "sara@example.com", "password": "securepass123"})
+        assert res.status_code == 200 and res.data["user"]["id"] == owner.id
+        res = APIClient().post(login, {"username": "sara@example.com", "password": "otherpass123"})
+        assert res.status_code == 200 and res.data["user"]["id"] == older.id
+        assert APIClient().post(login, {"username": "sara@example.com", "password": "wrongpass123"}).status_code == 400

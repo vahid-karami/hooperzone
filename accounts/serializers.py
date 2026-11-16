@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from rest_framework import serializers
 
 from hooperzone.fields import DigitsCharField, normalize_digits
@@ -18,8 +19,6 @@ class UserRegistrationSerializer(serializers.Serializer):
     registration_token = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     def validate(self, data):
-        from django.db.models import Q
-
         username = data.get("username", "").strip()
         phone = data.get("phone", "").strip()
 
@@ -77,12 +76,30 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_admin_access(self, user):
         return admin_access(user)
 
+    def _others(self):
+        return User.objects.exclude(pk=getattr(self.instance, "pk", None))
+
     def validate_phone(self, value):
         # The model's unique check ran on the raw input; re-check after normalizing digits.
+        # People sign in with phone or username, so neither may equal someone else's other one.
         value = normalize_digits(value)
-        if value and User.objects.filter(phone=value).exclude(pk=getattr(self.instance, "pk", None)).exists():
+        if value and self._others().filter(Q(phone=value) | Q(username__iexact=value)).exists():
             raise serializers.ValidationError("A user with this phone number already exists.")
         return value
+
+    def validate_username(self, value):
+        # Taking a stranger's phone number as a username would block them from registering
+        # with it and get in the way of their login.
+        value = normalize_digits(value)
+        if value and self._others().filter(Q(username__iexact=value) | Q(phone__iexact=value)).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
+    def update(self, instance, validated_data):
+        # A new number has not been proven by a code yet.
+        if "phone" in validated_data and validated_data["phone"] != instance.phone:
+            instance.is_verified = False
+        return super().update(instance, validated_data)
 
 
 class UserLoginSerializer(serializers.Serializer):
