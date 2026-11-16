@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
@@ -95,6 +96,7 @@ def send_otp(request):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([OTPRateThrottle])
+@transaction.atomic
 def verify_otp(request):
     serializer = OTPVerifySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -111,24 +113,9 @@ def verify_otp(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    try:
-        otp = OTPCode.objects.filter(
-            user=user,
-            code=code,
-            otp_type=otp_type,
-            is_used=False,
-        ).latest("created_at")
-    except OTPCode.DoesNotExist:
-        return Response(
-            {"error": "Invalid OTP code."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if otp.is_expired():
-        return Response(
-            {"error": "OTP has expired. Please request a new one."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    otp, error = OTPCode.check_code(user, otp_type, code)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
     otp.mark_used()
 
@@ -242,6 +229,7 @@ def register(request):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([OTPRateThrottle])
+@transaction.atomic
 def reset_password(request):
     serializer = PasswordResetSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -257,24 +245,9 @@ def reset_password(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    try:
-        otp = OTPCode.objects.filter(
-            user=user,
-            code=code,
-            otp_type=OTPCode.OTP_TYPE_RESET_PASSWORD,
-            is_used=False,
-        ).latest("created_at")
-    except OTPCode.DoesNotExist:
-        return Response(
-            {"error": "Invalid OTP code."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if otp.is_expired():
-        return Response(
-            {"error": "OTP has expired. Please request a new one."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    otp, error = OTPCode.check_code(user, OTPCode.OTP_TYPE_RESET_PASSWORD, code)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
     otp.mark_used()
     user.set_password(serializer.validated_data["new_password"])

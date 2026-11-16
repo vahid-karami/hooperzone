@@ -64,3 +64,63 @@ class TestCsvFormulaInjection:
         client.force_authenticate(staff)
         body = client.get(reverse("orders:admin-order-export")).content.decode("utf-8")
         assert "'=cmd|" in body and ",=cmd|" not in body
+
+
+@pytest.mark.django_db
+class TestOtpGuessLimit:
+    """A code dies after a few wrong guesses, whatever IP they come from."""
+
+    def _code(self, user, otp_type):
+        from accounts.models import OTPCode
+
+        return OTPCode.objects.create(user=user, otp_type=otp_type)
+
+    def _wrong(self, code):
+        return "000000" if code != "000000" else "111111"
+
+    def test_login_code_is_cancelled_after_five_wrong_guesses(self):
+        from accounts.models import OTPCode
+
+        user = User.objects.create_user(phone="09125550003", password="securepass123")
+        otp = self._code(user, "login")
+        url = reverse("accounts:otp-verify")
+        payload = {"phone": user.phone, "otp_type": "login"}
+        for _ in range(OTPCode.MAX_FAILED_ATTEMPTS):
+            assert APIClient().post(url, {**payload, "code": self._wrong(otp.code)}).status_code == 400
+        # The right code no longer works: the attacker's sixth try can't be the lucky one.
+        res = APIClient().post(url, {**payload, "code": otp.code})
+        assert res.status_code == 400 and "tokens" not in res.data
+        otp.refresh_from_db()
+        assert otp.is_used and otp.failed_attempts == OTPCode.MAX_FAILED_ATTEMPTS
+
+    def test_a_few_typos_do_not_cancel_the_code(self):
+        user = User.objects.create_user(phone="09125550004", password="securepass123")
+        otp = self._code(user, "login")
+        url = reverse("accounts:otp-verify")
+        payload = {"phone": user.phone, "otp_type": "login"}
+        for _ in range(2):
+            assert APIClient().post(url, {**payload, "code": self._wrong(otp.code)}).status_code == 400
+        assert "tokens" in APIClient().post(url, {**payload, "code": otp.code}).data
+
+    def test_password_reset_code_has_the_same_limit(self):
+        from accounts.models import OTPCode
+
+        user = User.objects.create_user(phone="09125550005", password="securepass123")
+        otp = self._code(user, "reset_password")
+        url = reverse("accounts:password-reset")
+        payload = {"phone": user.phone, "new_password": "attackerpass1"}
+        for _ in range(OTPCode.MAX_FAILED_ATTEMPTS):
+            assert APIClient().post(url, {**payload, "code": self._wrong(otp.code)}).status_code == 400
+        assert APIClient().post(url, {**payload, "code": otp.code}).status_code == 400
+        user.refresh_from_db()
+        assert user.check_password("securepass123")
+
+    def test_wrong_guess_of_another_type_does_not_count(self):
+        user = User.objects.create_user(phone="09125550006", password="securepass123")
+        otp = self._code(user, "login")
+        res = APIClient().post(
+            reverse("accounts:otp-verify"), {"phone": user.phone, "otp_type": "reset_password", "code": "000000"}
+        )
+        assert res.status_code == 400
+        otp.refresh_from_db()
+        assert otp.failed_attempts == 0
