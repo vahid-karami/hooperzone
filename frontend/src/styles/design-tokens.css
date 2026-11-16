@@ -134,8 +134,10 @@ html {
 a, button, label, summary, select, input, textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button { user-select: none; }
 
-/* Route changes: a short fade so pages don't pop in. */
-.route-view { animation: route-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+/* Route changes: a short fade so pages don't pop in. Fill is `backwards` only: with `both`
+   the finished animation keeps a transform on the wrapper, and position: fixed children
+   (modals, the product page's sticky buy bar) are then placed against the page, not the screen. */
+.route-view { animation: route-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
 @keyframes route-in { from { opacity: 0; transform: translateY(6px); } }
 
 /* Slim loading bar while a page's code downloads. */
