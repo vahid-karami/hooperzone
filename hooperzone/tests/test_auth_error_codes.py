@@ -109,3 +109,27 @@ class TestLoginCodes:
     def test_success_has_no_code(self, user):
         res = APIClient().post(self.url, {"phone": user.phone, "password": "securepass123"})
         assert res.status_code == 200 and "code" not in res.data
+
+
+@pytest.mark.django_db
+class TestRegisterFormCodes:
+    url = reverse("accounts:register")
+
+    def test_phone_already_has_an_account(self, user):
+        res = APIClient().post(self.url, {"phone": user.phone, "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "phone_exists")
+        assert res.data["phone"] == ["A user with this phone number already exists."]
+
+    def test_username_already_taken(self, db):
+        User.objects.create_user(phone="09128880010", username="sara", password="securepass123")
+        res = APIClient().post(self.url, {"username": "SARA", "password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "username_exists") and "username" in res.data
+
+    def test_nothing_to_register_with(self, db):
+        res = APIClient().post(self.url, {"password": "blue-Kettle-41"})
+        assert (res.status_code, res.data["code"]) == (400, "identifier_required")
+
+    def test_refused_password_keeps_its_own_codes(self, db):
+        res = APIClient().post(self.url, {"phone": "09128880011", "password": "12345678"})
+        assert res.status_code == 400 and "code" not in res.data
+        assert "password_entirely_numeric" in res.data["password_codes"]

@@ -32,17 +32,17 @@ class UserRegistrationSerializer(serializers.Serializer):
         phone = data.get("phone", "").strip()
 
         if not username and not phone:
-            raise serializers.ValidationError("Either username or phone number is required.")
+            raise coded_error("identifier_required", "Either username or phone number is required.")
 
         if username:
             existing = User.objects.filter(Q(username__iexact=username) | Q(phone__iexact=username)).first()
             if existing and existing.has_usable_password():
-                raise serializers.ValidationError({"username": "A user with this username already exists."})
+                raise coded_error("username_exists", "A user with this username already exists.", "username")
 
         if phone:
             existing = User.objects.filter(Q(phone__iexact=phone) | Q(username__iexact=phone)).first()
             if existing and existing.has_usable_password():
-                raise serializers.ValidationError({"phone": "A user with this phone number already exists."})
+                raise coded_error("phone_exists", "A user with this phone number already exists.", "phone")
 
         # Last, so "already registered" is reported before anything about the password.
         check_password_rules(

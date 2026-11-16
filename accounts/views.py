@@ -208,7 +208,7 @@ def verify_otp(request):
 @throttle_classes([AuthRateThrottle])
 def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    validate_coded(serializer)
 
     username = serializer.validated_data.get("username", "").strip()
     phone = serializer.validated_data.get("phone", "").strip()
