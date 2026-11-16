@@ -272,8 +272,12 @@ export default function Register() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="form-input"
                   autoComplete="new-password"
+                  aria-describedby="password-rules"
                   required
                 />
+                <p className="field-hint" id="password-rules">
+                  {t('auth.passwordRules', 'حداقل ۸ کاراکتر؛ فقط عدد نباشد و رمز ساده‌ای مثل password انتخاب نکنید.')}
+                </p>
               </div>
 
               <div className="form-group">
@@ -396,8 +400,13 @@ export default function Register() {
                       value={otpPassword}
                       onChange={(e) => setOtpPassword(e.target.value)}
                       className="form-input"
+                      autoComplete="new-password"
+                      aria-describedby="otp-password-rules"
                       required
                     />
+                    <p className="field-hint" id="otp-password-rules">
+                      {t('auth.passwordRules', 'حداقل ۸ کاراکتر؛ فقط عدد نباشد و رمز ساده‌ای مثل password انتخاب نکنید.')}
+                    </p>
                   </div>
                   <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-full">
                     {loading ? t('common.loading', 'در حال ثبت‌نام...') : t('common.register', 'تکمیل ثبت‌نام')}
