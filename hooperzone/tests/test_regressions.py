@@ -371,3 +371,28 @@ class TestPersianDigits:
         res = client.post(reverse("orders:order-create"), data)
         assert res.status_code == status.HTTP_201_CREATED
         assert (res.data["shipping_zip"], res.data["shipping_phone"]) == ("1234567890", "09126666666")
+
+
+@pytest.mark.django_db
+class TestPriceFilter:
+    @pytest.fixture
+    def catalog(self):
+        from products.models import Category, Product
+
+        cat = Category.objects.create(name="Knee", slug="knee-f")
+        for slug, price in (("cheap", 100_000), ("dear", 900_000)):
+            Product.objects.create(category=cat, name=slug, slug=slug, description="d", price=price, stock=1)
+
+    def _slugs(self, api_client, query):
+        res = api_client.get(reverse("products:product-list") + query)
+        assert res.status_code == status.HTTP_200_OK, res.content
+        return sorted(p["slug"] for p in res.data["results"])
+
+    @pytest.mark.parametrize("bad", ["abc", "%00", "1e", "NaN", "Infinity", "--5", "1,000"])
+    def test_a_price_that_is_not_a_number_is_ignored(self, api_client, catalog, bad):
+        """Used to answer 500: anyone could fill the error log with one bad link."""
+        assert self._slugs(api_client, f"?min_price={bad}&max_price={bad}") == ["cheap", "dear"]
+
+    def test_numbers_still_filter_in_latin_and_persian_digits(self, api_client, catalog):
+        assert self._slugs(api_client, "?min_price=500000") == ["dear"]
+        assert self._slugs(api_client, "?max_price=۵۰۰۰۰۰") == ["cheap"]
