@@ -8,9 +8,11 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Price from './Price';
 import Icon from './Icon';
+import useLockBodyScroll from '../hooks/useLockBodyScroll';
 import { loginState } from '../utils/authRedirect';
 
 export default function ProductQuickView({ slug, onClose }) {
+  useLockBodyScroll(); // the product list behind must not scroll under the open preview
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
   const { addToCart } = useCart();
