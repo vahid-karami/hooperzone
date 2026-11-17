@@ -219,6 +219,7 @@
     "color": "رنگ",
     "size": "اندازه",
     "sizeGuide": "راهنمای سایز",
+    "sizeTableScroll": "برای دیدن بقیه اندازه‌ها جدول را به کنار بکشید",
     "customerReviews": "نظرات مشتریان",
     "reviewsCount": "{{count}} نظر",
     "writeReview": "نوشتن نظر",
