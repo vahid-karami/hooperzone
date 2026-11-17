@@ -1,0 +1,1 @@
+function e(e){return e==null?e:String(e).replace(/[۰-۹]/g,e=>String(e.charCodeAt(0)-1776)).replace(/[٠-٩]/g,e=>String(e.charCodeAt(0)-1632))}export{e as t};

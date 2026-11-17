@@ -1,0 +1,1 @@
+import{t as e}from"./digits-CRKs-tyq.js";function t(t){if(!t)return!1;let n=e(t).replace(/[\s\-()]/g,``);return!!(/^(\+98|0098)9\d{9}$/.test(n)||/^989\d{9}$/.test(n)||/^09\d{9}$/.test(n)||/^9\d{9}$/.test(n)||/^0\d{10}$/.test(n)||/^\+?\d{10,14}$/.test(n))}export{t};

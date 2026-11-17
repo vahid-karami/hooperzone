@@ -1,0 +1,1 @@
+import{n as e,t}from"./jsx-runtime-B11DXaQX.js";var n=t();function r({label:t}){let{t:r}=e();return t?(0,n.jsxs)(`span`,{className:`size-tag`,children:[r(`product.size`),`: `,(0,n.jsx)(`bdi`,{children:t})]}):null}export{r as t};
