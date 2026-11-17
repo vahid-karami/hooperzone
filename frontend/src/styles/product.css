@@ -420,8 +420,12 @@
 .size-guide-how h3 { margin-bottom: var(--spacing-2); font-size: var(--font-size-base); color: var(--color-primary); }
 .size-guide-how p { margin-bottom: 4px; line-height: 1.9; }
 @media (max-width: 600px) {
-  .size-guide-how { flex-direction: column; }
-  .size-guide-how img { width: 100%; max-width: 260px; }
+  .size-guide-how { flex-direction: column; align-items: stretch; }
+  /* A tall measuring photo is shown whole but never taller than about a third of the screen. */
+  .size-guide-how img { width: auto; max-width: 100%; max-height: 240px; align-self: center; object-fit: contain; }
+  .modal-sheet .modal-header { padding: var(--spacing-3) var(--spacing-4); }
+  .modal-sheet .modal-header h2 { font-size: var(--font-size-lg); }
+  .modal-sheet .modal-body { padding: var(--spacing-4) var(--spacing-4) calc(var(--spacing-5) + env(safe-area-inset-bottom)); }
 }
 
 .quick-view { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-6); align-items: center; }
