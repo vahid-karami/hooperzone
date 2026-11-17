@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from './Icon';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
@@ -15,11 +15,25 @@ export function SizeGuideTable({ guide, highlight }) {
   const how = pick(lang, guide.how_to_measure_fa, guide.how_to_measure_en);
   const unit = (u) => (u === 'cm' ? t('product.unitCm', 'سانتی‌متر') : u);
 
+  // A guide with several measurements is wider than a phone: say that it scrolls sideways,
+  // or the columns that are off-screen go unnoticed.
+  const wrapRef = useRef(null);
+  const [scrollsSideways, setScrollsSideways] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const wrap = wrapRef.current;
+      if (wrap) setScrollsSideways(wrap.scrollWidth > wrap.clientWidth + 1);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [guide]);
+
   return (
     <div className="size-guide">
       {/* The sizes come first: on a phone a tall measuring photo used to fill the whole first
           screen and the table the customer opened this for was out of sight below it. */}
-      <div className="size-table-wrap">
+      <div className="size-table-wrap" ref={wrapRef} tabIndex={scrollsSideways ? 0 : undefined}>
         <table className="size-table">
           <thead>
             <tr>
@@ -35,13 +49,21 @@ export function SizeGuideTable({ guide, highlight }) {
           <tbody>
             {guide.rows.map((row) => (
               <tr key={row.size} className={highlight && row.size.toLowerCase() === highlight.toLowerCase() ? 'is-picked' : ''}>
-                <th scope="row" dir="ltr">{row.size}</th>
+                {/* dir sits on the inner element: on the cell itself it would turn the cell's own
+                    "inline start" to the left and unpin the sticky size column in Persian. */}
+                <th scope="row"><bdi dir="ltr">{row.size}</bdi></th>
                 {row.values.map((v, i) => <td key={i} dir="ltr">{num(v)}</td>)}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {scrollsSideways && (
+        <p className="size-table-hint">
+          <Icon name="chevronLeft" size={14} className="flip-ltr" />
+          {t('product.sizeTableScroll', 'برای دیدن بقیه اندازه‌ها جدول را به کنار بکشید')}
+        </p>
+      )}
       {(how || guide.image) && (
         <div className="size-guide-how">
           {guide.image && <img src={guide.image} alt={t('product.howToMeasure', 'نحوه اندازه‌گیری')} loading="lazy" />}
