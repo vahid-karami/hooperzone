@@ -219,6 +219,7 @@
     "color": "Color",
     "size": "Size",
     "sizeGuide": "Size guide",
+    "sizeTableScroll": "Swipe the table sideways to see the other measurements",
     "customerReviews": "Customer Reviews",
     "reviewsCount": "{{count}} reviews",
     "writeReview": "Write a Review",
