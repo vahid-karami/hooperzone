@@ -16,17 +16,8 @@ export function SizeGuideTable({ guide, highlight }) {
 
   return (
     <div className="size-guide">
-      {(how || guide.image) && (
-        <div className="size-guide-how">
-          {guide.image && <img src={guide.image} alt={t('product.howToMeasure', 'نحوه اندازه‌گیری')} loading="lazy" />}
-          {how && (
-            <div>
-              <h3>{t('product.howToMeasure', 'نحوه اندازه‌گیری')}</h3>
-              {how.split('\n').filter(Boolean).map((line) => <p key={line}>{line}</p>)}
-            </div>
-          )}
-        </div>
-      )}
+      {/* The sizes come first: on a phone a tall measuring photo used to fill the whole first
+          screen and the table the customer opened this for was out of sight below it. */}
       <div className="size-table-wrap">
         <table className="size-table">
           <thead>
@@ -50,6 +41,17 @@ export function SizeGuideTable({ guide, highlight }) {
           </tbody>
         </table>
       </div>
+      {(how || guide.image) && (
+        <div className="size-guide-how">
+          {guide.image && <img src={guide.image} alt={t('product.howToMeasure', 'نحوه اندازه‌گیری')} loading="lazy" />}
+          {how && (
+            <div>
+              <h3>{t('product.howToMeasure', 'نحوه اندازه‌گیری')}</h3>
+              {how.split('\n').filter(Boolean).map((line) => <p key={line}>{line}</p>)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

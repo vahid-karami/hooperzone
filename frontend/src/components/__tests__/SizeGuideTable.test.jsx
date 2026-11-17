@@ -27,6 +27,15 @@ describe('SizeGuideTable', () => {
     expect(container.querySelector('tr.is-picked th').textContent).toBe('M');
   });
 
+  it('puts the size table before the measuring photo and instructions', () => {
+    language = 'fa';
+    const { container } = render(<SizeGuideTable guide={{ ...guide, image: '/media/guide.jpg' }} />);
+    const table = container.querySelector('.size-table-wrap');
+    const how = container.querySelector('.size-guide-how');
+    expect(how.querySelector('img')).toBeTruthy();
+    expect(table.compareDocumentPosition(how) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('uses the English texts in English', () => {
     language = 'en';
     render(<SizeGuideTable guide={guide} />);
