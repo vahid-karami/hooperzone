@@ -408,7 +408,13 @@
 .size-table th small { font-weight: var(--font-weight-normal); color: var(--color-neutral-500); }
 .size-table tbody th { background: transparent; font-weight: var(--font-weight-bold); }
 .size-table tr.is-picked th, .size-table tr.is-picked td { background: var(--color-surface-sky); font-weight: var(--font-weight-bold); }
-.size-table-wrap { overflow-x: auto; }
+.size-table-wrap { overflow-x: auto; overscroll-behavior-x: contain; border-radius: var(--radius-md); }
+/* Values like "18-21" must not break over two lines; a table wider than the phone scrolls
+   sideways inside its wrap instead, with the size column staying in view. */
+.size-table th, .size-table td { white-space: nowrap; }
+.size-table thead th:first-child, .size-table tbody th { position: sticky; inset-inline-start: 0; z-index: 1; }
+.size-table tbody th { background: white; }
+.size-table tr.is-picked th { background: var(--color-surface-sky); }
 .size-guide-how { display: flex; gap: var(--spacing-4); align-items: flex-start; margin-top: var(--spacing-5); }
 .size-guide-how img { width: 160px; flex: none; border-radius: var(--radius-lg); background: var(--color-surface-sky); }
 .size-guide-how h3 { margin-bottom: var(--spacing-2); font-size: var(--font-size-base); color: var(--color-primary); }
