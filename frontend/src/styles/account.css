@@ -439,6 +439,7 @@ tr.is-open .row-toggle .icon { transform: rotate(180deg); }
 .size-guide-pick .form-select { flex: 1 1 240px; }
 .size-guide-preview { margin-top: var(--spacing-3); padding: var(--spacing-3) var(--spacing-4); border: 1px dashed var(--color-line); border-radius: var(--radius-lg); }
 .size-guide-preview summary { cursor: pointer; font-weight: var(--font-weight-bold); color: var(--color-primary); }
+.size-guide-preview .size-guide { margin-top: var(--spacing-3); }
 .size-guide-section { margin: var(--spacing-4) 0 var(--spacing-2); font-size: var(--font-size-base); color: var(--color-primary); }
 .size-guide-grid-wrap { overflow-x: auto; margin-bottom: var(--spacing-3); }
 .size-guide-grid { border-collapse: separate; border-spacing: 6px; }

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from './Icon';
+import useLockBodyScroll from '../hooks/useLockBodyScroll';
 import { toPersianNumber } from '../hooks/useLanguage';
 
 const pick = (lang, fa, en) => (lang === 'fa' ? fa || en : en || fa) || '';
@@ -60,6 +61,8 @@ export default function SizeGuideModal({ guide, highlight, onClose }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'fa' ? 'fa' : 'en';
 
+  useLockBodyScroll();
+
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -68,7 +71,7 @@ export default function SizeGuideModal({ guide, highlight, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={(e) => e.stopPropagation()}>
+      <div className="modal modal-lg modal-sheet" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="size-guide-title">{pick(lang, guide.title_fa, guide.title_en) || t('product.sizeGuide')}</h2>
           <button onClick={onClose} className="icon-btn" aria-label={t('common.close', 'بستن')}>
